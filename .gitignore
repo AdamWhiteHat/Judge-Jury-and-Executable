@@ -1,0 +1,12 @@
+﻿################################################################################
+# This .gitignore file was automatically created by Microsoft(R) Visual Studio.
+################################################################################
+
+.vs
+packages
+bin
+obj
+app.config
+
+/NtfsLib/DeviceIOControlLib
+/NtfsLib/RawDiskLib
