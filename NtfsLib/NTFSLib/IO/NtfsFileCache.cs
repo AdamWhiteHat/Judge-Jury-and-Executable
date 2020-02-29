@@ -10,14 +10,19 @@ namespace NTFSLib.IO
 		// Key: ulong
 		// Value: WeakReference
 		private Hashtable _entries;
-		ULongEqualityComparer hashtableComparer;
+		private ULongEqualityComparer hashtableComparer;
 
 		internal NtfsFileCache()
 		{
 			hashtableComparer = new ULongEqualityComparer();
 			_entries = new Hashtable();
 		}
-		
+
+		//if (!entryDictionary.Contains(indexEntry.UniqueID))
+		//{
+		//	entryDictionary.Add(indexEntry.UniqueID);
+		//}
+
 
 		public NtfsFileEntry Get(uint id, int filenameHashcode)
 		{

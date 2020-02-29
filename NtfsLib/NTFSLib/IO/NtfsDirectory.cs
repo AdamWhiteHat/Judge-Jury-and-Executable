@@ -22,7 +22,6 @@ namespace NTFSLib.IO
 			: base(ntfsWrapper, record, fileName)
 		{
 			Debug.Assert(record.Flags.HasFlag(FileEntryFlags.Directory));
-
 			PrepRecord();
 		}
 
@@ -34,7 +33,7 @@ namespace NTFSLib.IO
 			{
 				foreach (AttributeListItem item in list.Items)
 				{
-					if (item.BaseFile != MFTRecord.FileReference &&
+					if (item.BaseFile.Equals(MFTRecord.FileReference) &&
 						(item.Type == AttributeType.INDEX_ROOT || item.Type == AttributeType.INDEX_ALLOCATION))
 					{
 						// We need to parse lists
@@ -93,117 +92,150 @@ namespace NTFSLib.IO
 			// var bitmap = MFTRecord.Attributes.OfType<AttributeBitmap>().Single(s => s.AttributeName == DirlistAttribName);
 		}
 
-		public IEnumerable<NtfsDirectory> ListDirectories(bool uniqueOnly = true)
+		public IEnumerable<NtfsDirectory> ListDirectories()
 		{
-			return ListChilds(uniqueOnly).OfType<NtfsDirectory>();
+			return ListChildsLazy().OfType<NtfsDirectory>();
 		}
 
-		public IEnumerable<NtfsFile> ListFiles(bool uniqueOnly = true)
+		public IEnumerable<NtfsFile> ListFiles()
 		{
-			return ListChilds(uniqueOnly).OfType<NtfsFile>();
+			return ListChildsLazy().OfType<NtfsFile>();
 		}
-
-		public IEnumerable<NtfsFileEntry> ListChilds(bool uniqueOnly)
+		
+		public IEnumerable<NtfsFileEntry> ListChildsLazy()
 		{
-			IEnumerable<NtfsFileEntry> results = null;
-
-			if (_indexRoot != null)
+			if (_indexRoot == null)
 			{
-				IEnumerable<IndexEntry> enumerableEntries = _indexRoot.Entries.Select(e => e);
-
-				if (_indexRoot.IndexFlags.HasFlag(MFTIndexRootFlags.LargeIndex))
-				{
-					enumerableEntries = enumerableEntries.Concat(_indexes.SelectMany(i => i.Entries.Select(e => e)));
-				}
-
-				if (uniqueOnly)
-				{
-					enumerableEntries = enumerableEntries.Distinct();
-				}
-
-				results = enumerableEntries.Select(ie => CreateEntry(ie.FileRefence.FileId, ie.ChildFileName));
+				yield break;
 			}
 
-			return results;
-			
+			if (_indexRoot.IndexFlags.HasFlag(MFTIndexRootFlags.LargeIndex))
+			{
+				foreach (AttributeIndexAllocation index in _indexes)
+				{
+					foreach (IndexEntry indexEntry in index.Entries)
+					{
+						NtfsFileEntry entry = CreateEntry(indexEntry);
+						yield return entry;
+					}
+				}
+			}
 
-			//if (uniqueOnly && _indexRoot != null)
-			//{
-			//FileNamespaceComparer comparer = new FileNamespaceComparer();
+			foreach (IndexEntry rootEntry in _indexRoot.Entries)
+			{
+				NtfsFileEntry entry = CreateEntry(rootEntry);
+				yield return entry;
+			}
 
-			//// Key: uint
-			//// Value: NtfsFileEntry
-			//UIntEqualityComparer hashtableComparer = new UIntEqualityComparer();
-			//Hashtable entries = new Hashtable(hashtableComparer);
-
-			//foreach (IndexEntry entry in _indexRoot.Entries)
-			//{
-			//	if (entries.ContainsKey(entry.FileRefence.FileId))
-			//	{
-			//		// Is this better?
-			//		int comp = comparer.Compare(entry.ChildFileName.FilenameNamespace, ((NtfsFileEntry)entries[entry.FileRefence.FileId]).FileName.FilenameNamespace);
-
-			//		if (comp == 1)
-			//		{
-			//			// New entry is better
-			//			entries[entry.FileRefence.FileId] = CreateEntry(entry.FileRefence.FileId, entry.ChildFileName);
-			//		}
-			//	}
-			//	else
-			//	{
-			//		entries[entry.FileRefence.FileId] = CreateEntry(entry.FileRefence.FileId, entry.ChildFileName);
-			//	}
-			//}
-			//foreach (AttributeIndexAllocation index in _indexes)
-			//{
-			//	foreach (IndexEntry entry in index.Entries)
-			//	{
-			//		if (entries.ContainsKey(entry.FileRefence.FileId))
-			//		{
-			//			// Is this better?
-			//			int comp = comparer.Compare(entry.ChildFileName.FilenameNamespace, ((NtfsFileEntry)entries[entry.FileRefence.FileId]).FileName.FilenameNamespace);
-			//			if (comp == 1)
-			//			{
-			//				// New entry is better
-			//				entries[entry.FileRefence.FileId] = CreateEntry(entry.FileRefence.FileId, entry.ChildFileName);
-			//			}
-			//		}
-			//		else
-			//		{
-			//			entries[entry.FileRefence.FileId] = CreateEntry(entry.FileRefence.FileId, entry.ChildFileName);
-			//		}
-			//	}
-			//}
-			//}
-
-			//foreach (NtfsFileEntry value in entries.Values)
-			//{
-			//	yield return value;
-			//}
-			//}
-			//else if (_indexRoot != null)
-			//{
-			//	foreach (IndexEntry entry in _indexRoot.Entries)
-			//	{
-			//		yield return CreateEntry(entry.FileRefence.FileId, entry.ChildFileName);
-			//	}
-
-			//	if (_indexRoot.IndexFlags.HasFlag(MFTIndexRootFlags.LargeIndex))
-			//	{
-			//		foreach (AttributeIndexAllocation index in _indexes)
-			//		{
-			//			foreach (IndexEntry entry in index.Entries)
-			//			{
-			//				yield return CreateEntry(entry.FileRefence.FileId, entry.ChildFileName);
-			//			}
-			//		}
-			//	}
-			//}
+			yield break;
 		}
 
 		public override string ToString()
 		{
 			return FileName.FileName + "\\";
 		}
+
+		#region Dead Code
+
+		//public IEnumerable<NtfsFileEntry> ListChilds(bool uniqueOnly)
+		//{
+		//	IEnumerable<NtfsFileEntry> results = null;
+
+		//	if (_indexRoot != null)
+		//	{
+		//		IEnumerable<IndexEntry> enumerableEntries = _indexRoot.Entries.Select(e => e);
+
+		//		if (_indexRoot.IndexFlags.HasFlag(MFTIndexRootFlags.LargeIndex))
+		//		{
+		//			enumerableEntries = enumerableEntries.Concat(_indexes.SelectMany(i => i.Entries.Select(e => e)));
+		//		}
+
+		//		if (uniqueOnly)
+		//		{
+		//			enumerableEntries = enumerableEntries.Distinct();
+		//		}
+
+		//		results = enumerableEntries.Select(ie => CreateEntry(ie));
+		//	}
+
+		//	return results;
+
+
+		//	//if (uniqueOnly && _indexRoot != null)
+		//	//{
+		//	//FileNamespaceComparer comparer = new FileNamespaceComparer();
+
+		//	//// Key: uint
+		//	//// Value: NtfsFileEntry
+		//	//UIntEqualityComparer hashtableComparer = new UIntEqualityComparer();
+		//	//Hashtable entries = new Hashtable(hashtableComparer);
+
+		//	//foreach (IndexEntry entry in _indexRoot.Entries)
+		//	//{
+		//	//	if (entries.ContainsKey(entry.FileRefence.FileId))
+		//	//	{
+		//	//		// Is this better?
+		//	//		int comp = comparer.Compare(entry.ChildFileName.FilenameNamespace, ((NtfsFileEntry)entries[entry.FileRefence.FileId]).FileName.FilenameNamespace);
+
+		//	//		if (comp == 1)
+		//	//		{
+		//	//			// New entry is better
+		//	//			entries[entry.FileRefence.FileId] = CreateEntry(entry.FileRefence.FileId, entry.ChildFileName);
+		//	//		}
+		//	//	}
+		//	//	else
+		//	//	{
+		//	//		entries[entry.FileRefence.FileId] = CreateEntry(entry.FileRefence.FileId, entry.ChildFileName);
+		//	//	}
+		//	//}
+		//	//foreach (AttributeIndexAllocation index in _indexes)
+		//	//{
+		//	//	foreach (IndexEntry entry in index.Entries)
+		//	//	{
+		//	//		if (entries.ContainsKey(entry.FileRefence.FileId))
+		//	//		{
+		//	//			// Is this better?
+		//	//			int comp = comparer.Compare(entry.ChildFileName.FilenameNamespace, ((NtfsFileEntry)entries[entry.FileRefence.FileId]).FileName.FilenameNamespace);
+		//	//			if (comp == 1)
+		//	//			{
+		//	//				// New entry is better
+		//	//				entries[entry.FileRefence.FileId] = CreateEntry(entry.FileRefence.FileId, entry.ChildFileName);
+		//	//			}
+		//	//		}
+		//	//		else
+		//	//		{
+		//	//			entries[entry.FileRefence.FileId] = CreateEntry(entry.FileRefence.FileId, entry.ChildFileName);
+		//	//		}
+		//	//	}
+		//	//}
+		//	//}
+
+		//	//foreach (NtfsFileEntry value in entries.Values)
+		//	//{
+		//	//	yield return value;
+		//	//}
+		//	//}
+		//	//else if (_indexRoot != null)
+		//	//{
+		//	//	foreach (IndexEntry entry in _indexRoot.Entries)
+		//	//	{
+		//	//		yield return CreateEntry(entry.FileRefence.FileId, entry.ChildFileName);
+		//	//	}
+
+		//	//	if (_indexRoot.IndexFlags.HasFlag(MFTIndexRootFlags.LargeIndex))
+		//	//	{
+		//	//		foreach (AttributeIndexAllocation index in _indexes)
+		//	//		{
+		//	//			foreach (IndexEntry entry in index.Entries)
+		//	//			{
+		//	//				yield return CreateEntry(entry.FileRefence.FileId, entry.ChildFileName);
+		//	//			}
+		//	//		}
+		//	//	}
+		//	//}
+		//}
+
+		#endregion
+
 	}
 }

@@ -23,6 +23,9 @@ namespace FilePropertiesEnumerator
 			{
 				NTFSDiskProvider provider = new NTFSDiskProvider(disk);
 				NTFSWrapper ntfsWrapper = new NTFSWrapper(provider, rawDiskCacheRecordSize);
+
+
+
 				NtfsDirectory ntfsDir = NTFSHelpers.OpenDir(ntfsWrapper, directory);
 
 				return ntfsDir.ListFiles();
@@ -37,6 +40,10 @@ namespace FilePropertiesEnumerator
 			{
 				NTFSDiskProvider provider = new NTFSDiskProvider(disk);
 				NTFSWrapper ntfsWrapper = new NTFSWrapper(provider, rawDiskCacheRecordSize);
+
+
+
+
 				NtfsDirectory ntfsDir = NTFSHelpers.OpenDir(ntfsWrapper, directory);
 
 				return ntfsDir.ListDirectories();

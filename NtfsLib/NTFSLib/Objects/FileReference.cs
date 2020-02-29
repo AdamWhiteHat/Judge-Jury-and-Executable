@@ -1,9 +1,10 @@
 ﻿using System;
 using System.Diagnostics;
+using System.Collections.Generic;
 
 namespace NTFSLib.Objects
 {
-	public class FileReference : IEquatable<FileReference>, IComparable<FileReference>
+	public class FileReference : IEqualityComparer<FileReference>
 	{
 		public ulong RawId { get; set; }
 		public uint FileId { get; set; }
@@ -34,124 +35,129 @@ namespace NTFSLib.Objects
 
 		public bool Equals(FileReference other)
 		{
-			return this == other;
+			return Equals(this, other);
 		}
 
-		public override bool Equals(object obj)
+		public bool Equals(FileReference x, FileReference y)
 		{
-			return Equals(obj as FileReference);
+			return (x.RawId == y.RawId);
 		}
 
 		public override int GetHashCode()
 		{
+			return GetHashCode(this);
+		}
+
+		public int GetHashCode(FileReference obj)
+		{
 			return RawId.GetHashCode();
 		}
 
-		public static bool operator ==(FileReference a, FileReference b)
-		{
-			if (ReferenceEquals(a, b))
-				return true;
-			if ((object)a == null || (object)b == null)
-				return false;
-			return a.RawId == b.RawId;
-		}
+		//public static bool operator ==(FileReference a, FileReference b)
+		//{
+		//	if (ReferenceEquals(a, b))
+		//		return true;
+		//	if ((object)a == null || (object)b == null)
+		//		return false;
+		//	return a.RawId == b.RawId;
+		//}
+		
+		//public static bool operator !=(FileReference a, FileReference b)
+		//{
+		//	return !(a == b);
+		//}
 
-		public static bool operator !=(FileReference a, FileReference b)
-		{
-			return !(a == b);
-		}
+		//public static bool operator <(FileReference a, FileReference b)
+		//{
+		//	if (ReferenceEquals(a, b))
+		//		return false;
+		//	if ((object)a == null)
+		//		throw new ArgumentNullException("a");
+		//	if ((object)b == null)
+		//		throw new ArgumentNullException("b");
+		//
+		//	return CompareToInternal(a, b) < 0;
+		//}
+		//
+		//public static bool operator >(FileReference a, FileReference b)
+		//{
+		//	if (ReferenceEquals(a, b))
+		//		return false;
+		//	if ((object)a == null)
+		//		throw new ArgumentNullException("a");
+		//	if ((object)b == null)
+		//		throw new ArgumentNullException("b");
+		//
+		//	return CompareToInternal(a, b) > 0;
+		//}
+		//
+		//public static bool operator <=(FileReference a, FileReference b)
+		//{
+		//	if (ReferenceEquals(a, b))
+		//		return true;
+		//	if ((object)a == null)
+		//		throw new ArgumentNullException("a");
+		//	if ((object)b == null)
+		//		throw new ArgumentNullException("b");
+		//
+		//	return CompareToInternal(a, b) <= 0;
+		//}
+		//
+		//public static bool operator >=(FileReference a, FileReference b)
+		//{
+		//	if (ReferenceEquals(a, b))
+		//		return true;
+		//	if ((object)a == null)
+		//		throw new ArgumentNullException("a");
+		//	if ((object)b == null)
+		//		throw new ArgumentNullException("b");
+		//
+		//	return CompareToInternal(a, b) >= 0;
+		//}
+		//
+		//public int CompareTo(FileReference other)
+		//{
+		//	// <0   This < other
+		//	// 0    This == other
+		//	// >0   This > other
+		//
+		//	if ((object)other == null)
+		//	{
+		//		return 1;
+		//	}
+		//
+		//	return CompareToInternal(this, other);
+		//}
 
-		public static bool operator <(FileReference a, FileReference b)
-		{
-			if (ReferenceEquals(a, b))
-				return false;
-			if ((object)a == null)
-				throw new ArgumentNullException("a");
-			if ((object)b == null)
-				throw new ArgumentNullException("b");
-
-			return CompareToInternal(a, b) < 0;
-		}
-
-		public static bool operator >(FileReference a, FileReference b)
-		{
-			if (ReferenceEquals(a, b))
-				return false;
-			if ((object)a == null)
-				throw new ArgumentNullException("a");
-			if ((object)b == null)
-				throw new ArgumentNullException("b");
-
-			return CompareToInternal(a, b) > 0;
-		}
-
-		public static bool operator <=(FileReference a, FileReference b)
-		{
-			if (ReferenceEquals(a, b))
-				return true;
-			if ((object)a == null)
-				throw new ArgumentNullException("a");
-			if ((object)b == null)
-				throw new ArgumentNullException("b");
-
-			return CompareToInternal(a, b) <= 0;
-		}
-
-		public static bool operator >=(FileReference a, FileReference b)
-		{
-			if (ReferenceEquals(a, b))
-				return true;
-			if ((object)a == null)
-				throw new ArgumentNullException("a");
-			if ((object)b == null)
-				throw new ArgumentNullException("b");
-
-			return CompareToInternal(a, b) >= 0;
-		}
-
-		public int CompareTo(FileReference other)
-		{
-			// <0   This < other
-			// 0    This == other
-			// >0   This > other
-
-			if ((object)other == null)
-			{
-				return 1;
-			}
-
-			return CompareToInternal(this, other);
-		}
-
-		private static int CompareToInternal(FileReference a, FileReference b)
-		{
-			// <0   a <  b
-			// 0    a == b
-			// >0   a >  b
-
-			if (a.FileId == b.FileId)
-			{
-				// Compare sequence numbers
-				if (a.FileSequenceNumber < b.FileSequenceNumber)
-				{
-					return -1;
-				}
-				if (a.FileSequenceNumber > b.FileSequenceNumber)
-				{
-					return 1;
-				}
-
-				// Both Id and Seq num are identical
-				return 0;
-			}
-
-			if (a.FileId < b.FileId)
-			{
-				return -1;
-			}
-
-			// FileId > other.FileId
-			return 1;
-		}
+		//private static int CompareToInternal(FileReference a, FileReference b)
+		//{
+		//	// <0   a <  b
+		//	// 0    a == b
+		//	// >0   a >  b
+		//
+		//	if (a.FileId == b.FileId)
+		//	{
+		//		// Compare sequence numbers
+		//		if (a.FileSequenceNumber < b.FileSequenceNumber)
+		//		{
+		//			return -1;
+		//		}
+		//		if (a.FileSequenceNumber > b.FileSequenceNumber)
+		//		{
+		//			return 1;
+		//		}
+		//
+		//		// Both Id and Seq num are identical
+		//		return 0;
+		//	}
+		//
+		//	if (a.FileId < b.FileId)
+		//	{
+		//		return -1;
+		//	}
+		//
+		//	// FileId > other.FileId
+		//	return 1;
+		//}
 	}
 }

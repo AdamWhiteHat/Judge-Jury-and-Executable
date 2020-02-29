@@ -1,19 +1,21 @@
 ﻿using System;
 using System.Diagnostics;
-using NTFSLib.Objects.Attributes;
 using NTFSLib.Objects.Enums;
 using NTFSLib.Objects.Headers;
+using NTFSLib.Objects.Attributes;
+using System.Collections.Generic;
 
 namespace NTFSLib.Objects
 {
-	public class IndexEntry : IEquatable<IndexEntry>
+	public class IndexEntry : IEqualityComparer<IndexEntry>
 	{
 		public FileReference FileRefence { get; set; }
 		public ushort Size { get; set; }
 		public ushort StreamSize { get; set; }
 		public MFTIndexEntryFlags Flags { get; set; }
 		public byte[] Stream { get; set; }
-		public uint FileId { get { return FileRefence.FileId; } }
+		//public uint FileId { get { return FileRefence.FileId; } }
+		public ulong UniqueID { get { return FileRefence.RawId; } }
 
 		public AttributeFileName ChildFileName { get; set; }
 
@@ -49,26 +51,19 @@ namespace NTFSLib.Objects
 			return res;
 		}
 
-		public bool Equals(IndexEntry other)
+		public bool Equals(IndexEntry x, IndexEntry y)
 		{
-			if (other == null) return false;
-			if (other.FileRefence == null) return false;
-			return (this.FileRefence.FileId == other.FileRefence.FileId);
+			return (x.UniqueID == y.UniqueID);
 		}
 
-		private static ulong largePrime = 5261343380158614487;
-		public override int GetHashCode()
+		public int GetHashCode(IndexEntry obj)
 		{
-			unchecked
-			{
-				UInt64 product = (this.FileRefence.FileId * largePrime);
-				return (int)(product % ((uint)Int32.MaxValue));
-			}
+			return obj.UniqueID.GetHashCode();
 		}
+
 		public override string ToString()
 		{
 			return (ChildFileName == null) ? FileRefence.ToString() : FileRefence + " (" + ChildFileName.FileName + ")";
 		}
-
 	}
 }

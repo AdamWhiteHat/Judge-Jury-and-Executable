@@ -50,10 +50,10 @@ namespace NTFSLib.Objects
 			return BitConverter.ToUInt32(data, offset + 28);
 		}
 
-		public bool IsExtensionRecord
-		{
-			get { return BaseFile.RawId != 0; }
-		}
+		//public bool IsExtensionRecord
+		//{
+		//	get { return BaseFile.RawId != 0; }
+		//}
 
 		public static FileRecord Parse(byte[] data, int offset, ushort bytesPrSector, uint sectors)
 		{
@@ -140,7 +140,7 @@ namespace NTFSLib.Objects
 			foreach (AttributeList list in Attributes.OfType<AttributeList>())
 			{
 				// Find attributes to get from 'record'
-				List<Attribute> attributesToUse = record.Attributes.Where(s => list.Items.Any(x => x.AttributeId == s.Id && s.OwningRecord == x.BaseFile)).ToList();
+				List<Attribute> attributesToUse = record.Attributes.Where(s => list.Items.Any(x => x.AttributeId == s.Id && s.OwningRecord.Equals(x.BaseFile))).ToList();
 
 				_externalAttributes.AddRange(attributesToUse);
 			}

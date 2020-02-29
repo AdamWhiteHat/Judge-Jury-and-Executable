@@ -11,7 +11,7 @@ using NTFSLib.Utilities;
 
 namespace NTFSLib.IO
 {
-	public abstract class NtfsFileEntry
+	public abstract class NtfsFileEntry : IEqualityComparer<NtfsFileEntry>
 	{
 		protected NTFSWrapper NTFSWrapper;
 		internal AttributeFileName FileName;
@@ -37,6 +37,11 @@ namespace NTFSLib.IO
 		private void Init()
 		{
 			_standardInformation = MFTRecord.Attributes.OfType<AttributeStandardInformation>().SingleOrDefault();
+		}
+
+		internal NtfsFileEntry CreateEntry(IndexEntry indexEntry)
+		{
+			return CreateEntry(indexEntry.FileRefence.FileId, indexEntry.ChildFileName);
 		}
 
 		internal NtfsFileEntry CreateEntry(uint fileId, AttributeFileName fileName = null)
@@ -77,11 +82,6 @@ namespace NTFSLib.IO
 			return entry;
 		}
 
-		public string[] GetStreamList()
-		{
-			return MFTRecord.Attributes.OfType<AttributeData>().Select(s => s.AttributeName).ToArray();
-		}
-
 		public Stream OpenRead(string dataStream = "")
 		{
 			if (NTFSWrapper.Provider.MftFileOnly)
@@ -112,6 +112,22 @@ namespace NTFSLib.IO
 			ushort compressionClusterCount = (ushort)(compressionUnitSize == 0 ? 0 : Math.Pow(2, compressionUnitSize));
 
 			return new NtfsDiskStream(diskStream, true, fragments, NTFSWrapper.BytesPrCluster, compressionClusterCount, (long)dataAttribs[0].NonResidentHeader.ContentSize);
+		}
+
+
+		//public string[] GetStreamList()
+		//{
+		//	return MFTRecord.Attributes.OfType<AttributeData>().Select(s => s.AttributeName).ToArray();
+		//}
+
+		public bool Equals(NtfsFileEntry x, NtfsFileEntry y)
+		{
+			return (x.MFTRecord.BaseFile.RawId == y.MFTRecord.BaseFile.RawId);
+		}
+
+		public int GetHashCode(NtfsFileEntry obj)
+		{
+			return obj.MFTRecord.BaseFile.RawId.GetHashCode();
 		}
 	}
 }
