@@ -1,4 +1,4 @@
-# Judge-Query-and-Executable
+# Judge-Jury-and-Executable
 
 #### Hunt for viruses, malware, and APTs on (multiple) file systems using by writing queries in SQL.
 
