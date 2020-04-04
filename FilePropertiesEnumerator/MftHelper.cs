@@ -11,45 +11,50 @@ using NTFSLib.Objects.Attributes;
 
 namespace FilePropertiesEnumerator
 {
-	public static class MftHelper
-	{
-		private static int rawDiskCacheRecordSize = 2048;
+    public static class MftHelper
+    {
+        private static int rawDiskCacheRecordSize = 2048;
 
-		public static IEnumerable<NtfsFile> EnumerateFiles(char driveLetter, string directory)
-		{
-			if (string.IsNullOrWhiteSpace(directory)) throw new ArgumentException("String cannot be null, empty or whitespace.", nameof(directory));
+        public static IEnumerable<NtfsFile> EnumerateFiles(char driveLetter, string directory)
+        {
+            if (string.IsNullOrWhiteSpace(directory)) throw new ArgumentException("String cannot be null, empty or whitespace.", nameof(directory));
 
-			using (RawDisk disk = new RawDisk(driveLetter, FileAccess.Read))
-			{
-				NTFSDiskProvider provider = new NTFSDiskProvider(disk);
-				NTFSWrapper ntfsWrapper = new NTFSWrapper(provider, rawDiskCacheRecordSize);
+            using (RawDisk disk = new RawDisk(driveLetter, FileAccess.Read))
+            {
+                NTFSDiskProvider provider = new NTFSDiskProvider(disk);
+                NTFSWrapper ntfsWrapper = new NTFSWrapper(provider, rawDiskCacheRecordSize);
 
+                NtfsDirectory rootDir = ntfsWrapper.GetRootDirectory();
 
+                if (rootDir == null)
+                {
+                    throw new Exception("currDir == null");
+                }
 
-				NtfsDirectory ntfsDir = NTFSHelpers.OpenDir(ntfsWrapper, directory);
+                return rootDir.ListFiles();
+            }
+        }
 
-				return ntfsDir.ListFiles();
-			}
-		}
+        public static IEnumerable<NtfsDirectory> GetDirectories(char driveLetter, string directory)
+        {
+            if (string.IsNullOrWhiteSpace(directory)) throw new ArgumentException("String cannot be null, empty or whitespace.", nameof(directory));
 
-		public static IEnumerable<NtfsDirectory> GetDirectories(char driveLetter, string directory)
-		{
-			if (string.IsNullOrWhiteSpace(directory)) throw new ArgumentException("String cannot be null, empty or whitespace.", nameof(directory));
+            using (RawDisk disk = new RawDisk(driveLetter, FileAccess.Read))
+            {
+                NTFSDiskProvider provider = new NTFSDiskProvider(disk);
+                NTFSWrapper ntfsWrapper = new NTFSWrapper(provider, rawDiskCacheRecordSize);
 
-			using (RawDisk disk = new RawDisk(driveLetter, FileAccess.Read))
-			{
-				NTFSDiskProvider provider = new NTFSDiskProvider(disk);
-				NTFSWrapper ntfsWrapper = new NTFSWrapper(provider, rawDiskCacheRecordSize);
+                NtfsDirectory rootDir = ntfsWrapper.GetRootDirectory();
 
+                if (rootDir == null)
+                {
+                    throw new Exception("currDir == null");
+                }
 
-
-
-				NtfsDirectory ntfsDir = NTFSHelpers.OpenDir(ntfsWrapper, directory);
-
-				return ntfsDir.ListDirectories();
-			}
-		}
-		/*
+                return rootDir.ListDirectories();
+            }
+        }
+        /*
 		public static string[] GetAlternateDatastreamFiles(char driveLetter, string directory, string filename)
 		{
 			string[] results = new string[] { };
@@ -133,5 +138,5 @@ namespace FilePropertiesEnumerator
 			}
 		}
 		*/
-	}
+    }
 }
