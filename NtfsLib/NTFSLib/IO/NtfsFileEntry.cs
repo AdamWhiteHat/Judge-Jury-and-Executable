@@ -114,12 +114,6 @@ namespace NTFSLib.IO
 			return new NtfsDiskStream(diskStream, true, fragments, NTFSWrapper.BytesPrCluster, compressionClusterCount, (long)dataAttribs[0].NonResidentHeader.ContentSize);
 		}
 
-
-		//public string[] GetStreamList()
-		//{
-		//	return MFTRecord.Attributes.OfType<AttributeData>().Select(s => s.AttributeName).ToArray();
-		//}
-
 		public bool Equals(NtfsFileEntry x, NtfsFileEntry y)
 		{
 			return (x.MFTRecord.BaseFile.RawId == y.MFTRecord.BaseFile.RawId);

@@ -22,21 +22,15 @@ namespace NTFSLib.NTFS
 	public class NTFSWrapper : INTFSInfo
 	{
 		private uint _sectorsPrRecord;
-		internal IDiskProvider Provider { get; private set; }
 		private WeakReference[] FileRecords { get; set; }
-		internal NtfsFileCache FileCache { get; private set; }
 		private Stream MftStream { get; set; }
 		private readonly int _rawDiskCacheSizeRecords;
 		private RawDiskCache MftRawCache { get; set; }
 
-		public NTFSWrapper(IDiskProvider provider, int rawDiskCacheSizeRecords)
-		{
-			_rawDiskCacheSizeRecords = rawDiskCacheSizeRecords;
-			Provider = provider;
-			FileCache = new NtfsFileCache();
 
-			InitializeNTFS();
-		}
+		internal IDiskProvider Provider { get; private set; }
+		internal NtfsFileCache FileCache { get; private set; }
+
 
 		public uint BytesPrCluster { get { return (uint)(Boot.BytesPrSector * Boot.SectorsPrCluster); } }
 		public uint BytesPrSector { get { return Boot.BytesPrSector; } }
@@ -47,19 +41,19 @@ namespace NTFSLib.NTFS
 		public uint FileRecordCount { get; private set; }
 		public BootSector Boot { get; private set; }
 		public FileRecord FileMFT { get; private set; }
-
-		//public FileRecord FileMFTMirr { get; private set; }
-		//public FileRecord FileLogFile { get; private set; }
-		//public FileRecord FileVolume { get; private set; }
-		//public FileRecord FileAttrDef { get; private set; }
-		//public FileRecord FileRootDir { get; private set; }
-		//public FileRecord FileBitmap { get; private set; }
-		//public FileRecord FileBoot { get; private set; }
-		//public FileRecord FileBadClus { get; private set; }
-		//public FileRecord FileSecure { get; private set; }
-		//public FileRecord FileUpCase { get; private set; }
-		//public FileRecord FileExtend { get; private set; }
 		public Version NTFSVersion { get; private set; }
+
+
+
+
+		public NTFSWrapper(IDiskProvider provider, int rawDiskCacheSizeRecords)
+		{
+			_rawDiskCacheSizeRecords = rawDiskCacheSizeRecords;
+			Provider = provider;
+			FileCache = new NtfsFileCache();
+
+			InitializeNTFS();
+		}
 
 		private void InitializeNTFS()
 		{
@@ -138,27 +132,13 @@ namespace NTFSLib.NTFS
 			}
 		}
 
-		//public void PrepRawDiskCache(uint number)
-		//{
-		//	Debug.Assert(MftStream != null);
-		//	Debug.Assert(BytesPrFileRecord > 0);
-		//	Debug.Assert(number < FileRecordCount);
-		//
-		//	uint offset = number * BytesPrFileRecord;
-		//	int toRead = (int)Math.Min(MftStream.Length - offset, MftRawCache.Data.Length);
-		//
-		//	Debug.WriteLine("Fetching {0:N0} bytes (record #{1:N0}) from disk into RawDiskCache", toRead, number);
-		//
-		//	// Read
-		//	MftStream.Seek(offset, SeekOrigin.Begin);
-		//	MftStream.Read(MftRawCache.Data, 0, toRead);
-		//
-		//	// Set props
-		//	MftRawCache.DataOffset = offset;
-		//	MftRawCache.Length = toRead;
-		//}
 
-		public bool InRawDiskCache(uint number)
+
+
+
+
+
+		private bool InRawDiskCache(uint number)
 		{
 			if (MftRawCache.Initialized && MftRawCache.DataOffset / BytesPrFileRecord <= number &&
 				number <= MftRawCache.DataOffset / BytesPrFileRecord + MftRawCache.Length / BytesPrFileRecord - 1)
@@ -169,47 +149,112 @@ namespace NTFSLib.NTFS
 			return false;
 		}
 
-		//public void InitializeCommon()
-		//{
-		//	// Read primary records
-		//	FileMFTMirr = ReadMFTRecord(SpecialMFTFiles.MFTMirr);
-		//	FileLogFile = ReadMFTRecord(SpecialMFTFiles.LogFile);
-		//	FileVolume = ReadMFTRecord(SpecialMFTFiles.Volume);
-		//	FileAttrDef = ReadMFTRecord(SpecialMFTFiles.AttrDef);
-		//	FileRootDir = ReadMFTRecord(SpecialMFTFiles.RootDir);
-		//	FileBitmap = ReadMFTRecord(SpecialMFTFiles.Bitmap);
-		//	FileBoot = ReadMFTRecord(SpecialMFTFiles.Boot);
-		//	FileBadClus = ReadMFTRecord(SpecialMFTFiles.BadClus);
-		//	//FileQuota = ReadMFTRecord(SpecialMFTFiles.Quota);
-		//	FileSecure = ReadMFTRecord(SpecialMFTFiles.Secure);
-		//	FileUpCase = ReadMFTRecord(SpecialMFTFiles.UpCase);
-		//	FileExtend = ReadMFTRecord(SpecialMFTFiles.Extend);
-		//
-		//	// Read extended data
-		//	foreach (SpecialMFTFiles specialMFTFile in Enum.GetValues(typeof(SpecialMFTFiles)).OfType<SpecialMFTFiles>())
-		//	{
-		//		WeakReference item = FileRecords[(int)specialMFTFile];
-		//		if (item != null && item.IsAlive)
-		//		{
-		//			ParseAttributeLists((FileRecord)item.Target);
-		//		}
-		//	}
-		//}
-		//
-		//public void ParseNonResidentAttributes(FileRecord record)
-		//{
-		//	if (Provider.MftFileOnly)
-		//	{   // Nothing to do about this
-		//		throw new InvalidOperationException("Provider indicates an MFT file is used. Cannot parse non-resident attributes.");
-		//	}
-		//
-		//	foreach (Attribute attr in record.Attributes.Where(s => s.Type != AttributeType.DATA && s.NonResidentFlag == ResidentFlag.NonResident))
-		//	{
-		//		ParseNonResidentAttribute(attr);
-		//	}
-		//}
+		private FileRecord ParseMFTRecord(byte[] data)
+		{
+			return FileRecord.Parse(data, 0, Boot.BytesPrSector, _sectorsPrRecord);
+		}
 
-		public void ParseNonResidentAttribute(Attribute attr)
+		private FileRecord ReadMFTRecord(SpecialMFTFiles file)
+		{
+			return ReadMFTRecord((uint)file);
+		}
+
+		private byte[] ReadMFTRecordData(uint number)
+		{
+			int length = (int)(BytesPrFileRecord == 0 ? 4096 : BytesPrFileRecord);
+			long offset = number * length;
+
+			// Calculate location
+			if (InRawDiskCache(number))
+			{
+				byte[] mftData = new byte[length];
+				int cacheOffset = (int)(offset - MftRawCache.DataOffset);
+
+				Array.Copy(MftRawCache.Data, cacheOffset, mftData, 0, mftData.Length);
+
+				Debug.WriteLine($"Read MFT Record {number} via. RAW CACHE; bytes {offset}->{offset + (long)length} ({length} bytes)");
+				return mftData;
+			}
+
+			if (Provider.MftFileOnly)
+			{
+				// Is a contiguous file - ignore MFT fragments
+				// Offset is still correct.
+			}
+			else if (FileMFT == null)
+			{
+				// We haven't got the $MFT yet, ignore MFT fragments
+				// Offset into the MFT beginning region
+				offset += (long)(Boot.MFTCluster * BytesPrCluster);
+			}
+			else if (MftStream != null)
+			{
+				byte[] mftData = new byte[length];
+
+				MftStream.Seek(offset, SeekOrigin.Begin);
+				MftStream.Read(mftData, 0, length);
+
+				Debug.WriteLine($"Read MFT Record {number} via. NTFSDISKSTREAM; bytes {offset}->{offset + (long)length} ({length} bytes)");
+				return mftData;
+			}
+			else
+			{
+				throw new Exception("Shouldn't happen");
+			}
+
+			if (!Provider.CanReadBytes((ulong)offset, length))
+			{
+				Debug.WriteLine($"Couldn't read MFT Record {number}; bytes {offset}->{offset + (long)length} ({length} bytes)");
+				return new byte[0];
+			}
+
+			Debug.WriteLine($"Read MFT Record {number}; bytes {offset}->{offset + (long)length} ({length} bytes)");
+
+			byte[] data = new byte[length];
+			Provider.ReadBytes(data, 0, (ulong)offset, length);
+
+			return data;
+		}
+
+		private Stream OpenFileRecord(FileRecord record, string dataStream = "")
+		{
+			Debug.Assert(record != null);
+
+			if (Provider.MftFileOnly)
+			{
+				throw new InvalidOperationException("Provider indicates it's providing an MFT file only");
+			}
+
+			// Fetch extended data
+			ParseAttributeLists(record);
+
+			// Get all DATA attributes
+			List<AttributeData> dataAttribs = record.Attributes.OfType<AttributeData>().Where(s => s.AttributeName == dataStream).ToList();
+
+			Debug.Assert(dataAttribs.Count >= 1);
+
+			if (dataAttribs.Count == 1 && dataAttribs[0].NonResidentFlag == ResidentFlag.Resident)
+			{
+				return new MemoryStream(dataAttribs[0].DataBytes);
+			}
+
+			Debug.Assert(dataAttribs.All(s => s.NonResidentFlag == ResidentFlag.NonResident));
+
+			DataFragment[] fragments = dataAttribs.SelectMany(s => s.DataFragments).OrderBy(s => s.StartingVCN).ToArray();
+			Stream diskStream = Provider.CreateDiskStream();
+
+			ushort compressionUnitSize = dataAttribs[0].NonResidentHeader.CompressionUnitSize;
+			ushort compressionClusterCount = (ushort)(compressionUnitSize == 0 ? 0 : Math.Pow(2, compressionUnitSize));
+
+			return new NtfsDiskStream(diskStream, true, fragments, BytesPrCluster, compressionClusterCount, (long)dataAttribs[0].NonResidentHeader.ContentSize);
+		}
+
+
+
+
+
+
+		internal void ParseNonResidentAttribute(Attribute attr)
 		{
 			if (Provider.MftFileOnly)
 			{   // Nothing to do about this
@@ -270,17 +315,7 @@ namespace NTFSLib.NTFS
 			}
 		}
 
-		private FileRecord ParseMFTRecord(byte[] data)
-		{
-			return FileRecord.Parse(data, 0, Boot.BytesPrSector, _sectorsPrRecord);
-		}
-
-		public FileRecord ReadMFTRecord(SpecialMFTFiles file)
-		{
-			return ReadMFTRecord((uint)file);
-		}
-
-		public FileRecord ReadMFTRecord(uint number, bool parseAttributeLists = true)
+		internal FileRecord ReadMFTRecord(uint number, bool parseAttributeLists = true)
 		{
 			FileRecord record;
 			if (number <= FileRecords.Length && FileRecords[number] != null && (record = FileRecords[number].Target as FileRecord) != null)
@@ -312,172 +347,62 @@ namespace NTFSLib.NTFS
 			return record;
 		}
 
-		/*
-		public string BuildFileName(FileRecord record, char rootDriveLetter)
-		{
-			return BuildFileName(record, rootDriveLetter + ":");
-		}
 
-		public string BuildFileName(FileRecord record, string rootName = null)
-		{
-			// Get filename (and prefer the non-8dot3 variant)
-			AttributeFileName fileName = NtfsUtils.GetPreferredDisplayName(record);
 
-			if (fileName == null)
-			{
-				throw new NullReferenceException("Record has no FileName attribute");
-			}
 
-			string path = fileName.FileName;
 
-			if (record.Flags.HasFlag(FileEntryFlags.Directory))
-			{
-				path += '\\';
-			}
-
-			// Continue till we hit SpecialMFTFiles.RootDir
-			FileRecord parentRecord;
-			do
-			{
-				// Get parent
-				parentRecord = ReadMFTRecord(fileName.ParentDirectory.FileId);
-
-				if (parentRecord == null)
-				{
-					throw new NullReferenceException("A parent record was null");
-				}
-
-				fileName = NtfsUtils.GetPreferredDisplayName(parentRecord);
-
-				if (fileName == null)
-				{
-					throw new NullReferenceException("A parent record had no Filename attribute");
-				}
-
-				if (parentRecord.FileReference.FileId == (uint)SpecialMFTFiles.RootDir)
-				{
-					path = rootName + '\\' + path;
-					break;
-				}
-				path = fileName.FileName + '\\' + path;
-			}
-			while (true);
-
-			return path;
-		}
-		*/
-
-		public byte[] ReadMFTRecordData(uint number)
-		{
-			int length = (int)(BytesPrFileRecord == 0 ? 4096 : BytesPrFileRecord);
-			long offset = number * length;
-
-			// Calculate location
-			if (InRawDiskCache(number))
-			{
-				byte[] mftData = new byte[length];
-				int cacheOffset = (int)(offset - MftRawCache.DataOffset);
-
-				Array.Copy(MftRawCache.Data, cacheOffset, mftData, 0, mftData.Length);
-
-				Debug.WriteLine($"Read MFT Record {number} via. RAW CACHE; bytes {offset}->{offset + (long)length} ({length} bytes)");
-				return mftData;
-			}
-
-			if (Provider.MftFileOnly)
-			{
-				// Is a contiguous file - ignore MFT fragments
-				// Offset is still correct.
-			}
-			else if (FileMFT == null)
-			{
-				// We haven't got the $MFT yet, ignore MFT fragments
-				// Offset into the MFT beginning region
-				offset += (long)(Boot.MFTCluster * BytesPrCluster);
-			}
-			else if (MftStream != null)
-			{
-				byte[] mftData = new byte[length];
-
-				MftStream.Seek(offset, SeekOrigin.Begin);
-				MftStream.Read(mftData, 0, length);
-
-				Debug.WriteLine($"Read MFT Record {number} via. NTFSDISKSTREAM; bytes {offset}->{offset + (long)length} ({length} bytes)");
-				return mftData;
-			}
-			else
-			{
-				throw new Exception("Shouldn't happen");
-			}
-
-			if (!Provider.CanReadBytes((ulong)offset, length))
-			{
-				Debug.WriteLine($"Couldn't read MFT Record {number}; bytes {offset}->{offset + (long)length} ({length} bytes)");
-				return new byte[0];
-			}
-
-			Debug.WriteLine($"Read MFT Record {number}; bytes {offset}->{offset + (long)length} ({length} bytes)");
-
-			byte[] data = new byte[length];
-			Provider.ReadBytes(data, 0, (ulong)offset, length);
-
-			return data;
-		}
-
-		//public Stream OpenFileRecord(uint number, string dataStream = "")
-		//{
-		//	return OpenFileRecord(ReadMFTRecord(number), dataStream);
-		//}
-
-		public Stream OpenFileRecord(FileRecord record, string dataStream = "")
-		{
-			Debug.Assert(record != null);
-
-			if (Provider.MftFileOnly)
-			{
-				throw new InvalidOperationException("Provider indicates it's providing an MFT file only");
-			}
-
-			// Fetch extended data
-			ParseAttributeLists(record);
-
-			// Get all DATA attributes
-			List<AttributeData> dataAttribs = record.Attributes.OfType<AttributeData>().Where(s => s.AttributeName == dataStream).ToList();
-
-			Debug.Assert(dataAttribs.Count >= 1);
-
-			if (dataAttribs.Count == 1 && dataAttribs[0].NonResidentFlag == ResidentFlag.Resident)
-			{
-				return new MemoryStream(dataAttribs[0].DataBytes);
-			}
-
-			Debug.Assert(dataAttribs.All(s => s.NonResidentFlag == ResidentFlag.NonResident));
-
-			DataFragment[] fragments = dataAttribs.SelectMany(s => s.DataFragments).OrderBy(s => s.StartingVCN).ToArray();
-			Stream diskStream = Provider.CreateDiskStream();
-
-			ushort compressionUnitSize = dataAttribs[0].NonResidentHeader.CompressionUnitSize;
-			ushort compressionClusterCount = (ushort)(compressionUnitSize == 0 ? 0 : Math.Pow(2, compressionUnitSize));
-
-			return new NtfsDiskStream(diskStream, true, fragments, BytesPrCluster, compressionClusterCount, (long)dataAttribs[0].NonResidentHeader.ContentSize);
-		}
-
-		//public string[] ListDatastreams(FileRecord record)
-		//{
-		//	AttributeData[] datas = record.Attributes.OfType<AttributeData>().ToArray();
-		//	string[] names = new string[datas.Length];
-		//
-		//	for (int i = 0; i < datas.Length; i++)
-		//	{
-		//		names[i] = datas[i].AttributeName;
-		//	}
-		//
-		//	return names;
-		//}
 
 		public NtfsDirectory GetRootDirectory()
 		{
 			return (NtfsDirectory)NtfsFileEntry.CreateEntry(this, (uint)SpecialMFTFiles.RootDir);
 		}
+
+		public NtfsDirectory NavigateToDirectory(string path)
+		{
+			Debug.Assert(Path.IsPathRooted(path));
+
+			string[] dirs = path.Split(new[] { Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar }, StringSplitOptions.RemoveEmptyEntries);
+
+			NtfsDirectory currDir = GetRootDirectory();
+
+			Debug.Assert(currDir != null);
+
+			foreach (string dir in dirs.Skip(1))        // Skip root (C:\)
+			{
+				IEnumerable<NtfsDirectory> subDirs = currDir.ListDirectories();
+				NtfsDirectory subDir = subDirs.FirstOrDefault(s => s.Name.Equals(dir, StringComparison.InvariantCultureIgnoreCase));
+
+				Debug.Assert(subDir != null);
+
+				currDir = subDir;
+			}
+
+			return currDir;
+		}
+
+
+
+		public static IEnumerable<NtfsFileEntry> EnumerateFileEntries(NtfsDirectory homeDir)
+		{
+			IEnumerable<NtfsFile> subFiles = homeDir.ListFiles();
+
+			foreach (var file in subFiles)
+			{
+				yield return file;
+			}
+
+			IEnumerable<NtfsDirectory> subDirs = homeDir.ListDirectories();
+			foreach (var dir in subDirs)
+			{
+				foreach (var entry in EnumerateFileEntries(dir))
+				{
+					yield return entry;
+				}
+			}
+
+			yield break;
+		}
+
+
 	}
 }
