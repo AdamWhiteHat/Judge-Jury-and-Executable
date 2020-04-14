@@ -1,0 +1,14 @@
+﻿Use Overlapped IO or threading to reduce CPU processing latency between reads 
+   (in RetrieveMode.Minimal I get 200MB/s read, in RetrieveMode.Full only 150MB/s)
+   
+Maybe add FileRead capability
+   (need to experiment with reading a lot of small files with classic mode and directly from Ntfs)
+	    to reduce seek time, we could also implement something that read the data in the disk order
+	    something like.. I have 4000 of those 1kb files to retrieve... retrieve them in the order you want but retrieve them fast!
+	    And it would callback the caller for each complete file retrieval... something like that...
+
+Add Events while processing to allow client apps to display cluster map in realtime (like JkDefrag does...)
+
+Try to reduce memory footprint of the Full mode even more...
+
+Add support for Substitute (DOS Subs) and Locally mapped network drive

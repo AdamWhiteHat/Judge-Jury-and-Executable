@@ -1,183 +1,165 @@
 ﻿using System;
 using System.IO;
+using System.Text;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Collections.Generic;
 
-using NTFSLib.IO;
 using DataAccessLayer;
 using FilePropertiesDataObject;
-using System.Text;
+using System.IO.Filesystem.Ntfs;
 
 namespace FilePropertiesEnumerator
 {
-	public class FileEnumerator
-	{
-		private static string[] ignoreFiles = new string[] { "swapfile.sys", "pagefile.sys", "hiberfil.sys" };
+    public class FileEnumerator
+    {
+        private static string[] ignoreFiles = new string[] { "swapfile.sys", "pagefile.sys", "hiberfil.sys" };
 
-		private static FailSuccessCount fileEnumCount = null;
-		private static FailSuccessCount databaseInsertCount = null;
-		private static FailSuccessCount directoryEnumCount = null;
+        private static FailSuccessCount fileEnumCount = null;
+        private static FailSuccessCount databaseInsertCount = null;
+        private static FailSuccessCount directoryEnumCount = null;
 
-		public static void LaunchFileEnumerator(FileEnumeratorParameters parameters)
-		{
-			ThrowIfParametersInvalid(parameters);
+        public static void LaunchFileEnumerator(FileEnumeratorParameters parameters)
+        {
+            ThrowIfParametersInvalid(parameters);
 
-			var fileEnumerationDelegate
-				= new Func<FileEnumeratorParameters, List<FailSuccessCount>>((args) => Worker(args));
+            var fileEnumerationDelegate
+                = new Func<FileEnumeratorParameters, List<FailSuccessCount>>((args) => Worker(args));
 
-			if (!parameters.DisableWorkerThread)
-			{
-				Task<List<FailSuccessCount>> enumerationTask = Task.Run(() =>
-				{
-					List<FailSuccessCount> results = new List<FailSuccessCount>();
-					results.AddRange(fileEnumerationDelegate.Invoke(parameters));
-					return results;
-				},
-				parameters.CancelToken);
+            if (!parameters.DisableWorkerThread)
+            {
+                Task<List<FailSuccessCount>> enumerationTask = Task.Run(() =>
+                {
+                    List<FailSuccessCount> results = new List<FailSuccessCount>();
+                    results.AddRange(fileEnumerationDelegate.Invoke(parameters));
+                    return results;
+                },
+                parameters.CancelToken);
 
-				Task reportResultsTask = enumerationTask.ContinueWith((antecedent) => parameters.ReportResultsFunction(antecedent.Result));
-			}
-			else
-			{
-				List<FailSuccessCount> results = fileEnumerationDelegate.Invoke(parameters);
-				parameters.ReportResultsFunction(results);
-			}
-		}
+                Task reportResultsTask = enumerationTask.ContinueWith((antecedent) => parameters.ReportResultsFunction(antecedent.Result));
+            }
+            else
+            {
+                List<FailSuccessCount> results = fileEnumerationDelegate.Invoke(parameters);
+                parameters.ReportResultsFunction(results);
+            }
+        }
 
-		private static void ThrowIfParametersInvalid(FileEnumeratorParameters parameters)
-		{
-			if (parameters == null) { throw new ArgumentNullException(nameof(parameters)); }
-			if (parameters.SearchPatterns == null) { throw new ArgumentNullException(nameof(parameters.SearchPatterns)); }
-			if (parameters.ReportExceptionFunction == null) { throw new ArgumentNullException(nameof(parameters.ReportExceptionFunction)); }
-			if (parameters.ReportOutputFunction == null) { throw new ArgumentNullException(nameof(parameters.ReportOutputFunction)); }
-			if (parameters.LogOutputFunction == null) { throw new ArgumentNullException(nameof(parameters.LogOutputFunction)); }
-			if (parameters.ReportResultsFunction == null) { throw new ArgumentNullException(nameof(parameters.ReportResultsFunction)); }
-			if (!Directory.Exists(parameters.SelectedFolder)) { throw new DirectoryNotFoundException(parameters.SelectedFolder); }
-			if (parameters.CancelToken == null) { throw new ArgumentNullException(nameof(parameters.CancelToken), "If you do not want to pass a CancellationToken, then pass 'CancellationToken.None'"); }
-			parameters.CancelToken.ThrowIfCancellationRequested();
-		}
+        private static void ThrowIfParametersInvalid(FileEnumeratorParameters parameters)
+        {
+            if (parameters == null) { throw new ArgumentNullException(nameof(parameters)); }
+            if (parameters.SearchPatterns == null) { throw new ArgumentNullException(nameof(parameters.SearchPatterns)); }
+            if (parameters.ReportExceptionFunction == null) { throw new ArgumentNullException(nameof(parameters.ReportExceptionFunction)); }
+            if (parameters.ReportOutputFunction == null) { throw new ArgumentNullException(nameof(parameters.ReportOutputFunction)); }
+            if (parameters.LogOutputFunction == null) { throw new ArgumentNullException(nameof(parameters.LogOutputFunction)); }
+            if (parameters.ReportResultsFunction == null) { throw new ArgumentNullException(nameof(parameters.ReportResultsFunction)); }
+            if (!Directory.Exists(parameters.SelectedFolder)) { throw new DirectoryNotFoundException(parameters.SelectedFolder); }
+            if (parameters.CancelToken == null) { throw new ArgumentNullException(nameof(parameters.CancelToken), "If you do not want to pass a CancellationToken, then pass 'CancellationToken.None'"); }
+            parameters.CancelToken.ThrowIfCancellationRequested();
+        }
 
-		private static List<FailSuccessCount> Worker(FileEnumeratorParameters parameters)
-		{
-			fileEnumCount = new FailSuccessCount("OS files enumerated");
-			databaseInsertCount = new FailSuccessCount("OS database rows updated");
-			directoryEnumCount = new FailSuccessCount("directories enumerated");
+        private static List<FailSuccessCount> Worker(FileEnumeratorParameters parameters)
+        {
+            fileEnumCount = new FailSuccessCount("OS files enumerated");
+            databaseInsertCount = new FailSuccessCount("OS database rows updated");
+            directoryEnumCount = new FailSuccessCount("directories enumerated");
 
-			try
-			{
-				parameters.CancelToken.ThrowIfCancellationRequested();
+            try
+            {
+                parameters.CancelToken.ThrowIfCancellationRequested();
 
-				StringBuilder currentPath = new StringBuilder(parameters.SelectedFolder);
-				string lastParent = currentPath.ToString();
+                StringBuilder currentPath = new StringBuilder(parameters.SelectedFolder);
+                string lastParent = currentPath.ToString();
 
-				string temp = currentPath.ToString();
-				if (temp.Contains(':') && (temp.Length == 2 || temp.Length == 3)) // Is a root directory, i.e. "C:" or "C:\"
-				{
-					lastParent = ".";
-				}
+                string temp = currentPath.ToString();
+                if (temp.Contains(':') && (temp.Length == 2 || temp.Length == 3)) // Is a root directory, i.e. "C:" or "C:\"
+                {
+                    lastParent = ".";
+                }
 
-				IEnumerable<NtfsFileEntry> properties = MftHelper.EnumerateFileEntries(parameters.SelectedFolder);
-				directoryEnumCount.IncrementSucceededCount();
-				foreach (NtfsFileEntry entry in properties)
-				{
-					NtfsFile file = (NtfsFile)entry;
+                IEnumerable<INode> mftNodes = MftHelper.EnumerateMft(parameters.SelectedFolder[0].ToString());
 
-					// File _PATTERN MATCHING_
-					if (FileMatchesPattern(file, parameters.SearchPatterns))
-					{
-						if (lastParent != file.Parent.Name)
-						{
-							currentPath.Clear();
-							NtfsDirectory parent = file.Parent;
+                foreach (INode node in mftNodes)
+                {
+                    // File _PATTERN MATCHING_
+                    if (FileMatchesPattern(node.FullName, parameters.SearchPatterns))
+                    {
+                        string message = $"MFT#: {node.MFTRecordNumber.ToString().PadRight(7)} Seq.#: {node.SequenceNumber.ToString().PadRight(4)} Path: {Path.Combine(currentPath.ToString(), node.Name)}";
 
-							while (parent.Name != ".")
-							{
-								currentPath = currentPath.Insert(0, parent.ToString());
-								parent = parent.Parent;
-							}
+                        if (parameters.LogOutputFunction != null) parameters.LogOutputFunction.Invoke(message);
+                        if (parameters.ReportOutputFunction != null) parameters.ReportOutputFunction.Invoke(message);
 
-							currentPath = currentPath.Insert(0, parameters.SelectedFolder);
-							lastParent = file.Parent.Name;
-						}
+                        fileEnumCount.IncrementSucceededCount();
+                        parameters.CancelToken.ThrowIfCancellationRequested();
 
-						string message = $"MFT File: {Path.Combine(currentPath.ToString(), file.Name)}";
+                        FileProperties prop = new FileProperties();
+                        prop.PopulateFileProperties(parameters, parameters.SelectedFolder[0], node);
 
-						if (parameters.LogOutputFunction != null) parameters.LogOutputFunction.Invoke(message);
-						if (parameters.ReportOutputFunction != null) parameters.ReportOutputFunction.Invoke(message);
+                        parameters.CancelToken.ThrowIfCancellationRequested();
 
-						fileEnumCount.IncrementSucceededCount();
-						parameters.CancelToken.ThrowIfCancellationRequested();
+                        // INSERT file properties into _DATABASE_
+                        bool insertResult = FilePropertiesAccessLayer.InsertFileProperties(prop);
+                        if (insertResult)
+                        {
+                            databaseInsertCount.IncrementSucceededCount();
+                        }
+                        else
+                        {
+                            databaseInsertCount.IncrementFailedCount();
+                        }
+                    }
+                    else
+                    {
+                        fileEnumCount.IncrementFailedCount();
+                    }
 
-						FileProperties prop = new FileProperties();
-						prop.PopulateFileProperties(parameters, parameters.SelectedFolder[0], file);
+                    parameters.CancelToken.ThrowIfCancellationRequested();
+                }
+            }
+            catch (OperationCanceledException)
+            { }
 
-						parameters.CancelToken.ThrowIfCancellationRequested();
+            return new List<FailSuccessCount> { fileEnumCount, databaseInsertCount, directoryEnumCount };
+        }
 
-						// INSERT file properties into _DATABASE_
-						bool insertResult = FilePropertiesAccessLayer.InsertFileProperties(prop);
-						if (insertResult)
-						{
-							databaseInsertCount.IncrementSucceededCount();
-						}
-						else
-						{
-							databaseInsertCount.IncrementFailedCount();
-						}
-					}
-					else
-					{
-						fileEnumCount.IncrementFailedCount();
-					}
+        private static bool FileMatchesPattern(string fullName, string[] searchPatterns)
+        {
+            string filename = Path.GetFileName(fullName);
+            if (filename.FirstOrDefault() == '$')
+            {
+                return false;
+            }
 
-					parameters.CancelToken.ThrowIfCancellationRequested();
-				}
+            if (ignoreFiles.Contains(filename))
+            {
+                return false;
+            }
 
-			}
-			catch (OperationCanceledException)
-			{ }
+            if (searchPatterns.Contains("*"))
+            {
+                return true;
+            }
 
-			return new List<FailSuccessCount> { fileEnumCount, databaseInsertCount, directoryEnumCount };
-		}
+            string extension = Path.GetExtension(filename);
+            foreach (string pattern in searchPatterns)
+            {
+                if (pattern.Contains("."))
+                {
+                    if (extension.Contains(pattern))
+                    {
+                        return true;
+                    }
+                }
+                else
+                {
+                    if (filename.Contains(pattern))
+                    {
+                        return true;
+                    }
+                }
+            }
 
-		private static bool FileMatchesPattern(NtfsFile file, string[] searchPatterns)
-		{
-			string filename = file.Name;
-			if (filename.FirstOrDefault() == '$')
-			{
-				return false;
-			}
-
-			if (ignoreFiles.Contains(filename))
-			{
-				return false;
-			}
-
-			if (searchPatterns.Contains("*"))
-			{
-				return true;
-			}
-
-			string extension = Path.GetExtension(filename);
-			foreach (string pattern in searchPatterns)
-			{
-				if (pattern.Contains("."))
-				{
-					if (extension.Contains(pattern))
-					{
-						return true;
-					}
-				}
-				else
-				{
-					if (filename.Contains(pattern))
-					{
-						return true;
-					}
-				}
-			}
-
-			return false;
-		}
-	}
+            return false;
+        }
+    }
 }

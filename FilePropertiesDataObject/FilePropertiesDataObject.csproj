@@ -78,9 +78,9 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\NtfsLib\NTFSLib\NTFSLib.csproj">
-      <Project>{56e61823-f056-4e99-99ee-89ccbd5055e9}</Project>
-      <Name>NTFSLib</Name>
+    <ProjectReference Include="..\NtfsReader\NtfsReader.csproj">
+      <Project>{dbacefc5-0234-4317-b096-f212ecae1dd1}</Project>
+      <Name>NtfsReader</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

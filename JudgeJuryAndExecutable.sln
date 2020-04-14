@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 14
-VisualStudioVersion = 14.0.25420.1
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.29709.97
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DataAccessLayer", "DataAccessLayer\DataAccessLayer.csproj", "{0332F67B-9B78-49EA-AA16-E01C20C49744}"
 EndProject
@@ -13,9 +13,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FilePropertiesBaselineGUI",
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FilePropertiesBaselineConsole", "FilePropertiesBaselineConsole\FilePropertiesBaselineConsole.csproj", "{755E453F-B941-46AD-A6DC-574A79B78F63}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NTFSLib", "NtfsLib\NTFSLib\NTFSLib.csproj", "{56E61823-F056-4E99-99EE-89CCBD5055E9}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NTFSLib.Helpers", "NtfsLib\NTFSLib.Helpers\NTFSLib.Helpers.csproj", "{6E05AB3A-A3E3-4BCC-A121-8A9F332CDB96}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NtfsReader", "NtfsReader\NtfsReader.csproj", "{DBACEFC5-0234-4317-B096-F212ECAE1DD1}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -43,16 +41,15 @@ Global
 		{755E453F-B941-46AD-A6DC-574A79B78F63}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{755E453F-B941-46AD-A6DC-574A79B78F63}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{755E453F-B941-46AD-A6DC-574A79B78F63}.Release|Any CPU.Build.0 = Release|Any CPU
-		{56E61823-F056-4E99-99EE-89CCBD5055E9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{56E61823-F056-4E99-99EE-89CCBD5055E9}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{56E61823-F056-4E99-99EE-89CCBD5055E9}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{56E61823-F056-4E99-99EE-89CCBD5055E9}.Release|Any CPU.Build.0 = Release|Any CPU
-		{6E05AB3A-A3E3-4BCC-A121-8A9F332CDB96}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{6E05AB3A-A3E3-4BCC-A121-8A9F332CDB96}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{6E05AB3A-A3E3-4BCC-A121-8A9F332CDB96}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{6E05AB3A-A3E3-4BCC-A121-8A9F332CDB96}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DBACEFC5-0234-4317-B096-F212ECAE1DD1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DBACEFC5-0234-4317-B096-F212ECAE1DD1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DBACEFC5-0234-4317-B096-F212ECAE1DD1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DBACEFC5-0234-4317-B096-F212ECAE1DD1}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {C9A3E309-495F-4468-8B3D-CA1757B3D269}
 	EndGlobalSection
 EndGlobal

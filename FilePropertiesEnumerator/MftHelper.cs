@@ -3,44 +3,30 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Collections.Generic;
-using RawDiskLib;
-using NTFSLib.IO;
-using NTFSLib.NTFS;
-using NTFSLib.Helpers;
-using NTFSLib.Objects.Attributes;
+using System.IO.Filesystem.Ntfs;
 
 namespace FilePropertiesEnumerator
 {
-	public static class MftHelper
-	{
-		private static int rawDiskCacheRecordSize = 2048;
+    public static class MftHelper
+    {
+        public static IEnumerable<INode> EnumerateMft(string drive)
+        {
+            List<DriveInfo> ntfsDrives = DriveInfo.GetDrives().Where(d => d.DriveFormat == "NTFS").ToList();
 
-		public static IEnumerable<NtfsFileEntry> EnumerateFileEntries(string directory)
-		{
-			if (string.IsNullOrWhiteSpace(directory)) throw new ArgumentException("String cannot be null, empty or whitespace.", nameof(directory));
+            DriveInfo driveToAnalyze = ntfsDrives.Where(dr => dr.Name.Contains(drive)).Single();
 
-			char driveLetter = directory[0];
-			using (RawDisk disk = new RawDisk(driveLetter, FileAccess.Read))
-			{
-				NTFSDiskProvider provider = new NTFSDiskProvider(disk);
-				NTFSWrapper ntfsWrapper = new NTFSWrapper(provider, rawDiskCacheRecordSize);
+            NtfsReader ntfsReader = new NtfsReader(driveToAnalyze, RetrieveMode.All);
 
-				NtfsDirectory rootDir = ntfsWrapper.GetRootDirectory();
+            IEnumerable<INode> nodes =
+                ntfsReader.GetNodes(driveToAnalyze.Name)
+                    .Where(n => (n.Attributes &
+                                 (Attributes.Hidden | Attributes.System |
+                                  Attributes.Temporary | Attributes.Device |
+                                  Attributes.Directory | Attributes.Offline |
+                                  Attributes.ReparsePoint | Attributes.SparseFile)) == 0);
+            //.OrderByDescending(n => n.Size);
 
-				if (rootDir == null)
-				{
-					throw new Exception("currDir == null");
-				}
-
-				NtfsDirectory dir = ntfsWrapper.NavigateToDirectory(directory);
-
-				foreach (var fileEntry in NTFSWrapper.EnumerateFileEntries(dir))
-				{
-					yield return fileEntry;
-				}
-			}
-
-			yield break;
-		}
-	}
+            return nodes;
+        }
+    }
 }
