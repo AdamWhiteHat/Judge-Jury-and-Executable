@@ -107,7 +107,7 @@ namespace FilePropertiesDataObject
 				// Some entries in the MFT are greater than int.MaxValue !! That or the size is corrupt. Either way, we handle that here.
 				if (this.Length >= (int.MaxValue - 1))
 				{
-					throw new Exception("MFTFile.Length >= int.MaxValue - 1");
+					//throw new Exception("MFTFile.Length >= int.MaxValue - 1");
 					/*
                     using (Stream ntfsStream = ntfsFile.Streams.First())
                     {

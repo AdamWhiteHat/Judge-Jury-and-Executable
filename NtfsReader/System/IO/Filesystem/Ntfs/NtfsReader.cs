@@ -33,6 +33,8 @@ using System.Runtime.InteropServices;
 using Microsoft.Win32.SafeHandles;
 using System.Diagnostics;
 using System.Text;
+using System.Linq;
+using System.Collections;
 
 namespace System.IO.Filesystem.Ntfs
 {
@@ -503,7 +505,7 @@ namespace System.IO.Filesystem.Ntfs
 
 			public byte[] GetBytes()
 			{
-				return this._reader.ReadFile(this);
+				return this._reader.ReadFile(this).Take((int)this.Size).ToArray();
 			}
 		}
 

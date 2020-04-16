@@ -81,7 +81,7 @@ namespace FilePropertiesEnumerator
 
 				List<DriveInfo> ntfsDrives = DriveInfo.GetDrives().Where(d => d.DriveFormat == "NTFS").ToList();
 
-				DriveInfo driveToAnalyze = ntfsDrives.Where(dr => dr.Name.Contains(drive)).Single();
+				DriveInfo driveToAnalyze = ntfsDrives.Where(dr => dr.Name.ToUpper().Contains(drive.ToUpper())).Single();
 
 				IEnumerable<INode> mftNodes = MftHelper.EnumerateMft(driveToAnalyze);
 

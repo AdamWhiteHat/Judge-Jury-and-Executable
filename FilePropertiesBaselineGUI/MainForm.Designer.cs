@@ -49,6 +49,7 @@
 			// btnBrowse
 			// 
 			this.btnBrowse.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+			this.btnBrowse.Enabled = false;
 			this.btnBrowse.Location = new System.Drawing.Point(494, 3);
 			this.btnBrowse.Name = "btnBrowse";
 			this.btnBrowse.Size = new System.Drawing.Size(95, 23);
@@ -65,7 +66,7 @@
 			this.tbPath.Name = "tbPath";
 			this.tbPath.Size = new System.Drawing.Size(485, 20);
 			this.tbPath.TabIndex = 1;
-			this.tbPath.Text = "C:\\Windows\\System32\\drivers";
+			this.tbPath.Text = "C:\\";
 			// 
 			// tbOutput
 			// 
