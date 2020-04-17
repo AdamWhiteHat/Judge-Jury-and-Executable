@@ -505,7 +505,7 @@ namespace System.IO.Filesystem.Ntfs
 
             public byte[] GetBytes()
             {
-                if (this.Size > int.MaxValue - 1)
+                if (this.Size >= int.MaxValue - 1)
                 {
                     return new byte[0];
                 }
