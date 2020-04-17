@@ -505,12 +505,24 @@ namespace System.IO.Filesystem.Ntfs
 
             public byte[] GetBytes()
             {
-                if (this.Size >= int.MaxValue - 1)
+                if (this.Size > int.MaxValue - 1)
                 {
                     return new byte[0];
                 }
 
-                return this._reader.ReadFile(this).Take((int)this.Size).ToArray();
+                int sizeToCopy = (int)this.Size;
+
+                byte[] allBytesOnDisk = this._reader.ReadFile(this);
+
+                if (sizeToCopy >= allBytesOnDisk.Length)
+                {
+                    return allBytesOnDisk;
+                }
+
+                Array result = Array.CreateInstance(typeof(byte), sizeToCopy);
+                Array.Copy(allBytesOnDisk, result, sizeToCopy);
+
+                return (byte[])result;
             }
         }
 
