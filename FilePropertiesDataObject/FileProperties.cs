@@ -89,8 +89,12 @@ namespace FilePropertiesDataObject
 			DriveLetter = driveLetter;
 			FileName = ntfsFile.Name;
 
+			// LastAccessTime
+			// CreationTime 
+			// LastChangeTime
+
 			MftTimeAccessed = ntfsFile.LastAccessTime;
-			//MftTimeCreation = ntfsFile.TimeCreation;
+			MftTimeCreation = ntfsFile.CreationTime;
 			MftTimeModified = ntfsFile.LastChangeTime;
 			//MftTimeMftModified = ntfsFile.TimeMftModified;
 
