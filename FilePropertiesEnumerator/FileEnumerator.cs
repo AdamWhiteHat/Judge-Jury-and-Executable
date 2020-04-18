@@ -85,6 +85,12 @@ namespace FilePropertiesEnumerator
 
 				IEnumerable<INode> mftNodes = MftHelper.EnumerateMft(driveToAnalyze);
 
+				if (parameters.SelectedFolder.ToCharArray().Length > 3)
+				{
+					string selectedFolderUppercase = parameters.SelectedFolder.ToUpperInvariant().TrimEnd(new char[] { '\\' });
+					mftNodes = mftNodes.Where(node => node.FullName.ToUpperInvariant().Contains(selectedFolderUppercase));
+				}
+
 				foreach (INode node in mftNodes)
 				{
 					// File _PATTERN MATCHING_
