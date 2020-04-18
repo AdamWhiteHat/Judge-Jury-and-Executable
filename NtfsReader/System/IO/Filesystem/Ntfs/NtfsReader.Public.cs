@@ -57,13 +57,17 @@ namespace System.IO.Filesystem.Ntfs
 		public NtfsReader(DriveInfo driveInfo, RetrieveMode retrieveMode)
 		{
 			if (driveInfo == null)
+			{
 				throw new ArgumentNullException("driveInfo");
+			}
 
 			DriveInfo tmpDriveInfo = driveInfo;
 
 			//try to find if the drive is mapped on a local volume
 			if (driveInfo.DriveType != DriveType.Fixed)
+			{
 				tmpDriveInfo = ResolveLocalMapDrive(driveInfo);
+			}
 
 			_rootPath = tmpDriveInfo.Name;
 
@@ -73,7 +77,16 @@ namespace System.IO.Filesystem.Ntfs
 			_driveInfo = driveInfo;
 			_retrieveMode = retrieveMode;
 
-			string volume = builder.ToString().TrimEnd(new char[] { '\\' });
+			string volume = driveInfo.Name;
+
+			if (builder != null)
+			{
+				string volumeName = builder.ToString().TrimEnd(new char[] { '\\' });
+				if (!string.IsNullOrWhiteSpace(volumeName))
+				{
+					volume = volumeName;
+				}
+			}
 
 			_volumeHandle =
 				CreateFile(
