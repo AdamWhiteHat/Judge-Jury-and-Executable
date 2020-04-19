@@ -514,6 +514,8 @@ namespace System.IO.Filesystem.Ntfs
 
                 byte[] allBytesOnDisk = this._reader.ReadFile(this);
 
+                return allBytesOnDisk;
+
                 if (sizeToCopy >= allBytesOnDisk.Length)
                 {
                     return allBytesOnDisk;
