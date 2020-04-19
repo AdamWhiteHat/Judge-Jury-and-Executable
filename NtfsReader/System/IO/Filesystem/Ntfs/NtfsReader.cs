@@ -519,16 +519,8 @@ namespace System.IO.Filesystem.Ntfs
                     return allBytesOnDisk;
                 }
 
-                Array result = null;
-                try
-                {
-                    result = Array.CreateInstance(typeof(byte), sizeToCopy);
-                    Array.Copy(allBytesOnDisk, result, sizeToCopy);
-                }
-                catch (System.ExecutionEngineException)
-                {
-                    return new byte[0];
-                }
+                Array result = Array.CreateInstance(typeof(byte), new long[] { sizeToCopy });
+                Array.Copy(allBytesOnDisk, result, sizeToCopy);
 
                 return (byte[])result;
             }
