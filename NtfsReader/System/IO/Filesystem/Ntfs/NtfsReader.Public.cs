@@ -188,7 +188,9 @@ namespace System.IO.Filesystem.Ntfs
 			UInt64 bytesPerCluster = (UInt64)_diskInfo.BytesPerSector * _diskInfo.SectorsPerCluster;
 
 			if (bytesToRead % bytesPerCluster > 0)
+			{
 				bytesToRead += bytesPerCluster - (bytesToRead % bytesPerCluster);
+			}
 
 			byte[] bitmapData = new byte[bytesToRead];
 
