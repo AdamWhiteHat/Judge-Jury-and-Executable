@@ -9,6 +9,10 @@ using System.Security.Cryptography;
 using Microsoft.WindowsAPICodePack.Shell;
 using Microsoft.WindowsAPICodePack.Shell.PropertySystem;
 using System.IO.Filesystem.Ntfs;
+using DeviceIOControlLib.Objects.FileSystem;
+using DeviceIOControlLib.Wrapper;
+using Microsoft.Win32.SafeHandles;
+using RawDiskLib;
 
 namespace FilePropertiesDataObject
 {
@@ -109,10 +113,10 @@ namespace FilePropertiesDataObject
             if (this.Length != 0)
             {
                 // Some entries in the MFT are greater than int.MaxValue !! That or the size is corrupt. Either way, we handle that here.
-                if (this.Length >= (int.MaxValue - 1))
+                /*if (this.Length >= (int.MaxValue - 1))
                 {
                     //throw new Exception("MFTFile.Length >= int.MaxValue - 1");
-                    /*
+                    
                     using (Stream ntfsStream = ntfsFile.Streams.First())
                     {
                         this.Sha256Hash = GetSha256Hash_BigFile(ntfsStream);
@@ -123,52 +127,44 @@ namespace FilePropertiesDataObject
                     CancellationHelper.ThrowIfCancelled();
                     this.Authenticode = AuthenticodeData.TryGetAuthenticodeData(FileName);
                     CancellationHelper.ThrowIfCancelled();
-                    */
+                  
+                }
+                */
+
+                byte[] fileBytes = GetFileBytes(ntfsFile.FullName).ToArray();
+
+                CancellationHelper.ThrowIfCancelled();
+
+                this.PeData = PeDataObject.TryGetPeDataObject(fileBytes, parameters.OnlineCertValidation);
+                if (IsPeDataPopulated)
+                {
+                    this.Sha256Hash = PeData.SHA256Hash;
                 }
                 else
                 {
-                    byte[] fileBytes = ntfsFile.GetBytes();
-
-                    CancellationHelper.ThrowIfCancelled();
-
-                    this.PeData = PeDataObject.TryGetPeDataObject(fileBytes, parameters.OnlineCertValidation);
-                    if (IsPeDataPopulated)
-                    {
-                        this.Sha256Hash = PeData.SHA256Hash;
-                    }
-                    else
-                    {
-                        if (this.Length > int.MaxValue)
-                        {
-                            this.Sha256Hash = GetSha256Hash(fileBytes, -1);
-                        }
-                        else
-                        {
-                            int count = (int)this.Length;
-                            this.Sha256Hash = GetSha256Hash(fileBytes, count);
-                        }
-                    }
-
-                    CancellationHelper.ThrowIfCancelled();
-
-                    if (parameters.CalculateEntropy)
-                    {
-                        this.Entropy = EntropyHelper.CalculateFileEntropy(fileBytes);
-                        CancellationHelper.ThrowIfCancelled();
-                    }
-
-                    this.Authenticode = AuthenticodeData.TryGetAuthenticodeData(fileBytes);
-
-                    CancellationHelper.ThrowIfCancelled();
-
-                    if (!string.IsNullOrWhiteSpace(parameters.YaraRulesFilePath) && File.Exists(parameters.YaraRulesFilePath))
-                    {
-                        this.YaraRulesMatched = YaraRules.Scan(fileBytes, parameters.YaraRulesFilePath);
-                        CancellationHelper.ThrowIfCancelled();
-                    }
-
-                    fileBytes = null;
+                    this.Sha256Hash = GetSha256Hash(fileBytes);
                 }
+
+                CancellationHelper.ThrowIfCancelled();
+
+                if (parameters.CalculateEntropy)
+                {
+                    this.Entropy = EntropyHelper.CalculateFileEntropy(fileBytes);
+                    CancellationHelper.ThrowIfCancelled();
+                }
+
+                this.Authenticode = AuthenticodeData.TryGetAuthenticodeData(fileBytes);
+
+                CancellationHelper.ThrowIfCancelled();
+
+                if (!string.IsNullOrWhiteSpace(parameters.YaraRulesFilePath) && File.Exists(parameters.YaraRulesFilePath))
+                {
+                    this.YaraRulesMatched = YaraRules.Scan(fileBytes, parameters.YaraRulesFilePath);
+                    CancellationHelper.ThrowIfCancelled();
+                }
+
+                fileBytes = null;
+
             }
 
             PopulateFileInfoProperties(FullPath);
@@ -183,6 +179,8 @@ namespace FilePropertiesDataObject
 
             CancellationHelper.ThrowIfCancelled();
         }
+
+
 
         /*
         private static string GetDirectory(NtfsFile file)
@@ -224,7 +222,48 @@ namespace FilePropertiesDataObject
             }
             return result;
         }
-   */
+    */
+
+        public static IEnumerable<byte> GetFileBytes(string sourceFile)
+        {
+            // FileAttributes 0x20000000L = FILE_FLAG_NO_BUFFERING
+            SafeFileHandle fileHandle = Win32Helper.CreateFile(sourceFile, (FileAccess)Win32Helper.FILE_READ_ATTRIBUTES, FileShare.ReadWrite, IntPtr.Zero, FileMode.Open, FileAttributes.Normal | (FileAttributes)0x20000000L, IntPtr.Zero);
+
+            if (fileHandle.IsInvalid)
+            {
+                throw new ArgumentException("Invalid file: " + sourceFile);
+            }
+
+            //var driveWrapper = new DeviceIOControlWrapper(driveHandle);
+            FilesystemDeviceWrapper fileWrapper = new FilesystemDeviceWrapper(fileHandle);
+
+            FileExtentInfo[] extents = fileWrapper.FileSystemGetRetrievalPointers();
+            decimal totalSize = extents.Sum(s => (decimal)s.Size);
+            decimal copiedBytes = 0;
+
+            using (RawDisk disk = new RawDisk(char.ToUpper(sourceFile[0])))
+            {
+                // Copy all extents
+                foreach (FileExtentInfo fileExtentInfo in extents)
+                {
+                    // Copy chunks of data
+                    for (ulong offset = 0; offset < fileExtentInfo.Size; offset += 10000)
+                    {
+                        int currentSizeBytes = (int)Math.Min(10000, fileExtentInfo.Size - offset);
+                        byte[] data = disk.ReadClusters((long)(fileExtentInfo.Lcn + offset), currentSizeBytes);
+                        foreach (byte b in data)
+                        {
+                            yield return b;
+                        }
+
+                        copiedBytes += currentSizeBytes;
+                    }
+                }
+
+            }
+
+            yield break;
+        }
 
         private void PopulateFileInfoProperties(string fullPath)
         {
@@ -328,7 +367,7 @@ namespace FilePropertiesDataObject
             return result;
         }
 
-        private string GetSha256Hash(byte[] fileBytes, int count)
+        private string GetSha256Hash(byte[] fileBytes)
         {
             string result = string.Empty;
 
@@ -337,17 +376,10 @@ namespace FilePropertiesDataObject
                 byte[] hashBytes = null;
                 using (SHA256Managed managed = new SHA256Managed())
                 {
-                    if (count == -1)
-                    {
-                        hashBytes = managed.ComputeHash(fileBytes);
-                    }
-                    else
-                    {
-                        hashBytes = managed.ComputeHash(fileBytes, 0, count);
-                    }
+
+                    hashBytes = managed.ComputeHash(fileBytes);
                 }
                 result = ByteArrayConverter.ToHexString(hashBytes);
-                hashBytes = null;
             }
             catch
             { }
