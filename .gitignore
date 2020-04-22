@@ -6,7 +6,6 @@
 packages
 bin
 obj
-app.config
 
 /NtfsLib/DeviceIOControlLib
 /NtfsLib/RawDiskLib
