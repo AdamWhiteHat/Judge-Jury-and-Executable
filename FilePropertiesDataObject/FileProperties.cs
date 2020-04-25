@@ -9,10 +9,6 @@ using System.Security.Cryptography;
 using Microsoft.WindowsAPICodePack.Shell;
 using Microsoft.WindowsAPICodePack.Shell.PropertySystem;
 using System.IO.Filesystem.Ntfs;
-using DeviceIOControlLib.Objects.FileSystem;
-using DeviceIOControlLib.Wrapper;
-using Microsoft.Win32.SafeHandles;
-using RawDiskLib;
 
 namespace FilePropertiesDataObject
 {
@@ -79,34 +75,34 @@ namespace FilePropertiesDataObject
             YaraRulesMatched = null;
         }
 
-        public void PopulateFileProperties(FileEnumeratorParameters parameters, char driveLetter, INode ntfsFile)
+        public void PopulateFileProperties(FileEnumeratorParameters parameters, char driveLetter, INode node)
         {
             if (parameters == null) return;
-            if (ntfsFile == null) return;
+            if (node == null) return;
 
             CancellationHelper.SetCancellationToken(parameters.CancelToken);
             CancellationHelper.ThrowIfCancelled();
 
-            MFTNumber = ntfsFile.MFTRecordNumber;
-            SequenceNumber = ntfsFile.SequenceNumber;
+            MFTNumber = node.MFTRecordNumber;
+            SequenceNumber = node.SequenceNumber;
 
             DriveLetter = driveLetter;
-            FileName = ntfsFile.Name;
+            FileName = node.Name;
 
             // LastAccessTime
             // CreationTime 
             // LastChangeTime
 
-            MftTimeAccessed = ntfsFile.LastAccessTime;
-            MftTimeCreation = ntfsFile.CreationTime;
-            MftTimeModified = ntfsFile.LastChangeTime;
+            MftTimeAccessed = node.LastAccessTime;
+            MftTimeCreation = node.CreationTime;
+            MftTimeModified = node.LastChangeTime;
             //MftTimeMftModified = ntfsFile.TimeMftModified;
 
-            DirectoryLocation = Path.GetDirectoryName(ntfsFile.FullName);
+            DirectoryLocation = Path.GetDirectoryName(node.FullName);
             Extension = Path.GetExtension(FileName);
-            FullPath = ntfsFile.FullName;
+            FullPath = node.FullName;
 
-            this.Length = ntfsFile.Size;
+            this.Length = node.Size;
 
             CancellationHelper.ThrowIfCancelled();
 
@@ -131,7 +127,7 @@ namespace FilePropertiesDataObject
                 }
                 */
 
-                byte[] fileBytes = GetFileBytes(ntfsFile.FullName).ToArray();
+                byte[] fileBytes = node.GetBytes().ToArray();
 
                 CancellationHelper.ThrowIfCancelled();
 
@@ -223,47 +219,6 @@ namespace FilePropertiesDataObject
             return result;
         }
     */
-
-        public static IEnumerable<byte> GetFileBytes(string sourceFile)
-        {
-            // FileAttributes 0x20000000L = FILE_FLAG_NO_BUFFERING
-            SafeFileHandle fileHandle = Win32Helper.CreateFile(sourceFile, (FileAccess)Win32Helper.FILE_READ_ATTRIBUTES, FileShare.ReadWrite, IntPtr.Zero, FileMode.Open, FileAttributes.Normal | (FileAttributes)0x20000000L, IntPtr.Zero);
-
-            if (fileHandle.IsInvalid)
-            {
-                throw new ArgumentException("Invalid file: " + sourceFile);
-            }
-
-            //var driveWrapper = new DeviceIOControlWrapper(driveHandle);
-            FilesystemDeviceWrapper fileWrapper = new FilesystemDeviceWrapper(fileHandle);
-
-            FileExtentInfo[] extents = fileWrapper.FileSystemGetRetrievalPointers();
-            decimal totalSize = extents.Sum(s => (decimal)s.Size);
-            decimal copiedBytes = 0;
-
-            using (RawDisk disk = new RawDisk(char.ToUpper(sourceFile[0])))
-            {
-                // Copy all extents
-                foreach (FileExtentInfo fileExtentInfo in extents)
-                {
-                    // Copy chunks of data
-                    for (ulong offset = 0; offset < fileExtentInfo.Size; offset += 10000)
-                    {
-                        int currentSizeBytes = (int)Math.Min(10000, fileExtentInfo.Size - offset);
-                        byte[] data = disk.ReadClusters((long)(fileExtentInfo.Lcn + offset), currentSizeBytes);
-                        foreach (byte b in data)
-                        {
-                            yield return b;
-                        }
-
-                        copiedBytes += currentSizeBytes;
-                    }
-                }
-
-            }
-
-            yield break;
-        }
 
         private void PopulateFileInfoProperties(string fullPath)
         {

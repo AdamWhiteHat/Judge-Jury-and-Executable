@@ -52,6 +52,6 @@ namespace System.IO.Filesystem.Ntfs
         DateTime LastChangeTime { get; }
         DateTime LastAccessTime { get; }
 
-        byte[] GetBytes();
+        IEnumerable<byte> GetBytes();
     }
 }

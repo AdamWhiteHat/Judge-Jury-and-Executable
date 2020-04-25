@@ -503,26 +503,14 @@ namespace System.IO.Filesystem.Ntfs
                 }
             }
 
-            public byte[] GetBytes()
+            public IEnumerable<byte> GetBytes()
             {
                 if (this.Size > long.MaxValue - 1)
                 {
                     return new byte[0];
                 }
 
-                long sizeToCopy = (long)this.Size;
-
-                byte[] allBytesOnDisk = this._reader.ReadFile(this);
-
-                if (sizeToCopy >= allBytesOnDisk.Length)
-                {
-                    return allBytesOnDisk;
-                }
-
-                Array result = Array.CreateInstance(typeof(byte), new long[] { sizeToCopy });
-                Array.Copy(allBytesOnDisk, result, sizeToCopy);
-
-                return (byte[])result;
+                return this._reader.ReadFileSafe(this);
             }
         }
 
