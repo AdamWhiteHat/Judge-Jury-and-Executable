@@ -53,7 +53,7 @@ namespace FilePropertiesDataObject
 			{
 				return result;
 			}
-						
+
 			try
 			{
 				if (fileBytes.Length > 0)
@@ -73,8 +73,24 @@ namespace FilePropertiesDataObject
 			this.SHA256Hash = peFile.SHA256;
 			this.SHA1Hash = peFile.SHA1;
 			this.MD5Hash = peFile.MD5;
-
 			this.ImpHash = peFile.ImpHash;
+
+			if (!string.IsNullOrWhiteSpace(this.SHA256Hash))
+			{
+				this.SHA256Hash = this.SHA256Hash.ToUpperInvariant();
+			}
+			if (!string.IsNullOrWhiteSpace(this.SHA1Hash))
+			{
+				this.SHA1Hash = this.SHA1Hash.ToUpperInvariant();
+			}
+			if (!string.IsNullOrWhiteSpace(this.MD5Hash))
+			{
+				this.MD5Hash = this.MD5Hash.ToUpperInvariant();
+			}
+			if (!string.IsNullOrWhiteSpace(this.ImpHash))
+			{
+				this.ImpHash = this.ImpHash.ToUpperInvariant();
+			}
 
 			this.IsDll = peFile.IsDLL;
 			this.IsPe = peFile.IsValidPeFile;
