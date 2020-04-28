@@ -66,6 +66,7 @@
 			this.tbPath.Size = new System.Drawing.Size(485, 20);
 			this.tbPath.TabIndex = 1;
 			this.tbPath.Text = "C:\\";
+			this.tbPath.KeyDown += new System.Windows.Forms.KeyEventHandler(this.textbox_KeyDown);
 			// 
 			// tbOutput
 			// 
@@ -100,6 +101,7 @@
 			this.tbSearchPatterns.Size = new System.Drawing.Size(355, 20);
 			this.tbSearchPatterns.TabIndex = 4;
 			this.tbSearchPatterns.Text = "*.exe|*.dll|*.drv";
+			this.tbSearchPatterns.KeyDown += new System.Windows.Forms.KeyEventHandler(this.textbox_KeyDown);
 			// 
 			// label1
 			// 
