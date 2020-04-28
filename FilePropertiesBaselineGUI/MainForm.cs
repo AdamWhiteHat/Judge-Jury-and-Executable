@@ -152,6 +152,17 @@ namespace FilePropertiesBaselineGUI
 			}
 		}
 
+		private void textbox_KeyDown(object sender, KeyEventArgs e)
+		{
+			if (e.KeyCode == Keys.Enter)
+			{
+				if (!ProcessingToggle.IsActive)
+				{
+					BeginScanning();
+				}
+			}
+		}
+
 		private void tbOutput_KeyUp(object sender, KeyEventArgs e)
 		{
 			if (e.Control)
@@ -179,6 +190,11 @@ namespace FilePropertiesBaselineGUI
 		}
 
 		private void btnSearch_Click(object sender, EventArgs e)
+		{
+			BeginScanning();
+		}
+
+		private void BeginScanning()
 		{
 			if (ProcessingToggle.IsActive)
 			{
@@ -318,8 +334,8 @@ namespace FilePropertiesBaselineGUI
 			}
 		}
 
-		#endregion
 
+		#endregion
 
 	}
 }

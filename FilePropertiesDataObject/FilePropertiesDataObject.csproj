@@ -9,7 +9,7 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>FilePropertiesDataObject</RootNamespace>
     <AssemblyName>FilePropertiesDataObject</AssemblyName>
-    <TargetFrameworkVersion>v4.6.2</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <TargetFrameworkProfile />
     <NuGetPackageImportStamp>
@@ -33,6 +33,9 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="DeviceIOControlLib, Version=0.1.5.0, Culture=neutral, PublicKeyToken=194e86a1dcd77098, processorArchitecture=MSIL">
+      <HintPath>..\packages\DeviceIOControlLib.0.1.5\lib\net40\DeviceIOControlLib.dll</HintPath>
+    </Reference>
     <Reference Include="libyara.NET, Version=3.5.0.1, Culture=neutral, PublicKeyToken=176e062142c9110f, processorArchitecture=AMD64">
       <HintPath>..\packages\libyara.NET.3.5.0\lib\net45\libyara.NET.dll</HintPath>
       <Private>True</Private>
@@ -50,6 +53,9 @@
     <Reference Include="PeNet.Asn1, Version=1.0.8.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\PeNet.Asn1.1.0.8\lib\net461\PeNet.Asn1.dll</HintPath>
       <Private>True</Private>
+    </Reference>
+    <Reference Include="RawDiskLib, Version=0.2.0.0, Culture=neutral, PublicKeyToken=1e91a7ce501218a4, processorArchitecture=MSIL">
+      <HintPath>..\packages\RawDiskLib.0.2.0\lib\net40\RawDiskLib.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -73,14 +79,15 @@
     <Compile Include="YaraRules.cs" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="app.config" />
     <None Include="packages.config">
       <SubType>Designer</SubType>
     </None>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\NtfsLib\NTFSLib\NTFSLib.csproj">
-      <Project>{56e61823-f056-4e99-99ee-89ccbd5055e9}</Project>
-      <Name>NTFSLib</Name>
+    <ProjectReference Include="..\NtfsReader\NtfsReader.csproj">
+      <Project>{dbacefc5-0234-4317-b096-f212ecae1dd1}</Project>
+      <Name>NtfsReader</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

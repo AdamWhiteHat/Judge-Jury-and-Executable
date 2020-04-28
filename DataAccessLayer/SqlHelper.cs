@@ -185,17 +185,16 @@ namespace DataAccessLayer
 
 		public static bool ContainsInvalidCharacters(string input)
 		{
-			if (input == null)
-
+			if (string.IsNullOrWhiteSpace(input))
 			{
 				return true;
 			}
 			var boolInvalidChars = false;
-			boolInvalidChars = input.Any(chr => !AllowedCharacters.Contains(chr));
-			if (boolInvalidChars == false)
+			boolInvalidChars = !input.All(chr => AllowedCharacters.Contains(chr));
+			if (!boolInvalidChars)
 			{
-				if (input.IndexOf("..") > 0) boolInvalidChars = true;
-				if (input.IndexOf("//") > 0) boolInvalidChars = true;
+				if (input.Contains("..")) { boolInvalidChars = true; }
+				if (input.Contains("//")) { boolInvalidChars = true; }
 			}
 			return boolInvalidChars;
 		}

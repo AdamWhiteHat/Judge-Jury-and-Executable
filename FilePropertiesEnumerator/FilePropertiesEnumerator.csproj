@@ -9,7 +9,7 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>FilePropertiesEnumerator</RootNamespace>
     <AssemblyName>FilePropertiesEnumerator</AssemblyName>
-    <TargetFrameworkVersion>v4.6.2</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <TargetFrameworkProfile />
   </PropertyGroup>
@@ -33,10 +33,6 @@
     <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="RawDiskLib, Version=0.1.4.0, Culture=neutral, PublicKeyToken=1e91a7ce501218a4, processorArchitecture=MSIL">
-      <HintPath>..\packages\RawDiskLib.0.1.4\lib\net40\RawDiskLib.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
@@ -61,20 +57,13 @@
       <Project>{f51a9fd6-c73d-4d41-9665-d2c181cea82f}</Project>
       <Name>FilePropertiesDataObject</Name>
     </ProjectReference>
-    <ProjectReference Include="..\NtfsLib\NTFSLib.Helpers\NTFSLib.Helpers.csproj">
-      <Project>{6e05ab3a-a3e3-4bcc-a121-8a9f332cdb96}</Project>
-      <Name>NTFSLib.Helpers</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\NtfsLib\NTFSLib\NTFSLib.csproj">
-      <Project>{56e61823-f056-4e99-99ee-89ccbd5055e9}</Project>
-      <Name>NTFSLib</Name>
+    <ProjectReference Include="..\NtfsReader\NtfsReader.csproj">
+      <Project>{dbacefc5-0234-4317-b096-f212ecae1dd1}</Project>
+      <Name>NtfsReader</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <None Include="app.config">
-      <SubType>Designer</SubType>
-    </None>
-    <None Include="packages.config" />
+    <None Include="app.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

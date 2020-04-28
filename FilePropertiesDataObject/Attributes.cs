@@ -1,12 +1,15 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Collections.Generic;
+using System.IO.Filesystem.Ntfs;
 
 namespace FilePropertiesDataObject
 {
+	using NtfsNodeAttributes = System.IO.Filesystem.Ntfs.Attributes;
+
 	public class Attributes
 	{
 		public bool Archive { get; private set; }
@@ -16,6 +19,19 @@ namespace FilePropertiesDataObject
 		public bool Encrypted { get; private set; }
 		public bool Compressed { get; private set; }
 		public bool Temporary { get; private set; }
+
+		public Attributes(INode node)
+		{
+			NtfsNodeAttributes attributes = node.Attributes;
+
+			Archive = ((attributes & NtfsNodeAttributes.Archive) == NtfsNodeAttributes.Archive);
+			ReadOnly = ((attributes & NtfsNodeAttributes.ReadOnly) == NtfsNodeAttributes.ReadOnly);
+			Hidden = ((attributes & NtfsNodeAttributes.Hidden) == NtfsNodeAttributes.Hidden);
+			System = ((attributes & NtfsNodeAttributes.System) == NtfsNodeAttributes.System);
+			Encrypted = ((attributes & NtfsNodeAttributes.Encrypted) == NtfsNodeAttributes.Encrypted);
+			Compressed = ((attributes & NtfsNodeAttributes.Compressed) == NtfsNodeAttributes.Compressed);
+			Temporary = ((attributes & NtfsNodeAttributes.Temporary) == NtfsNodeAttributes.Temporary);
+		}
 
 		public Attributes(string filePath)
 		{

@@ -1,12 +1,13 @@
 ﻿using System;
 using System.IO;
+using System.Text;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Collections.Generic;
 
-using NTFSLib.IO;
 using DataAccessLayer;
 using FilePropertiesDataObject;
+using System.IO.Filesystem.Ntfs;
 
 namespace FilePropertiesEnumerator
 {
@@ -23,7 +24,7 @@ namespace FilePropertiesEnumerator
 			ThrowIfParametersInvalid(parameters);
 
 			var fileEnumerationDelegate
-				= new Func<FileEnumeratorParameters, List<FailSuccessCount>>((args) => ThreadLauncher(args));
+				= new Func<FileEnumeratorParameters, List<FailSuccessCount>>((args) => Worker(args));
 
 			if (!parameters.DisableWorkerThread)
 			{
@@ -57,7 +58,7 @@ namespace FilePropertiesEnumerator
 			parameters.CancelToken.ThrowIfCancellationRequested();
 		}
 
-		private static List<FailSuccessCount> ThreadLauncher(FileEnumeratorParameters parameters)
+		private static List<FailSuccessCount> Worker(FileEnumeratorParameters parameters)
 		{
 			fileEnumCount = new FailSuccessCount("OS files enumerated");
 			databaseInsertCount = new FailSuccessCount("OS database rows updated");
@@ -65,19 +66,47 @@ namespace FilePropertiesEnumerator
 
 			try
 			{
-				char driveLetter = parameters.SelectedFolder[0];
-				Queue<string> folders = new Queue<string>(new string[] { parameters.SelectedFolder });
+				parameters.CancelToken.ThrowIfCancellationRequested();
 
-				while (folders.Count > 0)
+				StringBuilder currentPath = new StringBuilder(parameters.SelectedFolder);
+				string lastParent = currentPath.ToString();
+
+				string temp = currentPath.ToString();
+				if (temp.Contains(':') && (temp.Length == 2 || temp.Length == 3)) // Is a root directory, i.e. "C:" or "C:\"
 				{
-					parameters.CancelToken.ThrowIfCancellationRequested();
+					lastParent = ".";
+				}
 
-					string currentDirectory = folders.Dequeue();
+				string drive = parameters.SelectedFolder[0].ToString();
 
-					// Get all _FILES_ inside folder
-					IEnumerable<FileProperties> properties = EnumerateFileProperties(parameters, driveLetter, currentDirectory);
-					foreach (FileProperties prop in properties)
+				List<DriveInfo> ntfsDrives = DriveInfo.GetDrives().Where(d => d.DriveFormat == "NTFS").ToList();
+
+				DriveInfo driveToAnalyze = ntfsDrives.Where(dr => dr.Name.ToUpper().Contains(drive.ToUpper())).Single();
+
+				IEnumerable<INode> mftNodes = MftHelper.EnumerateMft(driveToAnalyze);
+
+				if (parameters.SelectedFolder.ToCharArray().Length > 3)
+				{
+					string selectedFolderUppercase = parameters.SelectedFolder.ToUpperInvariant().TrimEnd(new char[] { '\\' });
+					mftNodes = mftNodes.Where(node => node.FullName.ToUpperInvariant().Contains(selectedFolderUppercase));
+				}
+
+				foreach (INode node in mftNodes)
+				{
+					// File _PATTERN MATCHING_
+					if (FileMatchesPattern(node.FullName, parameters.SearchPatterns))
 					{
+						string message = $"MFT#: {node.MFTRecordNumber.ToString().PadRight(7)} Seq.#: {node.SequenceNumber.ToString().PadRight(4)} Path: {node.FullName}";
+
+						if (parameters.LogOutputFunction != null) parameters.LogOutputFunction.Invoke(message);
+						if (parameters.ReportOutputFunction != null) parameters.ReportOutputFunction.Invoke(message);
+
+						fileEnumCount.IncrementSucceededCount();
+						parameters.CancelToken.ThrowIfCancellationRequested();
+
+						FileProperties prop = new FileProperties();
+						prop.PopulateFileProperties(parameters, parameters.SelectedFolder[0], node);
+
 						parameters.CancelToken.ThrowIfCancellationRequested();
 
 						// INSERT file properties into _DATABASE_
@@ -89,23 +118,14 @@ namespace FilePropertiesEnumerator
 						else
 						{
 							databaseInsertCount.IncrementFailedCount();
-							parameters.CancelToken.ThrowIfCancellationRequested();
-							continue;
 						}
-
-						parameters.CancelToken.ThrowIfCancellationRequested();
 					}
-
-					// Get all _FOLDERS_ at this depth inside this folder
-					IEnumerable<NtfsDirectory> nestedDirectories = MftHelper.GetDirectories(driveLetter, currentDirectory);
-					foreach (NtfsDirectory directory in nestedDirectories)
+					else
 					{
-						parameters.CancelToken.ThrowIfCancellationRequested();
-						string dirPath = Path.Combine(currentDirectory, directory.Name);
-						folders.Enqueue(dirPath);
-						directoryEnumCount.IncrementSucceededCount();
-						parameters.CancelToken.ThrowIfCancellationRequested();
+						fileEnumCount.IncrementFailedCount();
 					}
+
+					parameters.CancelToken.ThrowIfCancellationRequested();
 				}
 			}
 			catch (OperationCanceledException)
@@ -114,41 +134,9 @@ namespace FilePropertiesEnumerator
 			return new List<FailSuccessCount> { fileEnumCount, databaseInsertCount, directoryEnumCount };
 		}
 
-		public static IEnumerable<FileProperties> EnumerateFileProperties(FileEnumeratorParameters parameters, char driveLetter, string currentDirectory)
+		private static bool FileMatchesPattern(string fullName, string[] searchPatterns)
 		{
-			foreach (NtfsFile file in MftHelper.EnumerateFiles(driveLetter, currentDirectory))
-			{
-				parameters.CancelToken.ThrowIfCancellationRequested();
-
-				// File _PATTERN MATCHING_
-				if (FileMatchesPattern(file, parameters.SearchPatterns))
-				{
-					string message = $"MFT File: {Path.Combine(currentDirectory, file.Name)}";
-					if (parameters.LogOutputFunction != null) parameters.LogOutputFunction.Invoke(message);
-					if (parameters.ReportOutputFunction != null) parameters.ReportOutputFunction.Invoke(message);
-
-					fileEnumCount.IncrementSucceededCount();
-					parameters.CancelToken.ThrowIfCancellationRequested();
-
-					FileProperties prop = new FileProperties();
-					prop.PopulateFileProperties(parameters, driveLetter, file);
-
-					parameters.CancelToken.ThrowIfCancellationRequested();
-
-					yield return prop;
-				}
-				else
-				{
-					fileEnumCount.IncrementFailedCount();
-					parameters.CancelToken.ThrowIfCancellationRequested();
-				}
-			}
-			yield break;
-		}
-
-		private static bool FileMatchesPattern(NtfsFile file, string[] searchPatterns)
-		{
-			string filename = file.Name;
+			string filename = Path.GetFileName(fullName);
 			if (filename.FirstOrDefault() == '$')
 			{
 				return false;

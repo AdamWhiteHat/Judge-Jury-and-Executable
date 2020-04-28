@@ -40,7 +40,7 @@ namespace DataAccessLayer
 				ParameterHelper.GetNewStringParameter("Filename", fileProperties.FileName),
 				ParameterHelper.GetNewStringParameter("Extension", fileProperties.Extension),
 				ParameterHelper.GetNewStringParameter("DirectoryLocation", fileProperties.DirectoryLocation),
-				ParameterHelper.GetNewLongParameter("Length", fileProperties.Length),
+				ParameterHelper.GetNewULongParameter("Length", fileProperties.Length),
 
 				ParameterHelper.GetNewDateTimeParameter("MftTimeCreation", fileProperties.MftTimeCreation),
 				ParameterHelper.GetNewDateTimeParameter("MftTimeAccessed", fileProperties.MftTimeAccessed),

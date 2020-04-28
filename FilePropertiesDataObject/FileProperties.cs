@@ -8,9 +8,7 @@ using System.Collections.Generic;
 using System.Security.Cryptography;
 using Microsoft.WindowsAPICodePack.Shell;
 using Microsoft.WindowsAPICodePack.Shell.PropertySystem;
-
-using NTFSLib.IO;
-using NtfsAttribute = NTFSLib.Objects.Attributes;
+using System.IO.Filesystem.Ntfs;
 
 namespace FilePropertiesDataObject
 {
@@ -22,7 +20,7 @@ namespace FilePropertiesDataObject
 		public ushort SequenceNumber { get; private set; }
 		public string Sha256Hash { get; private set; }
 
-		public long Length { get; private set; }
+		public ulong Length { get; private set; }
 		public char DriveLetter { get; private set; }
 		public string FullPath { get; private set; }
 		public string FileName { get; private set; }
@@ -77,92 +75,94 @@ namespace FilePropertiesDataObject
 			YaraRulesMatched = null;
 		}
 
-		public void PopulateFileProperties(FileEnumeratorParameters parameters, char driveLetter, NtfsFile ntfsFile)
+		public void PopulateFileProperties(FileEnumeratorParameters parameters, char driveLetter, INode node)
 		{
 			if (parameters == null) return;
-			if (ntfsFile == null) return;
+			if (node == null) return;
 
 			CancellationHelper.SetCancellationToken(parameters.CancelToken);
 			CancellationHelper.ThrowIfCancelled();
 
-			MFTNumber = ntfsFile.MFTRecord.MFTNumber;
-			SequenceNumber = ntfsFile.MFTRecord.SequenceNumber;
+			MFTNumber = node.MFTRecordNumber;
+			SequenceNumber = node.SequenceNumber;
 
 			DriveLetter = driveLetter;
-			FileName = ntfsFile.Name;
+			FileName = node.Name;
 
-			MftTimeAccessed = ntfsFile.TimeAccessed;
-			MftTimeCreation = ntfsFile.TimeCreation;
-			MftTimeModified = ntfsFile.TimeModified;
-			MftTimeMftModified = ntfsFile.TimeMftModified;
+			MftTimeAccessed = node.LastAccessTime;
+			MftTimeCreation = node.CreationTime;
+			MftTimeModified = node.LastChangeTime;
+			MftTimeMftModified = node.TimeMftModified;
 
-			DirectoryLocation = GetDirectory(ntfsFile);
+			DirectoryLocation = Path.GetDirectoryName(node.FullName);
 			Extension = Path.GetExtension(FileName);
-			FullPath = Path.Combine(DriveLetter.ToString() + DirectoryLocation, FileName);
+			FullPath = node.FullName;
 
-			this.Length = ntfsFile.AllocatedSize;
+			this.Length = node.Size;
 
 			CancellationHelper.ThrowIfCancelled();
 
 			if (this.Length != 0)
 			{
 				// Some entries in the MFT are greater than int.MaxValue !! That or the size is corrupt. Either way, we handle that here.
-				if (this.Length >= (int.MaxValue - 1))
-				{
-					using (Stream ntfsStream = ntfsFile.OpenRead())
-					{
-						this.Sha256Hash = GetSha256Hash_BigFile(ntfsStream);
-						this.Length = ntfsStream.Length;
-					}
+				/*if (this.Length >= (int.MaxValue - 1))
+                {
+                    //throw new Exception("MFTFile.Length >= int.MaxValue - 1");
+                    
+                    using (Stream ntfsStream = ntfsFile.Streams.First())
+                    {
+                        this.Sha256Hash = GetSha256Hash_BigFile(ntfsStream);
+                        this.Length = ntfsStream.Size;
+                    }
 
-					this.PeData = PeDataObject.TryGetPeDataObject(FileName, parameters.OnlineCertValidation);
-					CancellationHelper.ThrowIfCancelled();
-					this.Authenticode = AuthenticodeData.TryGetAuthenticodeData(FileName);
-					CancellationHelper.ThrowIfCancelled();
+                    this.PeData = PeDataObject.TryGetPeDataObject(FileName, parameters.OnlineCertValidation);
+                    CancellationHelper.ThrowIfCancelled();
+                    this.Authenticode = AuthenticodeData.TryGetAuthenticodeData(FileName);
+                    CancellationHelper.ThrowIfCancelled();
+                  
+                }
+                */
+
+				byte[] fileBytes = node.GetBytes().ToArray();
+
+				CancellationHelper.ThrowIfCancelled();
+
+				this.PeData = PeDataObject.TryGetPeDataObject(fileBytes, parameters.OnlineCertValidation);
+				if (IsPeDataPopulated)
+				{
+					this.Sha256Hash = PeData.SHA256Hash;
 				}
 				else
 				{
-					byte[] fileBytes = GetFileBytes(ntfsFile);
-
-					CancellationHelper.ThrowIfCancelled();
-
-					this.PeData = PeDataObject.TryGetPeDataObject(fileBytes, parameters.OnlineCertValidation);
-					if (IsPeDataPopulated)
-					{
-						this.Sha256Hash = PeData.SHA256Hash;
-					}
-					else
-					{
-						this.Sha256Hash = GetSha256Hash(fileBytes);
-					}
-
-					CancellationHelper.ThrowIfCancelled();
-
-					if (parameters.CalculateEntropy)
-					{
-						this.Entropy = EntropyHelper.CalculateFileEntropy(fileBytes);
-						CancellationHelper.ThrowIfCancelled();
-					}
-
-					this.Authenticode = AuthenticodeData.TryGetAuthenticodeData(fileBytes);
-
-					CancellationHelper.ThrowIfCancelled();
-
-					if (!string.IsNullOrWhiteSpace(parameters.YaraRulesFilePath) && File.Exists(parameters.YaraRulesFilePath))
-					{
-						this.YaraRulesMatched = YaraRules.Scan(fileBytes, parameters.YaraRulesFilePath);
-						CancellationHelper.ThrowIfCancelled();
-					}
-
-					fileBytes = null;
+					this.Sha256Hash = GetSha256Hash(fileBytes);
 				}
+
+				CancellationHelper.ThrowIfCancelled();
+
+				if (parameters.CalculateEntropy)
+				{
+					this.Entropy = EntropyHelper.CalculateFileEntropy(fileBytes);
+					CancellationHelper.ThrowIfCancelled();
+				}
+
+				this.Authenticode = AuthenticodeData.TryGetAuthenticodeData(fileBytes);
+
+				CancellationHelper.ThrowIfCancelled();
+
+				if (!string.IsNullOrWhiteSpace(parameters.YaraRulesFilePath) && File.Exists(parameters.YaraRulesFilePath))
+				{
+					this.YaraRulesMatched = YaraRules.Scan(fileBytes, parameters.YaraRulesFilePath);
+					CancellationHelper.ThrowIfCancelled();
+				}
+
+				fileBytes = null;
 			}
 
 			PopulateFileInfoProperties(FullPath);
 
 			CancellationHelper.ThrowIfCancelled();
 
-			this.Attributes = new Attributes(FullPath);
+			this.Attributes = new Attributes(node);
 
 			CancellationHelper.ThrowIfCancelled();
 
@@ -170,47 +170,6 @@ namespace FilePropertiesDataObject
 
 			CancellationHelper.ThrowIfCancelled();
 		}
-
-		private static string GetDirectory(NtfsFile file)
-		{
-			StringBuilder result = new StringBuilder();
-			result.Insert(0, "\\");
-
-			NtfsDirectory dir = file.Parent;
-			while (dir.Name != ".")
-			{
-				result.Insert(0, $"{Path.DirectorySeparatorChar}{dir.Name}");
-				dir = dir.Parent;
-			}
-
-			result.Insert(0, ":");
-
-			return result.ToString();
-		}
-
-		private byte[] GetFileBytes(NtfsFile file)
-		{
-			byte[] result = new byte[] { };
-			// If we made it this far, attempt to read the bytes
-			using (MemoryStream ms = new MemoryStream((int)this.Length))
-			{
-				using (Stream ntfsStream = file.OpenRead())
-				{
-					int read;
-					byte[] buffer = new byte[16 * 1024];
-
-					while ((read = ntfsStream.Read(buffer, 0, buffer.Length)) > 0)
-					{
-						ms.Write(buffer, 0, read);
-						CancellationHelper.ThrowIfCancelled();
-					}
-					buffer = null;
-				}
-				result = ms.ToArray();
-			}
-			return result;
-		}
-
 
 		private void PopulateFileInfoProperties(string fullPath)
 		{
@@ -323,10 +282,10 @@ namespace FilePropertiesDataObject
 				byte[] hashBytes = null;
 				using (SHA256Managed managed = new SHA256Managed())
 				{
+
 					hashBytes = managed.ComputeHash(fileBytes);
 				}
 				result = ByteArrayConverter.ToHexString(hashBytes);
-				hashBytes = null;
 			}
 			catch
 			{ }
