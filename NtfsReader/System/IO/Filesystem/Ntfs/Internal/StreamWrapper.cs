@@ -80,17 +80,20 @@ namespace System.IO.Filesystem.Ntfs.Internal
 			get
 			{
 				//if ((_reader._retrieveMode & RetrieveMode.Fragments) != RetrieveMode.Fragments)
-				//    throw new NotSupportedException("The fragments haven't been retrieved. Make sure to use the proper RetrieveMode.");
+				//{ throw new NotSupportedException("The fragments haven't been retrieved. Make sure to use the proper RetrieveMode."); }
 
-				IList<Fragment> fragments =
-					_reader._streams[_parentNode.NodeIndex][_streamIndex].Fragments;
+				IList<Fragment> fragments = _reader._streams[_parentNode.NodeIndex][_streamIndex].Fragments;
 
 				if (fragments == null || fragments.Count == 0)
+				{
 					return null;
+				}
 
 				List<IFragment> newFragments = new List<IFragment>();
 				foreach (Fragment fragment in fragments)
+				{
 					newFragments.Add(new FragmentWrapper(this, fragment));
+				}
 
 				return newFragments;
 			}

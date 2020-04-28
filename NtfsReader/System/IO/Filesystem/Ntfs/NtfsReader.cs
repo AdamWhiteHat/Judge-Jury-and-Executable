@@ -541,7 +541,8 @@ namespace System.IO.Filesystem.Ntfs
 									new StandardInformation(
 										attributeStandardInformation->CreationTime,
 										attributeStandardInformation->FileChangeTime,
-										attributeStandardInformation->LastAccessTime
+										attributeStandardInformation->LastAccessTime,
+										attributeStandardInformation->MftChangeTime
 									);
 							}
 

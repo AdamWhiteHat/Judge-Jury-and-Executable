@@ -157,6 +157,17 @@ namespace System.IO.Filesystem.Ntfs.Internal
 			}
 		}
 
+		public DateTime TimeMftModified
+		{
+			get
+			{
+				if (_reader._standardInformations == null)
+					throw new NotSupportedException("The StandardInformation haven't been retrieved. Make sure to use the proper RetrieveMode.");
+
+				return DateTime.FromFileTimeUtc((Int64)_reader._standardInformations[_nodeIndex].TimeMftModified);
+			}
+		}
+
 		public IEnumerable<byte> GetBytes()
 		{
 			if (this.Size > long.MaxValue - 1)
