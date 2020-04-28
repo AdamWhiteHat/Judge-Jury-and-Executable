@@ -7,6 +7,8 @@ using System.IO.Filesystem.Ntfs;
 
 namespace FilePropertiesEnumerator
 {
+	using NtfsNodeAttributes = System.IO.Filesystem.Ntfs.Attributes;
+
 	public static class MftHelper
 	{
 		public static IEnumerable<INode> EnumerateMft(DriveInfo driveToAnalyze)
@@ -17,17 +19,17 @@ namespace FilePropertiesEnumerator
 				ntfsReader.GetNodes(driveToAnalyze.Name)
 					.Where(n => (n.Attributes &
 								 (
-									Attributes.Hidden
-								  | Attributes.System
-								  | Attributes.Temporary
-								  | Attributes.Device
-								 //| Attributes.Directory
-								 //| Attributes.Offline
-								 //| Attributes.ReparsePoint
-								 //| Attributes.SparseFile
+									NtfsNodeAttributes.Hidden
+								  | NtfsNodeAttributes.System
+								  | NtfsNodeAttributes.Temporary
+								  | NtfsNodeAttributes.Device
+								  | NtfsNodeAttributes.Directory
+								  | NtfsNodeAttributes.Offline
+								  | NtfsNodeAttributes.ReparsePoint
+								  | NtfsNodeAttributes.SparseFile
 								 )
-								) == 0);
-			//.OrderByDescending(n => n.Size);
+								) == 0); // This means that we DONT want any matches of the above NtfsNodeAttributes types.
+					//.OrderByDescending(n => n.Size);
 
 			return nodes;
 		}
