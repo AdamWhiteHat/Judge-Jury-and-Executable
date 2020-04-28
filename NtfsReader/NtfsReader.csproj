@@ -57,11 +57,32 @@
   <ItemGroup>
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="System\IO\Filesystem\Ntfs\Algorithms.cs" />
-    <Compile Include="System\IO\Filesystem\Ntfs\Attributes.cs" />
-    <Compile Include="System\IO\Filesystem\Ntfs\IDiskInfo.cs" />
-    <Compile Include="System\IO\Filesystem\Ntfs\IFragment.cs" />
-    <Compile Include="System\IO\Filesystem\Ntfs\INode.cs" />
-    <Compile Include="System\IO\Filesystem\Ntfs\IStream.cs" />
+    <Compile Include="System\IO\Filesystem\Ntfs\Enums\Attributes.cs" />
+    <Compile Include="System\IO\Filesystem\Ntfs\Enums\RecordType.cs" />
+    <Compile Include="System\IO\Filesystem\Ntfs\Interfaces\IDiskInfo.cs" />
+    <Compile Include="System\IO\Filesystem\Ntfs\Interfaces\IFragment.cs" />
+    <Compile Include="System\IO\Filesystem\Ntfs\Interfaces\INode.cs" />
+    <Compile Include="System\IO\Filesystem\Ntfs\Internal\DiskInfoWrapper.cs" />
+    <Compile Include="System\IO\Filesystem\Ntfs\Internal\NodeWrapper.cs" />
+    <Compile Include="System\IO\Filesystem\Ntfs\Internal\StreamWrapper.cs" />
+    <Compile Include="System\IO\Filesystem\Ntfs\Internal\FragmentWrapper.cs" />
+    <Compile Include="System\IO\Filesystem\Ntfs\Internal\StandardInformation.cs" />
+    <Compile Include="System\IO\Filesystem\Ntfs\Internal\Node.cs" />
+    <Compile Include="System\IO\Filesystem\Ntfs\Internal\Stream.cs" />
+    <Compile Include="System\IO\Filesystem\Ntfs\Enums\AttributeType.cs" />
+    <Compile Include="System\IO\Filesystem\Ntfs\Internal\Fragment.cs" />
+    <Compile Include="System\IO\Filesystem\Ntfs\Internal\NonResidentAttribute.cs" />
+    <Compile Include="System\IO\Filesystem\Ntfs\Internal\ResidentAttribute.cs" />
+    <Compile Include="System\IO\Filesystem\Ntfs\Internal\AttributeStandardInformation.cs" />
+    <Compile Include="System\IO\Filesystem\Ntfs\Internal\AttributeFileName.cs" />
+    <Compile Include="System\IO\Filesystem\Ntfs\Internal\AttributeList.cs" />
+    <Compile Include="System\IO\Filesystem\Ntfs\Internal\Attribute.cs" />
+    <Compile Include="System\IO\Filesystem\Ntfs\Internal\BootSector.cs" />
+    <Compile Include="System\IO\Filesystem\Ntfs\Internal\RecordHeader.cs" />
+    <Compile Include="System\IO\Filesystem\Ntfs\Internal\INodeReference.cs" />
+    <Compile Include="System\IO\Filesystem\Ntfs\Internal\FileRecordHeader.cs" />
+    <Compile Include="System\IO\Filesystem\Ntfs\Internal\VolumeData.cs" />
+    <Compile Include="System\IO\Filesystem\Ntfs\Interfaces\IStream.cs" />
     <Compile Include="System\IO\Filesystem\Ntfs\NtfsReader.cs" />
     <Compile Include="System\IO\Filesystem\Ntfs\NtfsReader.Algorithms.cs">
       <DependentUpon>NtfsReader.cs</DependentUpon>
@@ -72,7 +93,7 @@
     <Compile Include="System\IO\Filesystem\Ntfs\NtfsReader.Public.cs">
       <DependentUpon>NtfsReader.cs</DependentUpon>
     </Compile>
-    <Compile Include="System\IO\Filesystem\Ntfs\RetrieveMode.cs" />
+    <Compile Include="System\IO\Filesystem\Ntfs\Enums\RetrieveMode.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="License.txt" />

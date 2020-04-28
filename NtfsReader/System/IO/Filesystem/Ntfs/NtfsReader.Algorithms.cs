@@ -33,56 +33,56 @@ using System.Text;
 
 namespace System.IO.Filesystem.Ntfs
 {
-    public partial class NtfsReader
-    {
-        /// <summary>
-        /// Recurse the node hierarchy and construct its entire name
-        /// stopping at the root directory.
-        /// </summary>
-        private string GetNodeFullNameCore(UInt32 nodeIndex)
-        {
-            UInt32 node = nodeIndex;
+	public partial class NtfsReader
+	{
+		/// <summary>
+		/// Recurse the node hierarchy and construct its entire name
+		/// stopping at the root directory.
+		/// </summary>
+		internal string GetNodeFullNameCore(UInt32 nodeIndex)
+		{
+			UInt32 node = nodeIndex;
 
-            Stack<UInt32> fullPathNodes = new Stack<UInt32>();
-            fullPathNodes.Push(node);
+			Stack<UInt32> fullPathNodes = new Stack<UInt32>();
+			fullPathNodes.Push(node);
 
-            UInt32 lastNode = node;
-            while (true)
-            {
-                UInt32 parent = _nodes[node].ParentNodeIndex;
+			UInt32 lastNode = node;
+			while (true)
+			{
+				UInt32 parent = _nodes[node].ParentNodeIndex;
 
-                //loop until we reach the root directory
-                if (parent == ROOTDIRECTORY)
-                    break;
+				//loop until we reach the root directory
+				if (parent == ROOTDIRECTORY)
+					break;
 
-                if (parent == lastNode)
-                    throw new InvalidDataException("Detected a loop in the tree structure.");
+				if (parent == lastNode)
+					throw new InvalidDataException("Detected a loop in the tree structure.");
 
-                fullPathNodes.Push(parent);
+				fullPathNodes.Push(parent);
 
-                lastNode = node;
-                node = parent;
-            }
+				lastNode = node;
+				node = parent;
+			}
 
-            StringBuilder fullPath = new StringBuilder();
-            fullPath.Append(_rootPath);
+			StringBuilder fullPath = new StringBuilder();
+			fullPath.Append(_rootPath);
 
-            while (fullPathNodes.Count > 0)
-            {
-                node = fullPathNodes.Pop();
+			while (fullPathNodes.Count > 0)
+			{
+				node = fullPathNodes.Pop();
 
-                fullPath.Append(GetNameFromIndex(_nodes[node].NameIndex));
-                
-                if (fullPathNodes.Count > 0)
-                    fullPath.Append(@"\");
-            }
+				fullPath.Append(GetNameFromIndex(_nodes[node].NameIndex));
 
-            string path = fullPath.ToString();
-            if (_locallyMappedDriveRootPath != null)
-                if (path.StartsWith(_locallyMappedDriveRootPath, StringComparison.OrdinalIgnoreCase))
-                    path = Path.Combine(_driveInfo.Name, path.Substring(_locallyMappedDriveRootPath.Length).TrimStart(new char[] { '\\' }));
+				if (fullPathNodes.Count > 0)
+					fullPath.Append(@"\");
+			}
 
-            return path;
-        }
-    }
+			string path = fullPath.ToString();
+			if (_locallyMappedDriveRootPath != null)
+				if (path.StartsWith(_locallyMappedDriveRootPath, StringComparison.OrdinalIgnoreCase))
+					path = Path.Combine(_driveInfo.Name, path.Substring(_locallyMappedDriveRootPath.Length).TrimStart(new char[] { '\\' }));
+
+			return path;
+		}
+	}
 }

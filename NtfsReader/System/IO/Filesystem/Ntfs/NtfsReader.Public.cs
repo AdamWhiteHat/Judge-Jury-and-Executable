@@ -36,249 +36,249 @@ using System.Collections.Generic;
 using System.Text;
 using System.Diagnostics;
 using RawDiskLib;
+using System.IO.Filesystem.Ntfs.Internal;
 
 namespace System.IO.Filesystem.Ntfs
 {
-    /// <summary>
-    /// Ntfs metadata reader.
-    /// 
-    /// This class is used to get files & directories information of an NTFS volume.
-    /// This is a lot faster than using conventional directory browsing method
-    /// particularly when browsing really big directories.
-    /// </summary>
-    /// <remarks>Admnistrator rights are required in order to use this method.</remarks>
-    public partial class NtfsReader
-    {
-        /// <summary>
-        /// NtfsReader constructor.
-        /// </summary>
-        /// <param name="driveInfo">The drive you want to read metadata from.</param>
-        /// <param name="include">Information to retrieve from each node while scanning the disk</param>
-        /// <remarks>Streams & Fragments are expensive to store in memory, if you don't need them, don't retrieve them.</remarks>
-        public NtfsReader(DriveInfo driveInfo, RetrieveMode retrieveMode)
-        {
-            if (driveInfo == null)
-            {
-                throw new ArgumentNullException("driveInfo");
-            }
+	/// <summary>
+	/// Ntfs metadata reader.
+	/// 
+	/// This class is used to get files & directories information of an NTFS volume.
+	/// This is a lot faster than using conventional directory browsing method
+	/// particularly when browsing really big directories.
+	/// </summary>
+	/// <remarks>Admnistrator rights are required in order to use this method.</remarks>
+	public partial class NtfsReader
+	{
+		/// <summary>
+		/// NtfsReader constructor.
+		/// </summary>
+		/// <param name="driveInfo">The drive you want to read metadata from.</param>
+		/// <param name="include">Information to retrieve from each node while scanning the disk</param>
+		/// <remarks>Streams & Fragments are expensive to store in memory, if you don't need them, don't retrieve them.</remarks>
+		public NtfsReader(DriveInfo driveInfo, RetrieveMode retrieveMode)
+		{
+			if (driveInfo == null)
+			{
+				throw new ArgumentNullException("driveInfo");
+			}
 
-            DriveInfo tmpDriveInfo = driveInfo;
+			DriveInfo tmpDriveInfo = driveInfo;
 
-            //try to find if the drive is mapped on a local volume
-            if (driveInfo.DriveType != DriveType.Fixed)
-            {
-                tmpDriveInfo = ResolveLocalMapDrive(driveInfo);
-            }
+			//try to find if the drive is mapped on a local volume
+			if (driveInfo.DriveType != DriveType.Fixed)
+			{
+				tmpDriveInfo = ResolveLocalMapDrive(driveInfo);
+			}
 
-            _rootPath = tmpDriveInfo.Name;
+			_rootPath = tmpDriveInfo.Name;
 
-            StringBuilder builder = new StringBuilder(1024);
-            GetVolumeNameForVolumeMountPoint(tmpDriveInfo.RootDirectory.Name, builder, builder.Capacity);
+			StringBuilder builder = new StringBuilder(1024);
+			GetVolumeNameForVolumeMountPoint(tmpDriveInfo.RootDirectory.Name, builder, builder.Capacity);
 
-            _driveInfo = driveInfo;
-            _retrieveMode = retrieveMode;
+			_driveInfo = driveInfo;
+			_retrieveMode = retrieveMode;
 
-            string volume = driveInfo.Name;
+			string volume = driveInfo.Name;
 
-            if (builder != null)
-            {
-                string volumeName = builder.ToString().TrimEnd(new char[] { '\\' });
-                if (!string.IsNullOrWhiteSpace(volumeName))
-                {
-                    volume = volumeName;
-                }
-            }
+			if (builder != null)
+			{
+				string volumeName = builder.ToString().TrimEnd(new char[] { '\\' });
+				if (!string.IsNullOrWhiteSpace(volumeName))
+				{
+					volume = volumeName;
+				}
+			}
 
-            _volumeHandle =
-                CreateFile(
-                    volume,
-                    FileAccess.Read,
-                    FileShare.All,
-                    IntPtr.Zero,
-                    FileMode.Open,
-                    0,
-                    IntPtr.Zero
-                    );
+			_volumeHandle =
+				CreateFile(
+					volume,
+					FileAccess.Read,
+					FileShare.All,
+					IntPtr.Zero,
+					FileMode.Open,
+					0,
+					IntPtr.Zero
+					);
 
-            if (_volumeHandle == null || _volumeHandle.IsInvalid)
-                throw new IOException(
-                    string.Format(
-                        "Unable to open volume {0}. Make sure it exists and that you have Administrator privileges.",
-                        driveInfo
-                    )
-                );
+			if (_volumeHandle == null || _volumeHandle.IsInvalid)
+				throw new IOException(
+					string.Format(
+						"Unable to open volume {0}. Make sure it exists and that you have Administrator privileges.",
+						driveInfo
+					)
+				);
 
-            InitializeDiskInfo();
+			InitializeDiskInfo();
 
-            _nodes = ProcessMft();
+			_nodes = ProcessMft();
 
-            //cleanup anything that isn't used anymore
-            _nameIndex = null;
+			//cleanup anything that isn't used anymore
+			_nameIndex = null;
 
-            GC.Collect();
-        }
+			//GC.Collect();
+		}
 
-        /// <summary>
-        /// Get the drive on which this instance is bound to.
-        /// </summary>
-        public DriveInfo DriveInfo
-        {
-            get { return _driveInfo; }
-        }
+		/// <summary>
+		/// Get the drive on which this instance is bound to.
+		/// </summary>
+		public DriveInfo DriveInfo
+		{
+			get { return _driveInfo; }
+		}
 
-        /// <summary>
-        /// Get information about the NTFS volume.
-        /// </summary>
-        public IDiskInfo DiskInfo
-        {
-            get { return _diskInfo; }
-        }
+		/// <summary>
+		/// Get information about the NTFS volume.
+		/// </summary>
+		public IDiskInfo DiskInfo
+		{
+			get { return _diskInfo; }
+		}
 
-        /// <summary>
-        /// Get a single node that match exactly the given path
-        /// </summary>
-        public INode GetNode(string fullPath)
-        {
-            foreach (INode node in GetNodes(fullPath))
-                if (string.Equals(node.FullName, fullPath, StringComparison.OrdinalIgnoreCase))
-                    return node;
+		/// <summary>
+		/// Get a single node that match exactly the given path
+		/// </summary>
+		public INode GetNode(string fullPath)
+		{
+			foreach (INode node in GetNodes(fullPath))
+				if (string.Equals(node.FullName, fullPath, StringComparison.OrdinalIgnoreCase))
+					return node;
 
-            return null;
-        }
+			return null;
+		}
 
-        /// <summary>
-        /// Get all nodes under the specified rootPath.
-        /// </summary>
-        /// <param name="rootPath">The rootPath must at least contains the drive and may include any number of subdirectories. Wildcards aren't supported.</param>
-        public List<INode> GetNodes(string rootPath)
-        {
-            Stopwatch stopwatch = new Stopwatch();
-            stopwatch.Start();
+		/// <summary>
+		/// Get all nodes under the specified rootPath.
+		/// </summary>
+		/// <param name="rootPath">The rootPath must at least contains the drive and may include any number of subdirectories. Wildcards aren't supported.</param>
+		public List<INode> GetNodes(string rootPath)
+		{
+			Stopwatch stopwatch = new Stopwatch();
+			stopwatch.Start();
 
-            List<INode> nodes = new List<INode>();
+			List<INode> nodes = new List<INode>();
 
-            //TODO use Parallel.Net to process this when it becomes available
-            UInt32 nodeCount = (UInt32)_nodes.Length;
-            for (UInt32 i = 0; i < nodeCount; ++i)
-                if (_nodes[i].NameIndex != 0 && GetNodeFullNameCore(i).StartsWith(rootPath, StringComparison.InvariantCultureIgnoreCase))
-                    nodes.Add(new NodeWrapper(this, i, _nodes[i]));
+			//TODO use Parallel.Net to process this when it becomes available
+			UInt32 nodeCount = (UInt32)_nodes.Length;
+			for (UInt32 i = 0; i < nodeCount; ++i)
+				if (_nodes[i].NameIndex != 0 && GetNodeFullNameCore(i).StartsWith(rootPath, StringComparison.InvariantCultureIgnoreCase))
+					nodes.Add(new NodeWrapper(this, i, _nodes[i]));
 
-            stopwatch.Stop();
+			stopwatch.Stop();
 
-            Trace.WriteLine(
-                string.Format(
-                    "{0} node{1} have been retrieved in {2} ms",
-                    nodes.Count,
-                    nodes.Count > 1 ? "s" : string.Empty,
-                    (float)stopwatch.ElapsedTicks / TimeSpan.TicksPerMillisecond
-                )
-            );
+			Trace.WriteLine(
+				string.Format(
+					"{0} node{1} have been retrieved in {2} ms",
+					nodes.Count,
+					nodes.Count > 1 ? "s" : string.Empty,
+					(float)stopwatch.ElapsedTicks / TimeSpan.TicksPerMillisecond
+				)
+			);
 
-            return nodes;
-        }
+			return nodes;
+		}
 
-        private static ulong _chunkSize = 10000;
+		public IEnumerable<byte> ReadFileSafe(INode node)
+		{
+			UInt64 bytesToRead = node.Size;
 
-        public IEnumerable<byte> ReadFileSafe(INode node)
-        {
-            UInt64 bytesToRead = node.Size;
+			if (bytesToRead == 0 || !node.Streams.Any())
+			{
+				yield break;
+			}
 
-            if (bytesToRead == 0 || !node.Streams.Any())
-            {
-                yield break;
-            }
+			UInt64 bytesPerCluster = (UInt64)_diskInfo.BytesPerSector * _diskInfo.SectorsPerCluster;
 
-            UInt64 bytesPerCluster = (UInt64)_diskInfo.BytesPerSector * _diskInfo.SectorsPerCluster;
+			if (bytesToRead % bytesPerCluster > 0)
+			{
+				bytesToRead += bytesPerCluster - (bytesToRead % bytesPerCluster);
+			}
 
-            if (bytesToRead % bytesPerCluster > 0)
-            {
-                bytesToRead += bytesPerCluster - (bytesToRead % bytesPerCluster);
-            }
+			double double_BytesPerCluster = (double)bytesPerCluster;
 
-            foreach (IFragment fragment in node.Streams[0].Fragments)
-            {
-                if (fragment.Lcn != VIRTUALFRAGMENT)
-                {
-                    using (RawDisk disk = new RawDisk(char.ToUpper(node.FullName[0])))
-                    {
-                        // Copy chunks of data
-                        for (ulong offset = 0; offset < bytesToRead; offset += _chunkSize)
-                        {
-                            int currentSizeBytes = (int)Math.Min(_chunkSize, bytesToRead - offset);
-                            byte[] data = disk.ReadClusters((long)(fragment.Lcn + offset), currentSizeBytes);
-                            foreach (byte b in data)
-                            {
-                                yield return b;
-                            }
-                        }
-                    }
-                }
-            }
+			using (RawDisk disk = new RawDisk(char.ToUpper(node.FullName[0])))
+			{
+				foreach (IStream stream in node.Streams)
+				{
+					foreach (IFragment fragment in stream.Fragments)
+					{
+						if (fragment.Lcn != VIRTUALFRAGMENT)
+						{
+							int clustersToRead = (int)Math.Ceiling(((double)stream.Size / double_BytesPerCluster));
+							byte[] data = disk.ReadClusters((long)(fragment.Lcn), clustersToRead);
+							foreach (byte b in data.Take((int)stream.Size))
+							{
+								yield return b;
+							}
+						}
+					}
+				}
+			}
 
-            yield break;
-        }
+			yield break;
+		}
 
-        public unsafe byte[] ReadFileUnsafe(INode node)
-        {
-            UInt64 bytesToRead = node.Size;
+		public unsafe byte[] ReadFileUnsafe(INode node)
+		{
+			UInt64 bytesToRead = node.Size;
 
-            if (bytesToRead == 0 || !node.Streams.Any())
-            {
-                return new byte[0];
-            }
+			if (bytesToRead == 0 || !node.Streams.Any())
+			{
+				return new byte[0];
+			}
 
-            UInt64 bytesPerCluster = (UInt64)_diskInfo.BytesPerSector * _diskInfo.SectorsPerCluster;
+			UInt64 bytesPerCluster = (UInt64)_diskInfo.BytesPerSector * _diskInfo.SectorsPerCluster;
 
-            if (bytesToRead % bytesPerCluster > 0)
-            {
-                bytesToRead += bytesPerCluster - (bytesToRead % bytesPerCluster);
-            }
+			if (bytesToRead % bytesPerCluster > 0)
+			{
+				bytesToRead += bytesPerCluster - (bytesToRead % bytesPerCluster);
+			}
 
-            byte[] bitmapData = new byte[bytesToRead];
+			byte[] bitmapData = new byte[bytesToRead];
 
-            fixed (byte* bitmapDataPtr = bitmapData)
-            {
-                UInt64 vcn = 0;
-                UInt64 offset = 0;
+			fixed (byte* bitmapDataPtr = bitmapData)
+			{
+				UInt64 vcn = 0;
+				UInt64 offset = 0;
 
-                foreach (IFragment fragment in node.Streams[0].Fragments)
-                {
-                    if (fragment.Lcn != VIRTUALFRAGMENT)
-                    {
-                        UInt64 sizeToRead = (fragment.NextVcn - vcn) * bytesPerCluster;
+				foreach (IFragment fragment in node.Streams[0].Fragments)
+				{
+					if (fragment.Lcn != VIRTUALFRAGMENT)
+					{
+						UInt64 sizeToRead = (fragment.NextVcn - vcn) * bytesPerCluster;
 
-                        ReadFile(
-                            bitmapDataPtr + offset,
-                            sizeToRead,
-                            fragment.Lcn * bytesPerCluster
-                            );
+						ReadFile(
+							bitmapDataPtr + offset,
+							sizeToRead,
+							fragment.Lcn * bytesPerCluster
+							);
 
-                        offset += sizeToRead;
-                    }
+						offset += sizeToRead;
+					}
 
-                    vcn = fragment.NextVcn;
-                }
-            }
+					vcn = fragment.NextVcn;
+				}
+			}
 
-            return bitmapData;
-        }
+			return bitmapData;
+		}
 
-        public byte[] GetVolumeBitmap()
-        {
-            return _bitmapData;
-        }
+		public byte[] GetVolumeBitmap()
+		{
+			return _bitmapData;
+		}
 
-        #region IDisposable Members
+		#region IDisposable Members
 
-        public void Dispose()
-        {
-            if (_volumeHandle != null)
-            {
-                _volumeHandle.Dispose();
-                _volumeHandle = null;
-            }
-        }
+		public void Dispose()
+		{
+			if (_volumeHandle != null)
+			{
+				_volumeHandle.Dispose();
+				_volumeHandle = null;
+			}
+		}
 
-        #endregion
-    }
+		#endregion
+	}
 }
