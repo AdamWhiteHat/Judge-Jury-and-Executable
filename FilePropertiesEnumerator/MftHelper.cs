@@ -16,10 +16,17 @@ namespace FilePropertiesEnumerator
 			IEnumerable<INode> nodes =
 				ntfsReader.GetNodes(driveToAnalyze.Name)
 					.Where(n => (n.Attributes &
-								 (Attributes.Hidden | Attributes.System |
-								  Attributes.Temporary | Attributes.Device |
-								  Attributes.Directory | Attributes.Offline |
-								  Attributes.ReparsePoint | Attributes.SparseFile)) == 0);
+								 (
+									Attributes.Hidden
+								  | Attributes.System
+								  | Attributes.Temporary
+								  | Attributes.Device
+								 //| Attributes.Directory
+								 //| Attributes.Offline
+								 //| Attributes.ReparsePoint
+								 //| Attributes.SparseFile
+								 )
+								) == 0);
 			//.OrderByDescending(n => n.Size);
 
 			return nodes;
