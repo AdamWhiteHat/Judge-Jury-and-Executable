@@ -128,7 +128,7 @@ namespace System.IO.Filesystem.Ntfs
             All = Read | Write | Create | Exec | Delete | Atrib | Perm,
             Group = 0x8000
         }
-        
+
         private enum NetworkResult : uint
         {
             Success = 0,
@@ -149,10 +149,10 @@ namespace System.IO.Filesystem.Ntfs
              );
 
         [DllImport("netapi32")]
-        private static extern void NetApiBufferFree(IntPtr buffer);
+        private static extern int NetApiBufferFree(IntPtr buffer);
 
-        [DllImport("mpr", CharSet = CharSet.Auto, SetLastError = true)]
-        public static extern int WNetGetConnection(string localName, StringBuilder remoteName, ref int length);
+        [DllImport("mpr", CharSet = CharSet.Unicode, SetLastError = true)]
+        private static extern int WNetGetConnection(string localName, StringBuilder remoteName, ref int length);
 
         /// <summary>
         /// Enum the share on the local machine
@@ -162,21 +162,21 @@ namespace System.IO.Filesystem.Ntfs
             const uint MAX_PREFERRED_LENGTH = 0xFFFFFFFF;
 
             List<NetworkShare> networkShares = new List<NetworkShare>();
-            
+
             int entriesRead = 0, totalEntries = 0, resumeHandle = 0;
             int structSize = Marshal.SizeOf(typeof(NetworkShare));
-            
+
             StringBuilder server = new StringBuilder(Environment.MachineName);
 
             IntPtr bufPtr = IntPtr.Zero;
 
             NetworkResult result =
                 (NetworkResult)NetShareEnum(
-                    server, 
+                    server,
                     2,
-                    ref bufPtr, 
-                    MAX_PREFERRED_LENGTH, 
-                    ref entriesRead, 
+                    ref bufPtr,
+                    MAX_PREFERRED_LENGTH,
+                    ref entriesRead,
                     ref totalEntries,
                     ref resumeHandle
                     );

@@ -43,7 +43,6 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="BackgroundEnumerationThread.cs" />
     <Compile Include="FileEnumerator.cs" />
     <Compile Include="MftHelper.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
