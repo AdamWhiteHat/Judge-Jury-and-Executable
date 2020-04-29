@@ -122,6 +122,11 @@ namespace FilePropertiesEnumerator
 					}
 					else
 					{
+						if (parameters.LogOutputFunction != null)
+						{
+							parameters.LogOutputFunction.Invoke($"FileMatchingPattern returned false: \"{node.FullName}\"");
+						}
+
 						fileEnumCount.IncrementFailedCount();
 					}
 

@@ -180,36 +180,47 @@ namespace System.IO.Filesystem.Ntfs
 
 		public IEnumerable<byte> ReadFileSafe(INode node)
 		{
-			UInt64 bytesToRead = node.Size;
-
-			if (bytesToRead == 0 || !node.Streams.Any())
+			if (node.Size == 0 || !node.Streams.Any())
 			{
 				yield break;
 			}
 
-			UInt64 bytesPerCluster = (UInt64)_diskInfo.BytesPerSector * _diskInfo.SectorsPerCluster;
-
-			if (bytesToRead % bytesPerCluster > 0)
-			{
-				bytesToRead += bytesPerCluster - (bytesToRead % bytesPerCluster);
-			}
-
-			double double_BytesPerCluster = (double)bytesPerCluster;
+			ulong fileBytesRemaining = node.Size;
 
 			using (RawDisk disk = new RawDisk(char.ToUpper(node.FullName[0])))
 			{
 				foreach (IStream stream in node.Streams)
 				{
+					ulong streamBytesRemaining = stream.Size;
+					ulong lastVcn = 0;
+
 					foreach (IFragment fragment in stream.Fragments)
 					{
 						if (fragment.Lcn != VIRTUALFRAGMENT)
 						{
-							int clustersToRead = (int)Math.Ceiling(((double)stream.Size / double_BytesPerCluster));
-							byte[] data = disk.ReadClusters((long)(fragment.Lcn), clustersToRead);
-							foreach (byte b in data.Take((int)stream.Size))
+							int clustersToRead = (int)(fragment.NextVcn - lastVcn);
+							byte[] chunk = disk.ReadClusters((long)(fragment.Lcn), clustersToRead);
+							ulong chunkSize = (ulong)chunk.Length;
+							ulong chunkBytesToRead = chunkSize;
+
+							if (chunkSize > streamBytesRemaining)
+							{
+								chunkBytesToRead = streamBytesRemaining;
+							}
+							else if (chunkSize > fileBytesRemaining)
+							{
+								chunkBytesToRead = fileBytesRemaining;
+							}
+
+							fileBytesRemaining = fileBytesRemaining - chunkBytesToRead;
+							streamBytesRemaining = streamBytesRemaining - chunkBytesToRead;
+
+							foreach (byte b in chunk.Take((int)chunkBytesToRead))
 							{
 								yield return b;
 							}
+
+							lastVcn = fragment.NextVcn;
 						}
 					}
 				}
