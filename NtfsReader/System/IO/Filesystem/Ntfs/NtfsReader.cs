@@ -47,7 +47,7 @@ namespace System.IO.Filesystem.Ntfs
 	{
 		#region Constants
 
-		private const UInt64 VIRTUALFRAGMENT = 18446744073709551615; // _UI64_MAX - 1 */
+		public const UInt64 VIRTUALFRAGMENT = 18446744073709551615; // _UI64_MAX - 1 */
 		private const UInt32 ROOTDIRECTORY = 5;
 
 		private readonly byte[] BitmapMasks = new byte[] { 1, 2, 4, 8, 16, 32, 64, 128 };

@@ -53,6 +53,6 @@ namespace System.IO.Filesystem.Ntfs
 		DateTime LastAccessTime { get; }
 		DateTime TimeMftModified { get; }
 
-		IEnumerable<byte> GetBytes();
+		IEnumerable<byte[]> GetBytes();
 	}
 }

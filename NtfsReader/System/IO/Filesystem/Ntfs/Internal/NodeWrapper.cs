@@ -168,13 +168,8 @@ namespace System.IO.Filesystem.Ntfs.Internal
 			}
 		}
 
-		public IEnumerable<byte> GetBytes()
+		public IEnumerable<byte[]> GetBytes()
 		{
-			if (this.Size > long.MaxValue - 1)
-			{
-				return new byte[0];
-			}
-
 			return this._reader.ReadFileSafe(this);
 		}
 	}

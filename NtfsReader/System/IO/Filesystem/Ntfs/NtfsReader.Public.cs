@@ -178,7 +178,9 @@ namespace System.IO.Filesystem.Ntfs
 			return nodes;
 		}
 
-		public IEnumerable<byte> ReadFileSafe(INode node)
+		public static int MaxClustersToRead = (((Int32.MaxValue / 4096) / 2) - 1);
+
+		public IEnumerable<byte[]> ReadFileSafe(INode node)
 		{
 			if (node.Size == 0 || !node.Streams.Any())
 			{
@@ -189,39 +191,67 @@ namespace System.IO.Filesystem.Ntfs
 
 			using (RawDisk disk = new RawDisk(char.ToUpper(node.FullName[0])))
 			{
+				if (MaxClustersToRead == 0)
+				{
+					MaxClustersToRead = (((Int32.MaxValue / disk.ClusterSize) / 2) - 1);
+				}
+
 				foreach (IStream stream in node.Streams)
 				{
-					ulong streamBytesRemaining = stream.Size;
+					ulong streamBytesRemaining = stream.Size; //  // This is probably superfluous
 					ulong lastVcn = 0;
 
 					foreach (IFragment fragment in stream.Fragments)
 					{
-						if (fragment.Lcn != VIRTUALFRAGMENT)
+						if (fragment.Lcn == VIRTUALFRAGMENT)
 						{
-							int clustersToRead = (int)(fragment.NextVcn - lastVcn);
-							byte[] chunk = disk.ReadClusters((long)(fragment.Lcn), clustersToRead);
-							ulong chunkSize = (ulong)chunk.Length;
+							continue;
+						}
+
+						int clustersToRead = (int)(fragment.NextVcn - lastVcn);
+						long currentLcn = (long)fragment.Lcn;
+
+						while (clustersToRead > 0)
+						{
+							byte[] chunk;
+
+							if (clustersToRead > MaxClustersToRead)
+							{
+								chunk = disk.ReadClusters(currentLcn, MaxClustersToRead);
+
+								clustersToRead -= MaxClustersToRead;
+								currentLcn += MaxClustersToRead;
+							}
+							else
+							{
+								chunk = disk.ReadClusters(currentLcn, clustersToRead);
+
+								if (chunk.Length != (clustersToRead * disk.ClusterSize))
+								{
+									throw new DataMisalignedException("chunk.Length != (clustersToRead * disk.ClusterSize)");
+								}
+
+								clustersToRead = 0;
+							}
+
+							ulong chunkSize = (ulong)chunk.LongLength;
 							ulong chunkBytesToRead = chunkSize;
 
-							if (chunkSize > streamBytesRemaining)
-							{
-								chunkBytesToRead = streamBytesRemaining;
-							}
-							else if (chunkSize > fileBytesRemaining)
+							if (chunkSize > fileBytesRemaining)
 							{
 								chunkBytesToRead = fileBytesRemaining;
 							}
+							else if (chunkSize > streamBytesRemaining) { throw new Exception("Need to handle this case."); } //chunkBytesToRead = streamBytesRemaining;								
+
 
 							fileBytesRemaining = fileBytesRemaining - chunkBytesToRead;
-							streamBytesRemaining = streamBytesRemaining - chunkBytesToRead;
+							streamBytesRemaining = streamBytesRemaining - chunkBytesToRead; // This is probably superfluous
 
-							foreach (byte b in chunk.Take((int)chunkBytesToRead))
-							{
-								yield return b;
-							}
-
-							lastVcn = fragment.NextVcn;
+							yield return chunk.Take((int)chunkBytesToRead).ToArray();
 						}
+
+						lastVcn = fragment.NextVcn;
+
 					}
 				}
 			}

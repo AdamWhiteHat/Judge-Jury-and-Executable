@@ -6,6 +6,8 @@ using System.Threading;
 using System.Collections;
 using System.Collections.Generic;
 using System.Security.Cryptography;
+using System.Security.Permissions;
+using System.Security.AccessControl;
 using Microsoft.WindowsAPICodePack.Shell;
 using Microsoft.WindowsAPICodePack.Shell.PropertySystem;
 using System.IO.Filesystem.Ntfs;
@@ -102,73 +104,93 @@ namespace FilePropertiesDataObject
 
 			CancellationHelper.ThrowIfCancelled();
 
+			bool haveFileReadPermission = false;
+			var fileIOPermission = new FileIOPermission(FileIOPermissionAccess.Read, AccessControlActions.View, FullPath);
+			if (fileIOPermission.AllFiles == FileIOPermissionAccess.Read)
+			{
+				haveFileReadPermission = true;
+			}
+
 			if (this.Length != 0)
 			{
+				var maxLength = ((ulong)NtfsReader.MaxClustersToRead * (ulong)4096);
 				// Some entries in the MFT are greater than int.MaxValue !! That or the size is corrupt. Either way, we handle that here.
-				/*if (this.Length >= (int.MaxValue - 1))
-                {
-                    //throw new Exception("MFTFile.Length >= int.MaxValue - 1");
-                    
-                    using (Stream ntfsStream = ntfsFile.Streams.First())
-                    {
-                        this.Sha256Hash = GetSha256Hash_BigFile(ntfsStream);
-                        this.Length = ntfsStream.Size;
-                    }
-
-                    this.PeData = PeDataObject.TryGetPeDataObject(FileName, parameters.OnlineCertValidation);
-                    CancellationHelper.ThrowIfCancelled();
-                    this.Authenticode = AuthenticodeData.TryGetAuthenticodeData(FileName);
-                    CancellationHelper.ThrowIfCancelled();
-                  
-                }
-                */
-
-				byte[] fileBytes = node.GetBytes().ToArray();
-
-				CancellationHelper.ThrowIfCancelled();
-
-				this.PeData = PeDataObject.TryGetPeDataObject(fileBytes, parameters.OnlineCertValidation);
-				if (IsPeDataPopulated)
+				if (this.Length > maxLength) //(int.MaxValue - 1))
 				{
-					this.Sha256Hash = PeData.SHA256Hash;
+					IEnumerable<byte[]> fileChunks = node.GetBytes();
+					CancellationHelper.ThrowIfCancelled();
+
+					this.Sha256Hash = GetSha256Hash_IEnumerable(fileChunks, this.Length);
+					CancellationHelper.ThrowIfCancelled();
+
+					if (haveFileReadPermission)
+					{
+						this.PeData = PeDataObject.TryGetPeDataObject(FullPath, parameters.OnlineCertValidation);
+						CancellationHelper.ThrowIfCancelled();
+
+						this.Authenticode = AuthenticodeData.TryGetAuthenticodeData(FullPath);
+						CancellationHelper.ThrowIfCancelled();
+					}
+
+					if (parameters.CalculateEntropy)
+					{
+						this.Entropy = EntropyHelper.CalculateFileEntropy(fileChunks, this.Length);
+						CancellationHelper.ThrowIfCancelled();
+					}
+
+					if (haveFileReadPermission)
+					{
+						if (!string.IsNullOrWhiteSpace(parameters.YaraRulesFilePath) && File.Exists(parameters.YaraRulesFilePath))
+						{
+							this.YaraRulesMatched = YaraRules.ScanFile(FullPath, parameters.YaraRulesFilePath);
+							CancellationHelper.ThrowIfCancelled();
+						}
+					}
 				}
 				else
 				{
-					this.Sha256Hash = GetSha256Hash(fileBytes);
-				}
-
-				CancellationHelper.ThrowIfCancelled();
-
-				if (parameters.CalculateEntropy)
-				{
-					this.Entropy = EntropyHelper.CalculateFileEntropy(fileBytes);
+					byte[] fileBytes = node.GetBytes().SelectMany(chunk => chunk).ToArray();
 					CancellationHelper.ThrowIfCancelled();
-				}
 
-				this.Authenticode = AuthenticodeData.TryGetAuthenticodeData(fileBytes);
-
-				CancellationHelper.ThrowIfCancelled();
-
-				if (!string.IsNullOrWhiteSpace(parameters.YaraRulesFilePath) && File.Exists(parameters.YaraRulesFilePath))
-				{
-					this.YaraRulesMatched = YaraRules.Scan(fileBytes, parameters.YaraRulesFilePath);
+					this.PeData = PeDataObject.TryGetPeDataObject(fileBytes, parameters.OnlineCertValidation);
+					if (IsPeDataPopulated)
+					{
+						this.Sha256Hash = PeData.SHA256Hash;
+					}
+					else
+					{
+						this.Sha256Hash = GetSha256Hash_Array(fileBytes);
+					}
 					CancellationHelper.ThrowIfCancelled();
-				}
 
-				fileBytes = null;
+					this.Authenticode = AuthenticodeData.TryGetAuthenticodeData(fileBytes);
+					CancellationHelper.ThrowIfCancelled();
+
+					if (parameters.CalculateEntropy)
+					{
+						this.Entropy = EntropyHelper.CalculateFileEntropy(fileBytes);
+						CancellationHelper.ThrowIfCancelled();
+					}
+
+					if (!string.IsNullOrWhiteSpace(parameters.YaraRulesFilePath) && File.Exists(parameters.YaraRulesFilePath))
+					{
+						this.YaraRulesMatched = YaraRules.ScanBytes(fileBytes, parameters.YaraRulesFilePath);
+						CancellationHelper.ThrowIfCancelled();
+					}
+				}
 			}
 
-			PopulateFileInfoProperties(FullPath);
-
-			CancellationHelper.ThrowIfCancelled();
-
 			this.Attributes = new Attributes(node);
-
 			CancellationHelper.ThrowIfCancelled();
 
-			PopulateShellFileInfo(FullPath);
+			if (haveFileReadPermission)
+			{
+				PopulateFileInfoProperties(FullPath);
+				CancellationHelper.ThrowIfCancelled();
 
-			CancellationHelper.ThrowIfCancelled();
+				PopulateShellFileInfo(FullPath);
+				CancellationHelper.ThrowIfCancelled();
+			}
 		}
 
 		private void PopulateFileInfoProperties(string fullPath)
@@ -239,41 +261,71 @@ namespace FilePropertiesDataObject
 		}
 
 		private static int bigChunkSize = 1024 * 256;
-		private string GetSha256Hash_BigFile(Stream fileStream)
+		private string GetSha256Hash_Stream(Stream fileStream)
 		{
 			string result = string.Empty;
-			using (SHA256Managed hashAlgorithm = new SHA256Managed())
+
+			try
 			{
-				long bytesToHash = fileStream.Length;
-
-				byte[] buffer = new byte[bigChunkSize];
-				int sizeToRead = buffer.Length;
-				while (bytesToHash > 0)
+				using (SHA256Managed hashAlgorithm = new SHA256Managed())
 				{
-					if (bytesToHash < (long)sizeToRead)
-					{
-						sizeToRead = (int)bytesToHash;
-					}
+					long bytesToHash = fileStream.Length;
 
-					int bytesRead = fileStream.ReadAsync(buffer, 0, sizeToRead, CancellationHelper.GetCancellationToken()).Result;
-					CancellationHelper.ThrowIfCancelled();
-					hashAlgorithm.TransformBlock(buffer, 0, bytesRead, null, 0);
-					bytesToHash -= (long)bytesRead;
-					if (bytesRead == 0)
+					byte[] buffer = new byte[bigChunkSize];
+					int sizeToRead = buffer.Length;
+					while (bytesToHash > 0)
 					{
-						throw new InvalidOperationException("Unexpected end of stream");
-						// or break;
+						if (bytesToHash < (long)sizeToRead)
+						{
+							sizeToRead = (int)bytesToHash;
+						}
+
+						int bytesRead = fileStream.ReadAsync(buffer, 0, sizeToRead, CancellationHelper.GetCancellationToken()).Result;
+						CancellationHelper.ThrowIfCancelled();
+						hashAlgorithm.TransformBlock(buffer, 0, bytesRead, null, 0);
+						bytesToHash -= (long)bytesRead;
+						if (bytesRead == 0)
+						{
+							throw new InvalidOperationException("Unexpected end of stream");
+							// or break;
+						}
 					}
+					hashAlgorithm.TransformFinalBlock(buffer, 0, 0);
+					buffer = null;
+					result = ByteArrayConverter.ToHexString(hashAlgorithm.Hash);
 				}
-				hashAlgorithm.TransformFinalBlock(buffer, 0, 0);
-				buffer = null;
-				result = ByteArrayConverter.ToHexString(hashAlgorithm.Hash);
 			}
+			catch
+			{ }
 
 			return result;
 		}
 
-		private string GetSha256Hash(byte[] fileBytes)
+		private string GetSha256Hash_IEnumerable(IEnumerable<byte[]> fileChunks, ulong fileSize)
+		{
+			string result = string.Empty;
+
+			try
+			{
+				using (SHA256Managed hashAlgorithm = new SHA256Managed())
+				{
+					foreach (byte[] chunk in fileChunks)
+					{
+						hashAlgorithm.TransformBlock(chunk, 0, chunk.Length, null, 0);
+					}
+
+					hashAlgorithm.TransformFinalBlock(new byte[0], 0, 0);
+
+					result = ByteArrayConverter.ToHexString(hashAlgorithm.Hash);
+				}
+			}
+			catch
+			{ }
+
+			return result;
+		}
+
+		private string GetSha256Hash_Array(byte[] fileBytes)
 		{
 			string result = string.Empty;
 
@@ -282,7 +334,6 @@ namespace FilePropertiesDataObject
 				byte[] hashBytes = null;
 				using (SHA256Managed managed = new SHA256Managed())
 				{
-
 					hashBytes = managed.ComputeHash(fileBytes);
 				}
 				result = ByteArrayConverter.ToHexString(hashBytes);
