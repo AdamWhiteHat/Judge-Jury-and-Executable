@@ -116,6 +116,8 @@ namespace System.IO.Filesystem.Ntfs
 			//cleanup anything that isn't used anymore
 			_nameIndex = null;
 
+			rawDisk = new RawDisk(char.ToUpper(_driveInfo.Name[0]));
+
 			//GC.Collect();
 		}
 
@@ -189,70 +191,67 @@ namespace System.IO.Filesystem.Ntfs
 
 			ulong fileBytesRemaining = node.Size;
 
-			using (RawDisk disk = new RawDisk(char.ToUpper(node.FullName[0])))
+			if (MaxClustersToRead == 0)
 			{
-				if (MaxClustersToRead == 0)
-				{
-					MaxClustersToRead = (((Int32.MaxValue / disk.ClusterSize) / 2) - 1);
-				}
+				MaxClustersToRead = (((Int32.MaxValue / rawDisk.ClusterSize) / 2) - 1);
+			}
 
-				foreach (IStream stream in node.Streams)
-				{
-					ulong streamBytesRemaining = stream.Size; //  // This is probably superfluous
-					ulong lastVcn = 0;
+			foreach (IStream stream in node.Streams)
+			{
+				ulong streamBytesRemaining = stream.Size; //  // This is probably superfluous
+				ulong lastVcn = 0;
 
-					foreach (IFragment fragment in stream.Fragments)
+				foreach (IFragment fragment in stream.Fragments)
+				{
+					if (fragment.Lcn == VIRTUALFRAGMENT)
 					{
-						if (fragment.Lcn == VIRTUALFRAGMENT)
-						{
-							continue;
-						}
-
-						int clustersToRead = (int)(fragment.NextVcn - lastVcn);
-						long currentLcn = (long)fragment.Lcn;
-
-						while (clustersToRead > 0)
-						{
-							byte[] chunk;
-
-							if (clustersToRead > MaxClustersToRead)
-							{
-								chunk = disk.ReadClusters(currentLcn, MaxClustersToRead);
-
-								clustersToRead -= MaxClustersToRead;
-								currentLcn += MaxClustersToRead;
-							}
-							else
-							{
-								chunk = disk.ReadClusters(currentLcn, clustersToRead);
-
-								if (chunk.Length != (clustersToRead * disk.ClusterSize))
-								{
-									throw new DataMisalignedException("chunk.Length != (clustersToRead * disk.ClusterSize)");
-								}
-
-								clustersToRead = 0;
-							}
-
-							ulong chunkSize = (ulong)chunk.LongLength;
-							ulong chunkBytesToRead = chunkSize;
-
-							if (chunkSize > fileBytesRemaining)
-							{
-								chunkBytesToRead = fileBytesRemaining;
-							}
-							else if (chunkSize > streamBytesRemaining) { throw new Exception("Need to handle this case."); } //chunkBytesToRead = streamBytesRemaining;								
-
-
-							fileBytesRemaining = fileBytesRemaining - chunkBytesToRead;
-							streamBytesRemaining = streamBytesRemaining - chunkBytesToRead; // This is probably superfluous
-
-							yield return chunk.Take((int)chunkBytesToRead).ToArray();
-						}
-
-						lastVcn = fragment.NextVcn;
-
+						continue;
 					}
+
+					int clustersToRead = (int)(fragment.NextVcn - lastVcn);
+					long currentLcn = (long)fragment.Lcn;
+
+					while (clustersToRead > 0)
+					{
+						byte[] chunk;
+
+						if (clustersToRead > MaxClustersToRead)
+						{
+							chunk = rawDisk.ReadClusters(currentLcn, MaxClustersToRead);
+
+							clustersToRead -= MaxClustersToRead;
+							currentLcn += MaxClustersToRead;
+						}
+						else
+						{
+							chunk = rawDisk.ReadClusters(currentLcn, clustersToRead);
+
+							if (chunk.Length != (clustersToRead * rawDisk.ClusterSize))
+							{
+								throw new DataMisalignedException("chunk.Length != (clustersToRead * rawDisk.ClusterSize)");
+							}
+
+							clustersToRead = 0;
+						}
+
+						ulong chunkSize = (ulong)chunk.LongLength;
+						ulong chunkBytesToRead = chunkSize;
+
+						if (chunkSize > fileBytesRemaining)
+						{
+							chunkBytesToRead = fileBytesRemaining;
+						}
+						else if (chunkSize > streamBytesRemaining) { throw new Exception("Need to handle this case."); } //chunkBytesToRead = streamBytesRemaining;								
+
+
+						fileBytesRemaining = fileBytesRemaining - chunkBytesToRead;
+						streamBytesRemaining = streamBytesRemaining - chunkBytesToRead; // This is probably superfluous
+
+						yield return chunk.Take((int)chunkBytesToRead).ToArray();
+					}
+
+					lastVcn = fragment.NextVcn;
+
 				}
 			}
 
@@ -272,6 +271,12 @@ namespace System.IO.Filesystem.Ntfs
 			{
 				_volumeHandle.Dispose();
 				_volumeHandle = null;
+			}
+
+			if (rawDisk != null)
+			{
+				rawDisk.Dispose();
+				rawDisk = null;
 			}
 		}
 

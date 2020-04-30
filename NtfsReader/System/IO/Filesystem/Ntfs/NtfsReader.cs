@@ -37,6 +37,7 @@ using System.Runtime.InteropServices;
 using Microsoft.Win32.SafeHandles;
 using System.IO.Filesystem.Ntfs;
 using System.IO.Filesystem.Ntfs.Internal;
+using RawDiskLib;
 
 namespace System.IO.Filesystem.Ntfs
 {
@@ -68,6 +69,7 @@ namespace System.IO.Filesystem.Ntfs
 		List<string> _names = new List<string>();
 		RetrieveMode _retrieveMode;
 		byte[] _bitmapData;
+		RawDisk rawDisk;
 
 		//preallocate a lot of space for the strings to avoid too much dictionary resizing
 		//use ordinal comparison to improve performance

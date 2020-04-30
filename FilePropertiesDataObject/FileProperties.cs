@@ -132,11 +132,13 @@ namespace FilePropertiesDataObject
 						CancellationHelper.ThrowIfCancelled();
 					}
 
+					/*
 					if (parameters.CalculateEntropy)
 					{
 						this.Entropy = EntropyHelper.CalculateFileEntropy(fileChunks, this.Length);
 						CancellationHelper.ThrowIfCancelled();
 					}
+					*/
 
 					if (haveFileReadPermission)
 					{

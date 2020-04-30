@@ -49,7 +49,7 @@
 			// btnBrowse
 			// 
 			this.btnBrowse.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-			this.btnBrowse.Location = new System.Drawing.Point(494, 3);
+			this.btnBrowse.Location = new System.Drawing.Point(632, 3);
 			this.btnBrowse.Name = "btnBrowse";
 			this.btnBrowse.Size = new System.Drawing.Size(95, 23);
 			this.btnBrowse.TabIndex = 0;
@@ -63,7 +63,7 @@
             | System.Windows.Forms.AnchorStyles.Right)));
 			this.tbPath.Location = new System.Drawing.Point(3, 5);
 			this.tbPath.Name = "tbPath";
-			this.tbPath.Size = new System.Drawing.Size(485, 20);
+			this.tbPath.Size = new System.Drawing.Size(623, 20);
 			this.tbPath.TabIndex = 1;
 			this.tbPath.Text = "C:\\";
 			this.tbPath.KeyDown += new System.Windows.Forms.KeyEventHandler(this.textbox_KeyDown);
@@ -77,7 +77,7 @@
 			this.tbOutput.Multiline = true;
 			this.tbOutput.Name = "tbOutput";
 			this.tbOutput.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
-			this.tbOutput.Size = new System.Drawing.Size(588, 162);
+			this.tbOutput.Size = new System.Drawing.Size(726, 239);
 			this.tbOutput.TabIndex = 2;
 			this.tbOutput.KeyUp += new System.Windows.Forms.KeyEventHandler(this.tbOutput_KeyUp);
 			// 
@@ -85,7 +85,7 @@
 			// 
 			this.checkboxCalculateEntropy.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
 			this.checkboxCalculateEntropy.AutoSize = true;
-			this.checkboxCalculateEntropy.Location = new System.Drawing.Point(459, 29);
+			this.checkboxCalculateEntropy.Location = new System.Drawing.Point(597, 29);
 			this.checkboxCalculateEntropy.Name = "checkboxCalculateEntropy";
 			this.checkboxCalculateEntropy.Size = new System.Drawing.Size(109, 17);
 			this.checkboxCalculateEntropy.TabIndex = 3;
@@ -98,7 +98,7 @@
             | System.Windows.Forms.AnchorStyles.Right)));
 			this.tbSearchPatterns.Location = new System.Drawing.Point(98, 29);
 			this.tbSearchPatterns.Name = "tbSearchPatterns";
-			this.tbSearchPatterns.Size = new System.Drawing.Size(355, 20);
+			this.tbSearchPatterns.Size = new System.Drawing.Size(493, 20);
 			this.tbSearchPatterns.TabIndex = 4;
 			this.tbSearchPatterns.Text = "*.exe|*.dll|*.drv";
 			this.tbSearchPatterns.KeyDown += new System.Windows.Forms.KeyEventHandler(this.textbox_KeyDown);
@@ -116,7 +116,7 @@
 			// 
 			this.checkboxOnlineCertValidation.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
 			this.checkboxOnlineCertValidation.AutoSize = true;
-			this.checkboxOnlineCertValidation.Location = new System.Drawing.Point(459, 47);
+			this.checkboxOnlineCertValidation.Location = new System.Drawing.Point(597, 47);
 			this.checkboxOnlineCertValidation.Name = "checkboxOnlineCertValidation";
 			this.checkboxOnlineCertValidation.Size = new System.Drawing.Size(127, 17);
 			this.checkboxOnlineCertValidation.TabIndex = 6;
@@ -126,7 +126,7 @@
 			// btnSearch
 			// 
 			this.btnSearch.Anchor = System.Windows.Forms.AnchorStyles.Top;
-			this.btnSearch.Location = new System.Drawing.Point(230, 197);
+			this.btnSearch.Location = new System.Drawing.Point(288, 197);
 			this.btnSearch.Name = "btnSearch";
 			this.btnSearch.Size = new System.Drawing.Size(168, 27);
 			this.btnSearch.TabIndex = 7;
@@ -136,6 +136,8 @@
 			// 
 			// panel1
 			// 
+			this.panel1.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
 			this.panel1.Controls.Add(this.btnBrowse);
 			this.panel1.Controls.Add(this.tbPath);
 			this.panel1.Controls.Add(this.checkboxOnlineCertValidation);
@@ -144,13 +146,13 @@
 			this.panel1.Controls.Add(this.tbSearchPatterns);
 			this.panel1.Location = new System.Drawing.Point(2, 2);
 			this.panel1.Name = "panel1";
-			this.panel1.Size = new System.Drawing.Size(589, 111);
+			this.panel1.Size = new System.Drawing.Size(727, 111);
 			this.panel1.TabIndex = 8;
 			// 
 			// btnBrowseYara
 			// 
 			this.btnBrowseYara.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-			this.btnBrowseYara.Location = new System.Drawing.Point(491, 10);
+			this.btnBrowseYara.Location = new System.Drawing.Point(626, 10);
 			this.btnBrowseYara.Name = "btnBrowseYara";
 			this.btnBrowseYara.Size = new System.Drawing.Size(95, 23);
 			this.btnBrowseYara.TabIndex = 7;
@@ -164,7 +166,7 @@
             | System.Windows.Forms.AnchorStyles.Right)));
 			this.tbYaraRuleFile.Location = new System.Drawing.Point(61, 12);
 			this.tbYaraRuleFile.Name = "tbYaraRuleFile";
-			this.tbYaraRuleFile.Size = new System.Drawing.Size(424, 20);
+			this.tbYaraRuleFile.Size = new System.Drawing.Size(559, 20);
 			this.tbYaraRuleFile.TabIndex = 8;
 			// 
 			// label2
@@ -178,19 +180,20 @@
 			// 
 			// panelYara
 			// 
+			this.panelYara.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
 			this.panelYara.Controls.Add(this.label2);
 			this.panelYara.Controls.Add(this.btnBrowseYara);
 			this.panelYara.Controls.Add(this.tbYaraRuleFile);
 			this.panelYara.Location = new System.Drawing.Point(5, 145);
 			this.panelYara.Name = "panelYara";
-			this.panelYara.Size = new System.Drawing.Size(589, 46);
+			this.panelYara.Size = new System.Drawing.Size(724, 46);
 			this.panelYara.TabIndex = 9;
 			// 
 			// checkBoxYaraRules
 			// 
-			this.checkBoxYaraRules.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
 			this.checkBoxYaraRules.AutoSize = true;
-			this.checkBoxYaraRules.Location = new System.Drawing.Point(2, 124);
+			this.checkBoxYaraRules.Location = new System.Drawing.Point(6, 124);
 			this.checkBoxYaraRules.Name = "checkBoxYaraRules";
 			this.checkBoxYaraRules.Size = new System.Drawing.Size(101, 17);
 			this.checkBoxYaraRules.TabIndex = 10;
@@ -202,12 +205,13 @@
 			// 
 			this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
 			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-			this.ClientSize = new System.Drawing.Size(594, 395);
+			this.ClientSize = new System.Drawing.Size(732, 472);
 			this.Controls.Add(this.checkBoxYaraRules);
 			this.Controls.Add(this.panelYara);
 			this.Controls.Add(this.panel1);
 			this.Controls.Add(this.btnSearch);
 			this.Controls.Add(this.tbOutput);
+			this.MinimumSize = new System.Drawing.Size(360, 270);
 			this.Name = "MainForm";
 			this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.MainForm_FormClosing);
 			this.panel1.ResumeLayout(false);
