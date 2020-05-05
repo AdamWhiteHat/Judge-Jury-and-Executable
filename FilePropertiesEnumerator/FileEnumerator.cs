@@ -11,9 +11,11 @@ using System.IO.Filesystem.Ntfs;
 
 namespace FilePropertiesEnumerator
 {
+	using NtfsNodeAttributes = System.IO.Filesystem.Ntfs.Attributes;
+
 	public class FileEnumerator
 	{
-		private static string[] ignoreFiles = new string[] { "swapfile.sys", "pagefile.sys", "hiberfil.sys" };
+		private static string[] IgnoreTheseFiles = new string[] { "swapfile.sys", "pagefile.sys", "hiberfil.sys" };
 
 		private static FailSuccessCount fileEnumCount = null;
 		private static FailSuccessCount databaseInsertCount = null;
@@ -83,7 +85,18 @@ namespace FilePropertiesEnumerator
 
 				DriveInfo driveToAnalyze = ntfsDrives.Where(dr => dr.Name.ToUpper().Contains(drive.ToUpper())).Single();
 
-				IEnumerable<INode> mftNodes = MftHelper.EnumerateMft(driveToAnalyze);
+				NtfsReader ntfsReader = new NtfsReader(driveToAnalyze, RetrieveMode.All);
+
+				IEnumerable<INode> mftNodes =
+					ntfsReader.GetNodes(driveToAnalyze.Name)
+						.Where(node => (node.Attributes &
+									 (NtfsNodeAttributes.Device
+									  | NtfsNodeAttributes.Directory
+									  | NtfsNodeAttributes.ReparsePoint
+									  | NtfsNodeAttributes.SparseFile
+									 )) == 0) // This means that we DONT want any matches of the above NtfsNodeAttributes type
+						.Where(node => FileMatchesPattern(node.FullName, parameters.SearchPatterns));
+				//.OrderByDescending(n => n.Size);
 
 				if (parameters.SelectedFolder.ToCharArray().Length > 3)
 				{
@@ -93,41 +106,25 @@ namespace FilePropertiesEnumerator
 
 				foreach (INode node in mftNodes)
 				{
-					// File _PATTERN MATCHING_
-					if (FileMatchesPattern(node.FullName, parameters.SearchPatterns))
+					string message = $"MFT#: {node.MFTRecordNumber.ToString().PadRight(7)} Seq.#: {node.SequenceNumber.ToString().PadRight(4)} Path: {node.FullName}";
+
+					if (parameters.LogOutputFunction != null) parameters.LogOutputFunction.Invoke(message);
+					if (parameters.ReportOutputFunction != null) parameters.ReportOutputFunction.Invoke(message);
+
+					fileEnumCount.IncrementSucceededCount();
+
+					FileProperties prop = new FileProperties();
+					prop.PopulateFileProperties(parameters, parameters.SelectedFolder[0], node);
+
+					// INSERT file properties into _DATABASE_
+					bool insertResult = FilePropertiesAccessLayer.InsertFileProperties(prop);
+					if (insertResult)
 					{
-						string message = $"MFT#: {node.MFTRecordNumber.ToString().PadRight(7)} Seq.#: {node.SequenceNumber.ToString().PadRight(4)} Path: {node.FullName}";
-
-						if (parameters.LogOutputFunction != null) parameters.LogOutputFunction.Invoke(message);
-						if (parameters.ReportOutputFunction != null) parameters.ReportOutputFunction.Invoke(message);
-
-						fileEnumCount.IncrementSucceededCount();
-						parameters.CancelToken.ThrowIfCancellationRequested();
-
-						FileProperties prop = new FileProperties();
-						prop.PopulateFileProperties(parameters, parameters.SelectedFolder[0], node);
-
-						parameters.CancelToken.ThrowIfCancellationRequested();
-
-						// INSERT file properties into _DATABASE_
-						bool insertResult = FilePropertiesAccessLayer.InsertFileProperties(prop);
-						if (insertResult)
-						{
-							databaseInsertCount.IncrementSucceededCount();
-						}
-						else
-						{
-							databaseInsertCount.IncrementFailedCount();
-						}
+						databaseInsertCount.IncrementSucceededCount();
 					}
 					else
 					{
-						if (parameters.LogOutputFunction != null)
-						{
-							parameters.LogOutputFunction.Invoke($"FileMatchingPattern returned false: \"{node.FullName}\"");
-						}
-
-						fileEnumCount.IncrementFailedCount();
+						databaseInsertCount.IncrementFailedCount();
 					}
 
 					parameters.CancelToken.ThrowIfCancellationRequested();
@@ -147,7 +144,7 @@ namespace FilePropertiesEnumerator
 				return false;
 			}
 
-			if (ignoreFiles.Contains(filename))
+			if (IgnoreTheseFiles.Contains(filename))
 			{
 				return false;
 			}
@@ -158,6 +155,11 @@ namespace FilePropertiesEnumerator
 			}
 
 			string extension = Path.GetExtension(filename);
+			if (extension.Length == 0)
+			{
+				return false;
+			}
+
 			foreach (string pattern in searchPatterns)
 			{
 				if (pattern.Contains("."))

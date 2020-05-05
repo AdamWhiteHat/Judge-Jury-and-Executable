@@ -104,13 +104,6 @@ namespace FilePropertiesDataObject
 
 			CancellationHelper.ThrowIfCancelled();
 
-			bool haveFileReadPermission = false;
-			var fileIOPermission = new FileIOPermission(FileIOPermissionAccess.Read, AccessControlActions.View, FullPath);
-			if (fileIOPermission.AllFiles == FileIOPermissionAccess.Read)
-			{
-				haveFileReadPermission = true;
-			}
-
 			if (this.Length != 0)
 			{
 				var maxLength = ((ulong)NtfsReader.MaxClustersToRead * (ulong)4096);
@@ -123,14 +116,12 @@ namespace FilePropertiesDataObject
 					this.Sha256Hash = GetSha256Hash_IEnumerable(fileChunks, this.Length);
 					CancellationHelper.ThrowIfCancelled();
 
-					if (haveFileReadPermission)
-					{
-						this.PeData = PeDataObject.TryGetPeDataObject(FullPath, parameters.OnlineCertValidation);
-						CancellationHelper.ThrowIfCancelled();
 
-						this.Authenticode = AuthenticodeData.TryGetAuthenticodeData(FullPath);
-						CancellationHelper.ThrowIfCancelled();
-					}
+					this.PeData = PeDataObject.TryGetPeDataObject(FullPath, parameters.OnlineCertValidation);
+					CancellationHelper.ThrowIfCancelled();
+
+					this.Authenticode = AuthenticodeData.TryGetAuthenticodeData(FullPath);
+					CancellationHelper.ThrowIfCancelled();
 
 					/*
 					if (parameters.CalculateEntropy)
@@ -140,14 +131,12 @@ namespace FilePropertiesDataObject
 					}
 					*/
 
-					if (haveFileReadPermission)
+					if (!string.IsNullOrWhiteSpace(parameters.YaraRulesFilePath) && File.Exists(parameters.YaraRulesFilePath))
 					{
-						if (!string.IsNullOrWhiteSpace(parameters.YaraRulesFilePath) && File.Exists(parameters.YaraRulesFilePath))
-						{
-							this.YaraRulesMatched = YaraRules.ScanFile(FullPath, parameters.YaraRulesFilePath);
-							CancellationHelper.ThrowIfCancelled();
-						}
+						this.YaraRulesMatched = YaraRules.ScanFile(FullPath, parameters.YaraRulesFilePath);
+						CancellationHelper.ThrowIfCancelled();
 					}
+
 				}
 				else
 				{
@@ -159,7 +148,8 @@ namespace FilePropertiesDataObject
 					{
 						this.Sha256Hash = PeData.SHA256Hash;
 					}
-					else
+
+					if (string.IsNullOrWhiteSpace(this.Sha256Hash))
 					{
 						this.Sha256Hash = GetSha256Hash_Array(fileBytes);
 					}
@@ -185,14 +175,11 @@ namespace FilePropertiesDataObject
 			this.Attributes = new Attributes(node);
 			CancellationHelper.ThrowIfCancelled();
 
-			if (haveFileReadPermission)
-			{
-				PopulateFileInfoProperties(FullPath);
-				CancellationHelper.ThrowIfCancelled();
+			PopulateFileInfoProperties(FullPath);
+			CancellationHelper.ThrowIfCancelled();
 
-				PopulateShellFileInfo(FullPath);
-				CancellationHelper.ThrowIfCancelled();
-			}
+			PopulateShellFileInfo(FullPath);
+			CancellationHelper.ThrowIfCancelled();
 		}
 
 		private void PopulateFileInfoProperties(string fullPath)
