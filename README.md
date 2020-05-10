@@ -1,5 +1,12 @@
 # Judge-Jury-and-Executable
 
+Requirements:
+ - .NET Framework v4.8
+ - Local or remote SQL database with read/write/create access.
+ - Visual studio (if you wish to compile the C# code)
+ - Access to the internet (or else how did you get this code??? Also for nuget packages...)
+ - Basic knowlege of SQL
+
 #### Hunt for viruses, malware, and APTs on (multiple) file systems using by writing queries in SQL.
 
 
