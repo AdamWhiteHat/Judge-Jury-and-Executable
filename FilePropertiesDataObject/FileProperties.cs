@@ -104,7 +104,7 @@ namespace FilePropertiesDataObject
 
 			CancellationHelper.ThrowIfCancelled();
 
-			bool haveFileReadPermission = false;
+			bool haveFileReadPermission = true;
 			var fileIOPermission = new FileIOPermission(FileIOPermissionAccess.Read, AccessControlActions.View, FullPath);
 			if (fileIOPermission.AllFiles == FileIOPermissionAccess.Read)
 			{
