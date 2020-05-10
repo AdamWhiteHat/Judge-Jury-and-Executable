@@ -104,6 +104,20 @@ namespace FilePropertiesDataObject
 
 			CancellationHelper.ThrowIfCancelled();
 
+			if (this.Length == 0) //Workaround for hard links
+			{
+				if (System.IO.File.Exists(FullPath))
+				{
+					long length = new System.IO.FileInfo(FullPath).Length;
+					if (length > 0)
+					{
+						this.Length = (ulong)length;
+						node.Size = this.Length;
+						
+					}
+				}
+			}
+
 			bool haveFileReadPermission = true;
 			var fileIOPermission = new FileIOPermission(FileIOPermissionAccess.Read, AccessControlActions.View, FullPath);
 			if (fileIOPermission.AllFiles == FileIOPermissionAccess.Read)
@@ -151,9 +165,47 @@ namespace FilePropertiesDataObject
 				}
 				else
 				{
-					byte[] fileBytes = node.GetBytes().SelectMany(chunk => chunk).ToArray();
-					CancellationHelper.ThrowIfCancelled();
+					byte[] fileBytes = new byte[0];
+					if (!node.Streams.Any()) //workaround for no file stream such as with hard links
+					{
+						try
+						{
 
+							using (FileStream fsSource = new FileStream(FullPath,
+								FileMode.Open, FileAccess.Read))
+							{
+
+								// Read the source file into a byte array.
+								fileBytes = new byte[fsSource.Length];
+								int numBytesToRead = (int)fsSource.Length;
+								int numBytesRead = 0;
+								while (numBytesToRead > 0)
+								{
+									// Read may return anything from 0 to numBytesToRead.
+									int n = fsSource.Read(fileBytes, numBytesRead, numBytesToRead);
+
+									// Break when the end of the file is reached.
+									if (n == 0)
+										break;
+
+									numBytesRead += n;
+									numBytesToRead -= n;
+								}
+								numBytesToRead = fileBytes.Length;
+
+							}
+						}
+						catch (Exception ex)
+						{
+
+						}
+					}
+
+					else
+					{
+						fileBytes = node.GetBytes().SelectMany(chunk => chunk).ToArray();
+						CancellationHelper.ThrowIfCancelled();
+					}
 					this.PeData = PeDataObject.TryGetPeDataObject(fileBytes, parameters.OnlineCertValidation);
 					if (IsPeDataPopulated)
 					{
