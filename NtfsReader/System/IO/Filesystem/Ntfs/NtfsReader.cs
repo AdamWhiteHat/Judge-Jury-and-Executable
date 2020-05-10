@@ -527,6 +527,12 @@ namespace System.IO.Filesystem.Ntfs
 							//node.ParentNodeIndex = ((UInt64)attributeFileName->ParentDirectory.InodeNumberHighPart << 32) + attributeFileName->ParentDirectory.InodeNumberLowPart;
 							node.ParentNodeIndex = attributeFileName->ParentDirectory.InodeNumberLowPart;
 
+							
+							if (node.Size == 0)  //missing file size
+							{
+								node.Size = attributeFileName->DataSize; //set file size if not already set
+							}
+
 							if (attributeFileName->NameType == 1 || node.NameIndex == 0)
 							{ node.NameIndex = GetNameIndex(new string(&attributeFileName->Name, 0, attributeFileName->NameLength)); }
 

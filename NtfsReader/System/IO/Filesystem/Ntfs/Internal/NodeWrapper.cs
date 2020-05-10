@@ -41,136 +41,137 @@ using System.IO.Filesystem.Ntfs.Internal;
 
 namespace System.IO.Filesystem.Ntfs.Internal
 {
-	/// <summary>
-	/// Add some functionality to the basic node
-	/// </summary>
-	public sealed class NodeWrapper : INode
-	{
-		NtfsReader _reader;
-		UInt32 _nodeIndex;
-		Node _node;
-		string _fullName;
+    /// <summary>
+    /// Add some functionality to the basic node
+    /// </summary>
+    public sealed class NodeWrapper : INode
+    {
+        NtfsReader _reader;
+        UInt32 _nodeIndex;
+        Node _node;
+        string _fullName;
 
 
-		public NodeWrapper(NtfsReader reader, UInt32 nodeIndex, Node node)
-		{
-			_reader = reader;
-			_nodeIndex = nodeIndex;
-			_node = node;
-		}
+        public NodeWrapper(NtfsReader reader, UInt32 nodeIndex, Node node)
+        {
+            _reader = reader;
+            _nodeIndex = nodeIndex;
+            _node = node;
+        }
 
-		public UInt32 NodeIndex
-		{
-			get { return _nodeIndex; }
-		}
+        public UInt32 NodeIndex
+        {
+            get { return _nodeIndex; }
+        }
 
-		public UInt32 ParentNodeIndex
-		{
-			get { return _node.ParentNodeIndex; }
-		}
+        public UInt32 ParentNodeIndex
+        {
+            get { return _node.ParentNodeIndex; }
+        }
 
-		public Attributes Attributes
-		{
-			get { return _node.Attributes; }
-		}
+        public Attributes Attributes
+        {
+            get { return _node.Attributes; }
+        }
 
-		public string Name
-		{
-			get { return _reader.GetNameFromIndex(_node.NameIndex); }
-		}
+        public string Name
+        {
+            get { return _reader.GetNameFromIndex(_node.NameIndex); }
+        }
 
-		public UInt64 Size
-		{
-			get { return _node.Size; }
-		}
+        public UInt64 Size
+        {
+            get { return _node.Size; }
+            set { _node.Size = value; }
+        }
 
-		public string FullName
-		{
-			get
-			{
-				if (_fullName == null)
-					_fullName = _reader.GetNodeFullNameCore(_nodeIndex);
+        public string FullName
+        {
+            get
+            {
+                if (_fullName == null)
+                    _fullName = _reader.GetNodeFullNameCore(_nodeIndex);
 
-				return _fullName;
-			}
-		}
+                return _fullName;
+            }
+        }
 
-		public IList<IStream> Streams
-		{
-			get
-			{
-				if (_reader._streams == null)
-					throw new NotSupportedException("The streams haven't been retrieved. Make sure to use the proper RetrieveMode.");
+        public IList<IStream> Streams
+        {
+            get
+            {
+                if (_reader._streams == null)
+                    throw new NotSupportedException("The streams haven't been retrieved. Make sure to use the proper RetrieveMode.");
 
-				Stream[] streams = _reader._streams[_nodeIndex];
-				if (streams == null)
-					return null;
+                Stream[] streams = _reader._streams[_nodeIndex];
+                if (streams == null)
+                    return null;
 
-				List<IStream> newStreams = new List<IStream>();
-				for (int i = 0; i < streams.Length; ++i)
-					newStreams.Add(new StreamWrapper(_reader, this, i));
+                List<IStream> newStreams = new List<IStream>();
+                for (int i = 0; i < streams.Length; ++i)
+                    newStreams.Add(new StreamWrapper(_reader, this, i));
 
-				return newStreams;
-			}
-		}
+                return newStreams;
+            }
+        }
 
-		public UInt32 MFTRecordNumber
-		{
-			get { return _node.MFTRecordNumber; }
-		}
+        public UInt32 MFTRecordNumber
+        {
+            get { return _node.MFTRecordNumber; }
+        }
 
-		public UInt16 SequenceNumber
-		{
-			get { return _node.SequenceNumber; }
-		}
+        public UInt16 SequenceNumber
+        {
+            get { return _node.SequenceNumber; }
+        }
 
-		public DateTime CreationTime
-		{
-			get
-			{
-				if (_reader._standardInformations == null)
-					throw new NotSupportedException("The StandardInformation haven't been retrieved. Make sure to use the proper RetrieveMode.");
+        public DateTime CreationTime
+        {
+            get
+            {
+                if (_reader._standardInformations == null)
+                    throw new NotSupportedException("The StandardInformation haven't been retrieved. Make sure to use the proper RetrieveMode.");
 
-				return DateTime.FromFileTimeUtc((Int64)_reader._standardInformations[_nodeIndex].CreationTime);
-			}
-		}
+                return DateTime.FromFileTimeUtc((Int64)_reader._standardInformations[_nodeIndex].CreationTime);
+            }
+        }
 
-		public DateTime LastChangeTime
-		{
-			get
-			{
-				if (_reader._standardInformations == null)
-					throw new NotSupportedException("The StandardInformation haven't been retrieved. Make sure to use the proper RetrieveMode.");
+        public DateTime LastChangeTime
+        {
+            get
+            {
+                if (_reader._standardInformations == null)
+                    throw new NotSupportedException("The StandardInformation haven't been retrieved. Make sure to use the proper RetrieveMode.");
 
-				return DateTime.FromFileTimeUtc((Int64)_reader._standardInformations[_nodeIndex].LastChangeTime);
-			}
-		}
+                return DateTime.FromFileTimeUtc((Int64)_reader._standardInformations[_nodeIndex].LastChangeTime);
+            }
+        }
 
-		public DateTime LastAccessTime
-		{
-			get
-			{
-				if (_reader._standardInformations == null)
-					throw new NotSupportedException("The StandardInformation haven't been retrieved. Make sure to use the proper RetrieveMode.");
+        public DateTime LastAccessTime
+        {
+            get
+            {
+                if (_reader._standardInformations == null)
+                    throw new NotSupportedException("The StandardInformation haven't been retrieved. Make sure to use the proper RetrieveMode.");
 
-				return DateTime.FromFileTimeUtc((Int64)_reader._standardInformations[_nodeIndex].LastAccessTime);
-			}
-		}
+                return DateTime.FromFileTimeUtc((Int64)_reader._standardInformations[_nodeIndex].LastAccessTime);
+            }
+        }
 
-		public DateTime TimeMftModified
-		{
-			get
-			{
-				if (_reader._standardInformations == null)
-					throw new NotSupportedException("The StandardInformation haven't been retrieved. Make sure to use the proper RetrieveMode.");
+        public DateTime TimeMftModified
+        {
+            get
+            {
+                if (_reader._standardInformations == null)
+                    throw new NotSupportedException("The StandardInformation haven't been retrieved. Make sure to use the proper RetrieveMode.");
 
-				return DateTime.FromFileTimeUtc((Int64)_reader._standardInformations[_nodeIndex].TimeMftModified);
-			}
-		}
+                return DateTime.FromFileTimeUtc((Int64)_reader._standardInformations[_nodeIndex].TimeMftModified);
+            }
+        }
 
-		public IEnumerable<byte[]> GetBytes()
-		{
-			return this._reader.ReadFileSafe(this);
-		}
-	}
+        public IEnumerable<byte[]> GetBytes()
+        {
+            return this._reader.ReadFileSafe(this);
+        }
+    }
 }

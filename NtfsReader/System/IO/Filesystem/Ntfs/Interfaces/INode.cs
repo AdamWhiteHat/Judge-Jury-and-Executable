@@ -41,7 +41,7 @@ namespace System.IO.Filesystem.Ntfs
 		UInt32 NodeIndex { get; }
 		UInt32 ParentNodeIndex { get; }
 		string Name { get; }
-		UInt64 Size { get; }
+		UInt64 Size { get; set; }
 		string FullName { get; }
 		IList<IStream> Streams { get; }
 
