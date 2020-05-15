@@ -1,11 +1,14 @@
 # Judge-Jury-and-Executable
 
 Requirements:
- - .NET Framework v4.8
- - Local or remote SQL database with read/write/create access.
- - Visual studio (if you wish to compile the C# code)
- - Access to the internet (or else how did you get this code??? Also for nuget packages...)
- - Basic knowlege of SQL
+ - .NET Framework v4.8
+ - Local or remote SQL database with read/write/create access
+ - Visual studio (if you wish to compile the C# code)
+ - Access to the internet (or else how did you get this code? Also for nuget packages.)
+ - Basic knowledge of SQL
+ - Mounted volume to scan
+ - Administrator privileges to read that volume
+ 
 
 #### Hunt for viruses, malware, and APTs on (multiple) file systems using by writing queries in SQL.
 
@@ -16,7 +19,7 @@ You start with a disk or disk images that are potentially dirty with malware, vi
 
 
 #### Forensics-level scanning.
-Firstly, the tool creates an entry in the database for each record found in the MFT (master file table--its how NTFS does its record keeping). This bypasses file security permissions, file hiding, stealth or obfuscation techniques, file deletion, or timestamp tampering. These techniques will not prevent the file from being scanned and catalogued.
+Firstly, the tool creates an entry in the database for each record found in the MFT (master file table--its how NTFS does its record keeping). This bypasses file security permissions, file hiding, stealth or obfuscation techniques, file deletion, or timestamp tampering. These techniques will not prevent the file from being scanned and cataloged.
 
 
 #### Rich, high-level data analytics.
