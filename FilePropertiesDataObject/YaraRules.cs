@@ -17,7 +17,9 @@ namespace FilePropertiesDataObject
 				result = FormatResults(scanResults);
 			}
 			catch
-			{ }
+			{
+			
+			}
 
 			return result;
 		}
@@ -31,7 +33,9 @@ namespace FilePropertiesDataObject
 				result = FormatResults(scanResults);
 			}
 			catch
-			{ }
+			{
+			
+			}
 
 			return result;
 		}
