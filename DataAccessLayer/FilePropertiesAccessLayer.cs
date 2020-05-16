@@ -15,6 +15,7 @@ namespace DataAccessLayer
 	public class FilePropertiesAccessLayer
 	{
 		private static string ConnectionString;
+		private static string TableName = "FileProperties";
 
 		public static void SetConnectionString(string connectionString)
 		{
@@ -30,11 +31,13 @@ namespace DataAccessLayer
 			SqlParameter parameterMFTNumber = ParameterHelper.GetNewUnsignedInt32Parameter("MFTNumber", fileProperties.MFTNumber);
 			SqlParameter parameterSequenceNumber = ParameterHelper.GetNewUnsignedInt16Parameter("SequenceNumber", fileProperties.SequenceNumber);
 
+			SqlKey key = new SqlKey(parameterMFTNumber, parameterSequenceNumber, parameterSha256);
+
 			List<SqlParameter> sqlParameters = new List<SqlParameter>
 			{
-				parameterSha256,
-				parameterMFTNumber,
-				parameterSequenceNumber,
+				key.SHA256,
+				key.MFTNumber,
+				key.SequenceNumber,
 				ParameterHelper.GetNewCharParameter("DriveLetter", fileProperties.DriveLetter),
 				ParameterHelper.GetNewStringParameter("FullPath",fileProperties.FullPath),
 				ParameterHelper.GetNewStringParameter("Filename", fileProperties.FileName),
@@ -112,26 +115,45 @@ namespace DataAccessLayer
 				sqlParameters.Add(ParameterHelper.GetNewStringParameter("YaraRulesMatched", fileProperties.YaraRulesMatched ?? ""));
 			}
 
+			return InsertIntoDB(key, sqlParameters);
+		}
+
+		public static bool RecordExists(SqlKey key)
+		{
+			string whereClause = key.WhereClause;
+
+			string commandText = $"SELECT TOP 1 * FROM [{TableName}] {whereClause}";
+
+			throw new Exception();
+		}
+
+		public static bool InsertIntoDB(SqlKey key, List<SqlParameter> sqlParameters)
+		{
 			string columnNames = "[" + string.Join("],[", sqlParameters.Select(param => param.ParameterName.Replace("@", ""))) + "]";
 			string values = string.Join(",", sqlParameters.Select(param => param.ParameterName));
 
-			string insertStatement = $"INSERT INTO [FileProperties]	({columnNames},[PrevalenceCount],[DateSeen]) VALUES ({values},1,GETDATE())";
+			string insertStatement = $"INSERT INTO [{TableName}]	({columnNames},[PrevalenceCount],[DateSeen]) VALUES ({values},1,GETDATE())";
 
-			string whereClause = $"WHERE [MFTNumber] = {parameterMFTNumber.Value} AND [SequenceNumber] = {parameterSequenceNumber.Value} AND [SHA256] = '{parameterSha256.Value}'";
+			string whereClause = key.WhereClause;
 
 			string commandText =
 $@"DECLARE @PREVALENCECOUNT INT;
-SET @PREVALENCECOUNT = ( SELECT [PrevalenceCount] FROM [FileProperties] {whereClause} )
+SET @PREVALENCECOUNT = ( SELECT [PrevalenceCount] FROM [{TableName}] {whereClause} )
 SET @PREVALENCECOUNT = @PREVALENCECOUNT + 1;
 IF(@PREVALENCECOUNT IS NOT NULL)
 BEGIN
-	UPDATE [FileProperties] SET [PrevalenceCount] = @PREVALENCECOUNT {whereClause}
+	UPDATE [{TableName}] SET [PrevalenceCount] = @PREVALENCECOUNT {whereClause}
 END
 ELSE
 BEGIN
 	{insertStatement}
 END
 ";
+			return ExecNonQuery(commandText, sqlParameters);
+		}
+
+		private static bool ExecNonQuery(string commandText, List<SqlParameter> sqlParameters)
+		{
 			try
 			{
 				using (SqlCommand sqlCommand = new SqlCommand(commandText))
