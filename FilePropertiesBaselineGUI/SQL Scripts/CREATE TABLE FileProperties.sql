@@ -23,7 +23,7 @@ CREATE TABLE [dbo].[FileProperties] (
 	[SHA1]               NVARCHAR (64)  NULL,
 	[CompileDate]		 DATETIME2 (7)  NULL,
 
-    [ContentType]        NVARCHAR (250) NULL,
+    [MimeType]        NVARCHAR (250) NULL,
     [InternalName]       NVARCHAR (250) NULL,
     [ProductName]        NVARCHAR (250) NULL,
     [OriginalFileName]   NVARCHAR (250) NULL,    

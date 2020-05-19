@@ -67,7 +67,7 @@ namespace DataAccessLayer
 				ParameterHelper.GetNewStringParameter("Title", fileProperties.Title),
 				ParameterHelper.GetNewStringParameter("Link", fileProperties.Link),
 
-				ParameterHelper.GetNewStringParameter("ContentType", fileProperties.ContentType),
+				ParameterHelper.GetNewStringParameter("MimeType", fileProperties.MimeType),
 				ParameterHelper.GetNewStringParameter("InternalName", fileProperties.InternalName),
 				ParameterHelper.GetNewStringParameter("ProductName", fileProperties.ProductName),
 				ParameterHelper.GetNewStringParameter("Language", fileProperties.Language),
@@ -120,11 +120,11 @@ namespace DataAccessLayer
 
 		public static bool RecordExists(SqlKey key)
 		{
+			throw new NotImplementedException();
+
 			string whereClause = key.WhereClause;
 
 			string commandText = $"SELECT TOP 1 * FROM [{TableName}] {whereClause}";
-
-			throw new Exception();
 		}
 
 		public static bool InsertIntoDB(SqlKey key, List<SqlParameter> sqlParameters)

@@ -56,7 +56,7 @@ namespace FilePropertiesDataObject
 		public string Comment { get; private set; }
 		public string Title { get; private set; }
 		public string Link { get; private set; }
-		public string ContentType { get; private set; }
+		public string MimeType { get; private set; }
 		public string InternalName { get; private set; }
 		public string ProductName { get; private set; }
 		public string Language { get; private set; }
@@ -113,7 +113,7 @@ namespace FilePropertiesDataObject
 					{
 						this.Length = (ulong)length;
 						node.Size = this.Length;
-						
+
 					}
 				}
 			}
@@ -302,7 +302,7 @@ namespace FilePropertiesDataObject
 						Comment = shellProperty.Comment.Value ?? "";
 						Title = shellProperty.Title.Value ?? "";
 						CancellationHelper.ThrowIfCancelled();
-						ContentType = shellProperty.ContentType.Value ?? "";
+						MimeType = shellProperty.ContentType.Value ?? "";
 						InternalName = shellProperty.InternalName.Value ?? "";
 						ProductName = shellProperty.Software.ProductName.Value ?? "";
 						Language = shellProperty.Language.Value ?? "";
