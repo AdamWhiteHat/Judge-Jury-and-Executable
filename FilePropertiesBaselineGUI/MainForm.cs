@@ -6,8 +6,9 @@ using System.Collections;
 using System.Windows.Forms;
 using System.Collections.Generic;
 using DataAccessLayer;
-using FilePropertiesDataObject;
 using FilePropertiesEnumerator;
+using FilePropertiesDataObject;
+using FilePropertiesDataObject.Parameters;
 using System.Diagnostics;
 
 namespace FilePropertiesBaselineGUI

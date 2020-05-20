@@ -4,7 +4,7 @@ using System.Linq;
 using System.Collections.Generic;
 using System.Security.Cryptography;
 
-namespace FilePropertiesDataObject
+namespace FilePropertiesDataObject.Helpers
 {
 	public class Sha256Helper
 	{

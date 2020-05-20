@@ -11,6 +11,8 @@ using System.Collections.Generic;
 namespace DataAccessLayer
 {
 	using FilePropertiesDataObject;
+	using FilePropertiesDataObject.Helpers;
+	using FilePropertiesDataObject.Parameters;
 
 	public class FilePropertiesAccessLayer
 	{

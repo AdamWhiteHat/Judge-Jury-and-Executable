@@ -7,6 +7,7 @@ using System.Collections.Generic;
 
 using DataAccessLayer;
 using FilePropertiesDataObject;
+using FilePropertiesDataObject.Parameters;
 using System.IO.Filesystem.Ntfs;
 
 namespace FilePropertiesEnumerator

@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using libyaraNET;
 using System.Threading;
 
-namespace FilePropertiesDataObject
+namespace FilePropertiesDataObject.Helpers
 {
 	public static class YaraHelper
 	{

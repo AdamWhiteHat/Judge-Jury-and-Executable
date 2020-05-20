@@ -68,16 +68,16 @@
   <ItemGroup>
     <Compile Include="Attributes.cs" />
     <Compile Include="AuthenticodeData.cs" />
-    <Compile Include="CancellationHelper.cs" />
-    <Compile Include="EntropyHelper.cs" />
+    <Compile Include="Helpers\CancellationHelper.cs" />
+    <Compile Include="Helpers\EntropyHelper.cs" />
     <Compile Include="FailSuccessCount.cs" />
     <Compile Include="Parameters\FileEnumeratorParameters.cs" />
     <Compile Include="FileProperties.cs" />
-    <Compile Include="Parameters\YaraFilter.cs" />
+    <Compile Include="YaraFilter.cs" />
     <Compile Include="PeData.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Sha256Helper.cs" />
-    <Compile Include="YaraHelper.cs" />
+    <Compile Include="Helpers\Sha256Helper.cs" />
+    <Compile Include="Helpers\YaraHelper.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />

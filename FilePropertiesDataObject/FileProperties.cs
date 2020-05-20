@@ -13,6 +13,9 @@ using System.IO.Filesystem.Ntfs;
 
 namespace FilePropertiesDataObject
 {
+	using Helpers;
+	using Parameters;
+
 	public class FileProperties
 	{
 		#region Public properties
@@ -150,7 +153,6 @@ namespace FilePropertiesDataObject
 				CancellationHelper.ThrowIfCancelled();
 			}
 		}
-
 
 		private void PopulateLargeFile(FileEnumeratorParameters parameters, INode node, bool hasFileReadPermissions)
 		{

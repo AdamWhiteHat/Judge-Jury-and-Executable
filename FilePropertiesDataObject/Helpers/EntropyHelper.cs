@@ -6,7 +6,7 @@ using System.IO.Compression;
 using System.Threading.Tasks;
 using System.Collections.Generic;
 
-namespace FilePropertiesDataObject
+namespace FilePropertiesDataObject.Helpers
 {
 	public static class EntropyHelper
 	{
