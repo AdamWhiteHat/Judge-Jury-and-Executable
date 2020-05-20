@@ -27,17 +27,11 @@ namespace DataAccessLayer
 
 		public static bool InsertFileProperties(FileProperties fileProperties)
 		{
-			SqlParameter parameterSha256 = ParameterHelper.GetNewStringParameter("SHA256", fileProperties.Sha256Hash);
-			SqlParameter parameterMFTNumber = ParameterHelper.GetNewUnsignedInt32Parameter("MFTNumber", fileProperties.MFTNumber);
-			SqlParameter parameterSequenceNumber = ParameterHelper.GetNewUnsignedInt16Parameter("SequenceNumber", fileProperties.SequenceNumber);
+			SqlKey key = new SqlKey(fileProperties.MFTNumber, fileProperties.SequenceNumber, fileProperties.Sha256Hash);
 
-			SqlKey key = new SqlKey(parameterMFTNumber, parameterSequenceNumber, parameterSha256);
-
-			List<SqlParameter> sqlParameters = new List<SqlParameter>
+			List<SqlParameter> sqlParameters = key.GetSqlParameters();
+			sqlParameters.AddRange(new List<SqlParameter>
 			{
-				key.SHA256,
-				key.MFTNumber,
-				key.SequenceNumber,
 				ParameterHelper.GetNewCharParameter("DriveLetter", fileProperties.DriveLetter),
 				ParameterHelper.GetNewStringParameter("FullPath",fileProperties.FullPath),
 				ParameterHelper.GetNewStringParameter("Filename", fileProperties.FileName),
@@ -74,11 +68,12 @@ namespace DataAccessLayer
 				ParameterHelper.GetNewStringParameter("ComputerName", fileProperties.ComputerName),
 
 				ParameterHelper.GetNewStringParameter("Attributes", fileProperties.Attributes?.ToString() ?? "")
-			};
+			});
 
 			if (fileProperties.IsPeDataPopulated)
 			{
-				sqlParameters.AddRange(new List<SqlParameter> {
+				sqlParameters.AddRange(new List<SqlParameter>
+				{
 					ParameterHelper.GetNewStringParameter("SHA1",fileProperties.PeData?.SHA1Hash ?? ""),
 					ParameterHelper.GetNewStringParameter("MD5", fileProperties.PeData?.MD5Hash ?? ""),
 					ParameterHelper.GetNewStringParameter("ImpHash", fileProperties.PeData?.ImpHash ?? ""),
@@ -110,39 +105,51 @@ namespace DataAccessLayer
 				sqlParameters.Add(ParameterHelper.GetNewDoubleParameter("Entropy", fileProperties.Entropy ?? 0));
 			}
 
+			return InsertIntoDB(fileProperties, key, sqlParameters);
+		}
+
+		public static string GetExistingYaraRules(SqlKey key)
+		{
+			string queryText = $"SELECT TOP 1 [YaraRulesMatched] FROM [{TableName}] {key.WhereClause} AND [YaraRulesMatched] IS NOT NULL";
+
+			return (string)ExecuteScalar(queryText, key.GetSqlParameters());
+		}
+
+		public static bool InsertIntoDB(FileProperties fileProperties, SqlKey key, List<SqlParameter> sqlParameters)
+		{
+			string updateText = string.Empty;
+
 			if (fileProperties.IsYaraRulesMatchedPopulated)
 			{
-				sqlParameters.Add(ParameterHelper.GetNewStringParameter("YaraRulesMatched", fileProperties.YaraRulesMatched ?? ""));
+				List<string> newYaraMatchedRules = fileProperties.YaraRulesMatched.ToList();
+
+				string currentYaraRulesMatchedValue = GetExistingYaraRules(key);
+				if (currentYaraRulesMatchedValue != null)
+				{
+					newYaraMatchedRules.AddRange(YaraHelper.ParseDelimitedRulesString(currentYaraRulesMatchedValue));
+				}
+
+				string newYaraRulesMatchedValue = YaraHelper.FormatDelimitedRulesString(newYaraMatchedRules);
+
+				SqlParameter yaraMatchedValueParameter = ParameterHelper.GetNewStringParameter("YaraRulesMatched", newYaraRulesMatchedValue);
+				sqlParameters.Add(yaraMatchedValueParameter);
+
+				updateText = $"UPDATE [{TableName}] SET [YaraRulesMatched] = {yaraMatchedValueParameter.ParameterName} {key.WhereClause}";
 			}
 
-			return InsertIntoDB(key, sqlParameters);
-		}
-
-		public static bool RecordExists(SqlKey key)
-		{
-			throw new NotImplementedException();
-
-			string whereClause = key.WhereClause;
-
-			string commandText = $"SELECT TOP 1 * FROM [{TableName}] {whereClause}";
-		}
-
-		public static bool InsertIntoDB(SqlKey key, List<SqlParameter> sqlParameters)
-		{
 			string columnNames = "[" + string.Join("],[", sqlParameters.Select(param => param.ParameterName.Replace("@", ""))) + "]";
 			string values = string.Join(",", sqlParameters.Select(param => param.ParameterName));
 
 			string insertStatement = $"INSERT INTO [{TableName}]	({columnNames},[PrevalenceCount],[DateSeen]) VALUES ({values},1,GETDATE())";
 
-			string whereClause = key.WhereClause;
-
 			string commandText =
 $@"DECLARE @PREVALENCECOUNT INT;
-SET @PREVALENCECOUNT = ( SELECT [PrevalenceCount] FROM [{TableName}] {whereClause} )
+SET @PREVALENCECOUNT = ( SELECT [PrevalenceCount] FROM [{TableName}] {key.WhereClause} )
 SET @PREVALENCECOUNT = @PREVALENCECOUNT + 1;
 IF(@PREVALENCECOUNT IS NOT NULL)
 BEGIN
-	UPDATE [{TableName}] SET [PrevalenceCount] = @PREVALENCECOUNT {whereClause}
+	UPDATE [{TableName}] SET [PrevalenceCount] = @PREVALENCECOUNT {key.WhereClause}
+	{updateText}
 END
 ELSE
 BEGIN
@@ -159,7 +166,8 @@ END
 				using (SqlCommand sqlCommand = new SqlCommand(commandText))
 				{
 					sqlCommand.Parameters.AddRange(sqlParameters.ToArray());
-					return SQLHelper.ExecuteNonQuery(ConnectionString, sqlCommand);
+					bool result = SQLHelper.ExecuteNonQuery(ConnectionString, sqlCommand);
+					return result;
 				}
 			}
 			catch (Exception ex)
@@ -168,6 +176,25 @@ END
 			}
 
 			return false;
+		}
+
+		private static object ExecuteScalar(string commandText, List<SqlParameter> sqlParameters)
+		{
+			try
+			{
+				using (SqlCommand sqlCommand = new SqlCommand(commandText))
+				{
+					sqlCommand.Parameters.AddRange(sqlParameters.ToArray());
+					object result = SQLHelper.ExecuteScalar(ConnectionString, sqlCommand);
+					return result;
+				}
+			}
+			catch (Exception ex)
+			{
+				SQLHelper.LogException(nameof(InsertFileProperties), commandText, ex);
+			}
+
+			return null;
 		}
 	}
 }

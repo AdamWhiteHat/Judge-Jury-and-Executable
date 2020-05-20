@@ -16,7 +16,7 @@ namespace FilePropertiesDataObject
 
 		public bool CalculateEntropy { get; set; }
 		public bool OnlineCertValidation { get; set; }
-		public string YaraRulesFilePath { get; set; }
+		public List<YaraFilter> YaraParameters { get; set; }
 
 		public Action<string> ReportOutputFunction { get; set; }
 		public Action<string> LogOutputFunction { get; set; }
@@ -25,7 +25,7 @@ namespace FilePropertiesDataObject
 
 		public FileEnumeratorParameters(CancellationToken cancelToken, bool disableWorkerThread,
 										string selectedFolder, string searchPatterns,
-										bool calculateEntropy, bool onlineCertValidation, string yaraRulesFilePath,
+										bool calculateEntropy, bool onlineCertValidation, List<YaraFilter> yaraParameters,
 										Action<string> reportOutputFunction,
 										Action<string> logOutputFunction,
 										Action<List<FailSuccessCount>> reportResultsFunction,
@@ -36,7 +36,7 @@ namespace FilePropertiesDataObject
 			this.SelectedFolder = selectedFolder;
 			this.CalculateEntropy = calculateEntropy;
 			this.OnlineCertValidation = onlineCertValidation;
-			this.YaraRulesFilePath = yaraRulesFilePath;
+			this.YaraParameters = yaraParameters;
 			this.ReportOutputFunction = reportOutputFunction;
 			this.LogOutputFunction = logOutputFunction;
 			this.ReportResultsFunction = reportResultsFunction;

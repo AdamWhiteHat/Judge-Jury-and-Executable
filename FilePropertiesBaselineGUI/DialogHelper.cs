@@ -39,5 +39,20 @@ namespace FilePropertiesBaselineGUI
 
 			return string.Empty;
 		}
+
+		public static string[] BrowseForFilesDialog(string initialDirectory = "")
+		{
+			using (OpenFileDialog browseDialog = new OpenFileDialog())
+			{
+				browseDialog.InitialDirectory = initialDirectory;
+				browseDialog.Multiselect = true;
+				if (browseDialog.ShowDialog() == DialogResult.OK)
+				{
+					return browseDialog.FileNames;
+				}
+			}
+
+			return new string[0];
+		}
 	}
 }

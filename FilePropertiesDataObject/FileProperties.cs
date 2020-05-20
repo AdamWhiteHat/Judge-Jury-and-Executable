@@ -5,7 +5,6 @@ using System.Linq;
 using System.Threading;
 using System.Collections;
 using System.Collections.Generic;
-using System.Security.Cryptography;
 using System.Security.Permissions;
 using System.Security.AccessControl;
 using Microsoft.WindowsAPICodePack.Shell;
@@ -40,7 +39,7 @@ namespace FilePropertiesDataObject
 		public PeDataObject PeData { get; private set; }
 		public AuthenticodeData Authenticode { get; private set; }
 		public double? Entropy { get; private set; }
-		public string YaraRulesMatched { get; private set; }
+		public List<string> YaraRulesMatched { get; private set; }
 
 		public Attributes Attributes { get; private set; }
 		public string Project { get; private set; }
@@ -65,7 +64,7 @@ namespace FilePropertiesDataObject
 		public bool IsPeDataPopulated { get { return !(PeData == null); } }
 		public bool IsAuthenticodePopulated { get { return !(Authenticode == null); } }
 		public bool IsEntropyPopulated { get { return (Entropy.HasValue && Entropy.Value > 0); } }
-		public bool IsYaraRulesMatchedPopulated { get { return !(YaraRulesMatched == null); } }
+		public bool IsYaraRulesMatchedPopulated { get { return (YaraRulesMatched != null && YaraRulesMatched.Any()); } }
 
 		#endregion
 
@@ -118,11 +117,11 @@ namespace FilePropertiesDataObject
 				}
 			}
 
-			bool haveFileReadPermission = true;
+			bool hasFileReadPermissions = true;
 			var fileIOPermission = new FileIOPermission(FileIOPermissionAccess.Read, AccessControlActions.View, FullPath);
 			if (fileIOPermission.AllFiles == FileIOPermissionAccess.Read)
 			{
-				haveFileReadPermission = true;
+				hasFileReadPermissions = true;
 			}
 
 			if (this.Length != 0)
@@ -131,113 +130,18 @@ namespace FilePropertiesDataObject
 				// Some entries in the MFT are greater than int.MaxValue !! That or the size is corrupt. Either way, we handle that here.
 				if (this.Length > maxLength) //(int.MaxValue - 1))
 				{
-					IEnumerable<byte[]> fileChunks = node.GetBytes();
-					CancellationHelper.ThrowIfCancelled();
-
-					this.Sha256Hash = GetSha256Hash_IEnumerable(fileChunks, this.Length);
-					CancellationHelper.ThrowIfCancelled();
-
-					if (haveFileReadPermission)
-					{
-						this.PeData = PeDataObject.TryGetPeDataObject(FullPath, parameters.OnlineCertValidation);
-						CancellationHelper.ThrowIfCancelled();
-
-						this.Authenticode = AuthenticodeData.TryGetAuthenticodeData(FullPath);
-						CancellationHelper.ThrowIfCancelled();
-					}
-
-					/*
-					if (parameters.CalculateEntropy)
-					{
-						this.Entropy = EntropyHelper.CalculateFileEntropy(fileChunks, this.Length);
-						CancellationHelper.ThrowIfCancelled();
-					}
-					*/
-
-					if (haveFileReadPermission)
-					{
-						if (!string.IsNullOrWhiteSpace(parameters.YaraRulesFilePath) && File.Exists(parameters.YaraRulesFilePath))
-						{
-							this.YaraRulesMatched = YaraRules.ScanFile(FullPath, parameters.YaraRulesFilePath);
-							CancellationHelper.ThrowIfCancelled();
-						}
-					}
+					PopulateLargeFile(parameters, node, hasFileReadPermissions);
 				}
 				else
 				{
-					byte[] fileBytes = new byte[0];
-					if (!node.Streams.Any()) //workaround for no file stream such as with hard links
-					{
-						try
-						{
-
-							using (FileStream fsSource = new FileStream(FullPath,
-								FileMode.Open, FileAccess.Read))
-							{
-
-								// Read the source file into a byte array.
-								fileBytes = new byte[fsSource.Length];
-								int numBytesToRead = (int)fsSource.Length;
-								int numBytesRead = 0;
-								while (numBytesToRead > 0)
-								{
-									// Read may return anything from 0 to numBytesToRead.
-									int n = fsSource.Read(fileBytes, numBytesRead, numBytesToRead);
-
-									// Break when the end of the file is reached.
-									if (n == 0)
-										break;
-
-									numBytesRead += n;
-									numBytesToRead -= n;
-								}
-								numBytesToRead = fileBytes.Length;
-
-							}
-						}
-						catch (Exception ex)
-						{
-
-						}
-					}
-
-					else
-					{
-						fileBytes = node.GetBytes().SelectMany(chunk => chunk).ToArray();
-						CancellationHelper.ThrowIfCancelled();
-					}
-					this.PeData = PeDataObject.TryGetPeDataObject(fileBytes, parameters.OnlineCertValidation);
-					if (IsPeDataPopulated)
-					{
-						this.Sha256Hash = PeData.SHA256Hash;
-					}
-					else
-					{
-						this.Sha256Hash = GetSha256Hash_Array(fileBytes);
-					}
-					CancellationHelper.ThrowIfCancelled();
-
-					this.Authenticode = AuthenticodeData.TryGetAuthenticodeData(fileBytes);
-					CancellationHelper.ThrowIfCancelled();
-
-					if (parameters.CalculateEntropy)
-					{
-						this.Entropy = EntropyHelper.CalculateFileEntropy(fileBytes);
-						CancellationHelper.ThrowIfCancelled();
-					}
-
-					if (!string.IsNullOrWhiteSpace(parameters.YaraRulesFilePath) && File.Exists(parameters.YaraRulesFilePath))
-					{
-						this.YaraRulesMatched = YaraRules.ScanBytes(fileBytes, parameters.YaraRulesFilePath);
-						CancellationHelper.ThrowIfCancelled();
-					}
+					PopulateSmallFile(parameters, node, hasFileReadPermissions);
 				}
 			}
 
 			this.Attributes = new Attributes(node);
 			CancellationHelper.ThrowIfCancelled();
 
-			if (haveFileReadPermission)
+			if (hasFileReadPermissions)
 			{
 				PopulateFileInfoProperties(FullPath);
 				CancellationHelper.ThrowIfCancelled();
@@ -245,6 +149,140 @@ namespace FilePropertiesDataObject
 				PopulateShellFileInfo(FullPath);
 				CancellationHelper.ThrowIfCancelled();
 			}
+		}
+
+
+		private void PopulateLargeFile(FileEnumeratorParameters parameters, INode node, bool hasFileReadPermissions)
+		{
+			IEnumerable<byte[]> fileChunks = node.GetBytes();
+			CancellationHelper.ThrowIfCancelled();
+
+			this.Sha256Hash = Sha256Helper.GetSha256Hash_IEnumerable(fileChunks, this.Length);
+			CancellationHelper.ThrowIfCancelled();
+
+			if (hasFileReadPermissions)
+			{
+				this.PeData = PeDataObject.TryGetPeDataObject(FullPath, parameters.OnlineCertValidation);
+				CancellationHelper.ThrowIfCancelled();
+
+				this.Authenticode = AuthenticodeData.TryGetAuthenticodeData(FullPath);
+				CancellationHelper.ThrowIfCancelled();
+			}
+
+			/*
+			if (parameters.CalculateEntropy)
+			{
+				this.Entropy = EntropyHelper.CalculateFileEntropy(fileChunks, this.Length);
+				CancellationHelper.ThrowIfCancelled();
+			}
+			*/
+
+			if (hasFileReadPermissions)
+			{
+				string yaraIndexFilename = PopulateYaraInfo(parameters.YaraParameters, false);
+
+				if (!string.IsNullOrWhiteSpace(yaraIndexFilename))
+				{
+					this.YaraRulesMatched = YaraHelper.ScanFile(FullPath, yaraIndexFilename);
+				}
+			}
+		}
+
+		private void PopulateSmallFile(FileEnumeratorParameters parameters, INode node, bool hasFileReadPermissions)
+		{
+			byte[] fileBytes = new byte[0];
+			if (!node.Streams.Any()) //workaround for no file stream such as with hard links
+			{
+				try
+				{
+
+					using (FileStream fsSource = new FileStream(FullPath,
+						FileMode.Open, FileAccess.Read))
+					{
+
+						// Read the source file into a byte array.
+						fileBytes = new byte[fsSource.Length];
+						int numBytesToRead = (int)fsSource.Length;
+						int numBytesRead = 0;
+						while (numBytesToRead > 0)
+						{
+							// Read may return anything from 0 to numBytesToRead.
+							int n = fsSource.Read(fileBytes, numBytesRead, numBytesToRead);
+
+							// Break when the end of the file is reached.
+							if (n == 0)
+								break;
+
+							numBytesRead += n;
+							numBytesToRead -= n;
+						}
+						numBytesToRead = fileBytes.Length;
+
+					}
+				}
+				catch (Exception ex)
+				{
+
+				}
+			}
+
+			else
+			{
+				fileBytes = node.GetBytes().SelectMany(chunk => chunk).ToArray();
+				CancellationHelper.ThrowIfCancelled();
+			}
+			this.PeData = PeDataObject.TryGetPeDataObject(fileBytes, parameters.OnlineCertValidation);
+			if (IsPeDataPopulated)
+			{
+				this.Sha256Hash = PeData.SHA256Hash;
+			}
+			else
+			{
+				this.Sha256Hash = Sha256Helper.GetSha256Hash_Array(fileBytes);
+			}
+			CancellationHelper.ThrowIfCancelled();
+
+			this.Authenticode = AuthenticodeData.TryGetAuthenticodeData(fileBytes);
+			CancellationHelper.ThrowIfCancelled();
+
+			if (parameters.CalculateEntropy)
+			{
+				this.Entropy = EntropyHelper.CalculateFileEntropy(fileBytes);
+				CancellationHelper.ThrowIfCancelled();
+			}
+
+			if (hasFileReadPermissions)
+			{
+				string yaraIndexFilename = PopulateYaraInfo(parameters.YaraParameters, true);
+
+				if (!string.IsNullOrWhiteSpace(yaraIndexFilename))
+				{
+					this.YaraRulesMatched = YaraHelper.ScanBytes(fileBytes, yaraIndexFilename);
+				}
+			}
+		}
+
+		private string PopulateYaraInfo(List<YaraFilter> yaraFilters, bool fileBytes)
+		{
+			List<string> distinctRulesToRun =
+				yaraFilters
+				.SelectMany(yf => yf.ProcessRule(this))
+				.Distinct()
+				.OrderBy(s => s)
+				.ToList();
+
+			string yaraIndexContents = YaraHelper.MakeYaraIndexFile(distinctRulesToRun);
+
+			string indexFileHash = Sha256Helper.GetSha256Hash_Array(Encoding.UTF8.GetBytes(yaraIndexContents));
+
+			string yaraIndexFilename = Path.Combine(Path.GetTempPath(), $"{indexFileHash}-index.yar");
+
+			if (!File.Exists(yaraIndexFilename))
+			{
+				File.WriteAllText(yaraIndexFilename, yaraIndexContents);
+			}
+
+			return yaraIndexFilename;
 		}
 
 		private void PopulateFileInfoProperties(string fullPath)
@@ -314,122 +352,5 @@ namespace FilePropertiesDataObject
 			{ }
 		}
 
-		private static int bigChunkSize = 1024 * 256;
-		private string GetSha256Hash_Stream(Stream fileStream)
-		{
-			string result = string.Empty;
-
-			try
-			{
-				using (SHA256Managed hashAlgorithm = new SHA256Managed())
-				{
-					long bytesToHash = fileStream.Length;
-
-					byte[] buffer = new byte[bigChunkSize];
-					int sizeToRead = buffer.Length;
-					while (bytesToHash > 0)
-					{
-						if (bytesToHash < (long)sizeToRead)
-						{
-							sizeToRead = (int)bytesToHash;
-						}
-
-						int bytesRead = fileStream.ReadAsync(buffer, 0, sizeToRead, CancellationHelper.GetCancellationToken()).Result;
-						CancellationHelper.ThrowIfCancelled();
-						hashAlgorithm.TransformBlock(buffer, 0, bytesRead, null, 0);
-						bytesToHash -= (long)bytesRead;
-						if (bytesRead == 0)
-						{
-							throw new InvalidOperationException("Unexpected end of stream");
-							// or break;
-						}
-					}
-					hashAlgorithm.TransformFinalBlock(buffer, 0, 0);
-					buffer = null;
-					result = ByteArrayConverter.ToHexString(hashAlgorithm.Hash);
-				}
-			}
-			catch
-			{ }
-
-			return result;
-		}
-
-		private string GetSha256Hash_IEnumerable(IEnumerable<byte[]> fileChunks, ulong fileSize)
-		{
-			string result = string.Empty;
-
-			try
-			{
-				using (SHA256Managed hashAlgorithm = new SHA256Managed())
-				{
-					foreach (byte[] chunk in fileChunks)
-					{
-						hashAlgorithm.TransformBlock(chunk, 0, chunk.Length, null, 0);
-					}
-
-					hashAlgorithm.TransformFinalBlock(new byte[0], 0, 0);
-
-					result = ByteArrayConverter.ToHexString(hashAlgorithm.Hash);
-				}
-			}
-			catch
-			{ }
-
-			return result;
-		}
-
-		private string GetSha256Hash_Array(byte[] fileBytes)
-		{
-			string result = string.Empty;
-
-			try
-			{
-				byte[] hashBytes = null;
-				using (SHA256Managed managed = new SHA256Managed())
-				{
-					hashBytes = managed.ComputeHash(fileBytes);
-				}
-				result = ByteArrayConverter.ToHexString(hashBytes);
-			}
-			catch
-			{ }
-
-			return result;
-		}
-
-		private static class ByteArrayConverter
-		{
-			private static readonly uint[] _lookup32 = CreateLookup32();
-
-			private static uint[] CreateLookup32()
-			{
-				string s = null;
-				uint[] result = new uint[256];
-				for (int i = 0; i < 256; i++)
-				{
-					s = i.ToString("X2");
-					result[i] = ((uint)s[0]) + ((uint)s[1] << 16);
-				}
-				return result;
-			}
-
-			public static string ToHexString(byte[] bytes)
-			{
-				string result = null;
-				//uint[] localCopy_lookup32 = _lookup32;
-				char[] buffer = new char[bytes.Length * 2];
-				for (int i = 0; i < bytes.Length; i++)
-				{
-					uint val = _lookup32[bytes[i]]; // localCopy_lookup32[bytes[i]];
-					buffer[2 * i] = (char)val;
-					buffer[2 * i + 1] = (char)(val >> 16);
-				}
-				//localCopy_lookup32 = null;
-				result = new string(buffer);
-				buffer = null;
-				return result;
-			}
-		}
 	}
 }
