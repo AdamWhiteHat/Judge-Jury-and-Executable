@@ -51,11 +51,11 @@ namespace FilePropertiesDataObject
 			}
 			else if (FilterType == YaraFilterType.IsPeFile)
 			{
-				return (fileProperties.PeData.IsPe || fileProperties.PeData.IsDll || fileProperties.PeData.IsDriver);
+				return fileProperties.IsPeDataPopulated && (fileProperties.PeData.IsPe || fileProperties.PeData.IsDll || fileProperties.PeData.IsDriver);
 			}
 			else if (FilterType == YaraFilterType.FileExtension)
 			{
-				return string.Equals(FilterValue, fileProperties.Extension, StringComparison.InvariantCultureIgnoreCase);
+				return string.Equals(FilterValue.Replace(".", ""), fileProperties.Extension.Replace(".", ""), StringComparison.InvariantCultureIgnoreCase);
 			}
 			else if (FilterType == YaraFilterType.MimeType)
 			{

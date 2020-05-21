@@ -24,8 +24,6 @@ namespace FilePropertiesEnumerator
 
 		public static void LaunchFileEnumerator(FileEnumeratorParameters parameters)
 		{
-			ThrowIfParametersInvalid(parameters);
-
 			var fileEnumerationDelegate
 				= new Func<FileEnumeratorParameters, List<FailSuccessCount>>((args) => Worker(args));
 
@@ -46,19 +44,6 @@ namespace FilePropertiesEnumerator
 				List<FailSuccessCount> results = fileEnumerationDelegate.Invoke(parameters);
 				parameters.ReportResultsFunction(results);
 			}
-		}
-
-		private static void ThrowIfParametersInvalid(FileEnumeratorParameters parameters)
-		{
-			if (parameters == null) { throw new ArgumentNullException(nameof(parameters)); }
-			if (parameters.SearchPatterns == null) { throw new ArgumentNullException(nameof(parameters.SearchPatterns)); }
-			if (parameters.ReportExceptionFunction == null) { throw new ArgumentNullException(nameof(parameters.ReportExceptionFunction)); }
-			if (parameters.ReportOutputFunction == null) { throw new ArgumentNullException(nameof(parameters.ReportOutputFunction)); }
-			if (parameters.LogOutputFunction == null) { throw new ArgumentNullException(nameof(parameters.LogOutputFunction)); }
-			if (parameters.ReportResultsFunction == null) { throw new ArgumentNullException(nameof(parameters.ReportResultsFunction)); }
-			if (!Directory.Exists(parameters.SelectedFolder)) { throw new DirectoryNotFoundException(parameters.SelectedFolder); }
-			if (parameters.CancelToken == null) { throw new ArgumentNullException(nameof(parameters.CancelToken), "If you do not want to pass a CancellationToken, then pass 'CancellationToken.None'"); }
-			parameters.CancelToken.ThrowIfCancellationRequested();
 		}
 
 		private static List<FailSuccessCount> Worker(FileEnumeratorParameters parameters)

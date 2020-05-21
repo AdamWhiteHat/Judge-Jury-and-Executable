@@ -95,6 +95,143 @@ namespace FilePropertiesBaselineGUI
 			}
 		}
 
+		private void btnSearch_Click(object sender, EventArgs e)
+		{
+			BeginScanning();
+		}
+
+		private void BeginScanning()
+		{
+			if (ProcessingToggle.IsActive)
+			{
+				btnSearch.Enabled = false;
+				ProcessingToggle.SetState(false);
+			}
+			else
+			{
+				btnSearch.Text = "Cancel";
+				ProcessingToggle.SetState(true);
+
+				bool calculateEntropy = checkboxCalculateEntropy.Checked;
+				bool onlineCertValidation = checkboxOnlineCertValidation.Checked;
+				string selectedFolder = tbPath.Text;
+				string searchPatterns = tbSearchPatterns.Text;
+
+				List<YaraFilter> yaraParameters = new List<YaraFilter>();
+
+				if (checkBoxYaraRules.Checked)
+				{
+					yaraParameters = currentYaraFilters.ToList();
+				}
+
+				FileEnumeratorParameters parameters =
+					new FileEnumeratorParameters(cancelToken, Settings.FileEnumeration_DisableWorkerThread, selectedFolder, searchPatterns, calculateEntropy, onlineCertValidation, yaraParameters,
+													Logging.ReportOutput, Logging.LogOutput, ReportNumbers, Logging.LogExceptionMessage);
+
+				tbOutput.AppendText(Environment.NewLine);
+				Logging.ReportOutput($"Beginning Enumeration of folder: \"{selectedFolder}\"");
+
+				enumerationStart = DateTime.Now;
+
+				bool didThrow = false;
+				try
+				{
+					ThrowIfParametersInvalid(parameters);
+				}
+				catch (Exception ex)
+				{
+					didThrow = true;
+					MessageBox.Show(ex.ToString().Split(new char[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries).FirstOrDefault(), "", MessageBoxButtons.OK, MessageBoxIcon.Error);
+				}
+
+				if (!didThrow)
+				{
+					FileEnumerator.LaunchFileEnumerator(parameters);
+				}
+				else
+				{
+					BeginScanning();
+				}
+			}
+		}
+
+		private static void ThrowIfParametersInvalid(FileEnumeratorParameters parameters)
+		{
+			if (parameters == null) { throw new ArgumentNullException(nameof(parameters)); }
+			if (parameters.SearchPatterns == null) { throw new ArgumentNullException(nameof(parameters.SearchPatterns)); }
+			if (parameters.ReportExceptionFunction == null) { throw new ArgumentNullException(nameof(parameters.ReportExceptionFunction)); }
+			if (parameters.ReportOutputFunction == null) { throw new ArgumentNullException(nameof(parameters.ReportOutputFunction)); }
+			if (parameters.LogOutputFunction == null) { throw new ArgumentNullException(nameof(parameters.LogOutputFunction)); }
+			if (parameters.ReportResultsFunction == null) { throw new ArgumentNullException(nameof(parameters.ReportResultsFunction)); }
+			if (!Directory.Exists(parameters.SelectedFolder)) { throw new DirectoryNotFoundException(parameters.SelectedFolder); }
+			if (parameters.CancelToken == null) { throw new ArgumentNullException(nameof(parameters.CancelToken), "If you do not want to pass a CancellationToken, then pass 'CancellationToken.None'"); }
+			parameters.CancelToken.ThrowIfCancellationRequested();
+		}
+
+		private void ReportNumbers(List<FailSuccessCount> counts)
+		{
+			TimeSpan enumerationTimeSpan = DateTime.Now.Subtract(enumerationStart);
+
+			foreach (FailSuccessCount count in counts)
+			{
+				count.ToStrings().ForEach(s => Logging.ReportOutput(s));
+			}
+			Logging.ReportOutput($"Enumeration time: {enumerationTimeSpan.ToString()}");
+			Logging.ReportOutput();
+			Logging.ReportOutput("Enumeration finished!");
+
+			ProcessingToggle.SetState(false);
+			EnableControls();
+		}
+
+		#region Is Processing Toggle Members
+
+		private void ActivationBehavior()
+		{
+			if (this.InvokeRequired)
+			{
+				this.Invoke(new MethodInvoker(() => ActivationBehavior()));
+			}
+			else
+			{
+				panel1.Enabled = false;
+				btnSearch.Text = "Cancel";
+
+				cancelTokenSource = new CancellationTokenSource();
+				cancelToken = cancelTokenSource.Token;
+			}
+		}
+
+		private void DeactivationBehavior()
+		{
+			cancelTokenSource.Cancel();
+			EnableControls();
+		}
+
+		private void EnableControls()
+		{
+			if (this.InvokeRequired)
+			{
+				this.Invoke(new MethodInvoker(() => EnableControls()));
+			}
+			else
+			{
+				panel1.Enabled = true;
+				btnSearch.Text = "Search";
+				btnSearch.Enabled = true;
+			}
+		}
+
+		#endregion
+
+		#region Yara Shit
+
+		private List<string> yaraMatchFiles = new List<string>();
+		private List<string> yaraNoMatchFiles = new List<string>();
+		private List<YaraFilter> currentYaraFilters = new List<YaraFilter>();
+
+		private static string AddYaraRuleErrorCaption = "Error adding yara filter";
+
 		private void checkBoxYaraRules_CheckedChanged(object sender, EventArgs e)
 		{
 			panelYara.Enabled = checkBoxYaraRules.Checked;
@@ -138,11 +275,6 @@ namespace FilePropertiesBaselineGUI
 			}
 		}
 
-		List<string> yaraMatchFiles = new List<string>();
-		List<string> yaraNoMatchFiles = new List<string>();
-		List<YaraFilter> currentYaraFilters = new List<YaraFilter>();
-
-		private static string AddYaraRuleErrorCaption = "Error adding yara filter";
 		private void btnAddYaraFilter_Click(object sender, EventArgs e)
 		{
 			if (!yaraMatchFiles.Any())
@@ -219,7 +351,6 @@ namespace FilePropertiesBaselineGUI
 			}
 		}
 
-
 		private void UpdateYaraFilterListbox()
 		{
 			listBoxYaraFilters.SuspendLayout();
@@ -234,100 +365,14 @@ namespace FilePropertiesBaselineGUI
 			listBoxYaraFilters.ResumeLayout();
 		}
 
-		private void btnSearch_Click(object sender, EventArgs e)
+		private void btnYaraSave_Click(object sender, EventArgs e)
 		{
-			BeginScanning();
+
 		}
 
-		private void BeginScanning()
+		private void btnYaraLoad_Click(object sender, EventArgs e)
 		{
-			if (ProcessingToggle.IsActive)
-			{
-				btnSearch.Enabled = false;
-				ProcessingToggle.SetState(false);
-			}
-			else
-			{
-				btnSearch.Text = "Cancel";
-				ProcessingToggle.SetState(true);
 
-				bool calculateEntropy = checkboxCalculateEntropy.Checked;
-				bool onlineCertValidation = checkboxOnlineCertValidation.Checked;
-				string selectedFolder = tbPath.Text;
-				string searchPatterns = tbSearchPatterns.Text;
-
-				List<YaraFilter> yaraParameters = new List<YaraFilter>();
-
-				if (checkBoxYaraRules.Checked)
-				{
-					yaraParameters = currentYaraFilters.ToList();
-				}
-
-				FileEnumeratorParameters parameters =
-					new FileEnumeratorParameters(cancelToken, Settings.FileEnumeration_DisableWorkerThread, selectedFolder, searchPatterns, calculateEntropy, onlineCertValidation, yaraParameters,
-													Logging.ReportOutput, Logging.LogOutput, ReportNumbers, Logging.LogExceptionMessage);
-
-				tbOutput.AppendText(Environment.NewLine);
-				Logging.ReportOutput($"Beginning Enumeration of folder: \"{selectedFolder}\"");
-
-				enumerationStart = DateTime.Now;
-
-				FileEnumerator.LaunchFileEnumerator(parameters);
-			}
-		}
-
-		private void ReportNumbers(List<FailSuccessCount> counts)
-		{
-			TimeSpan enumerationTimeSpan = DateTime.Now.Subtract(enumerationStart);
-
-			foreach (FailSuccessCount count in counts)
-			{
-				count.ToStrings().ForEach(s => Logging.ReportOutput(s));
-			}
-			Logging.ReportOutput($"Enumeration time: {enumerationTimeSpan.ToString()}");
-			Logging.ReportOutput();
-			Logging.ReportOutput("Enumeration finished!");
-
-			ProcessingToggle.SetState(false);
-			EnableControls();
-		}
-
-		#region Is Processing Toggle Members
-
-		private void ActivationBehavior()
-		{
-			if (this.InvokeRequired)
-			{
-				this.Invoke(new MethodInvoker(() => ActivationBehavior()));
-			}
-			else
-			{
-				panel1.Enabled = false;
-				btnSearch.Text = "Cancel";
-
-				cancelTokenSource = new CancellationTokenSource();
-				cancelToken = cancelTokenSource.Token;
-			}
-		}
-
-		private void DeactivationBehavior()
-		{
-			cancelTokenSource.Cancel();
-			EnableControls();
-		}
-
-		private void EnableControls()
-		{
-			if (this.InvokeRequired)
-			{
-				this.Invoke(new MethodInvoker(() => EnableControls()));
-			}
-			else
-			{
-				panel1.Enabled = true;
-				btnSearch.Text = "Search";
-				btnSearch.Enabled = true;
-			}
 		}
 
 		#endregion
