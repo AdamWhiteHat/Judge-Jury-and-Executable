@@ -40,6 +40,21 @@ namespace FilePropertiesBaselineGUI
 			return string.Empty;
 		}
 
+		public static string SaveFileDialog(string initialDirectory = "")
+		{
+			using (SaveFileDialog browseDialog = new SaveFileDialog())
+			{
+				browseDialog.InitialDirectory = initialDirectory;
+				//browseDialog.RootFolder = Environment.SpecialFolder.ProgramFilesX86;
+				if (browseDialog.ShowDialog() == DialogResult.OK)
+				{
+					return browseDialog.FileName;
+				}
+			}
+
+			return string.Empty;
+		}
+
 		public static string[] BrowseForFilesDialog(string initialDirectory = "")
 		{
 			using (OpenFileDialog browseDialog = new OpenFileDialog())

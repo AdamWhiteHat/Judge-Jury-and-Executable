@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Runtime.Serialization;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -15,13 +16,21 @@ namespace FilePropertiesDataObject
 		IsPeFile
 	}
 
+	[DataContract]
 	public class YaraFilter : IEquatable<YaraFilter>
 	{
+		[DataMember]
 		public YaraFilterType FilterType { get; private set; }
+		[DataMember]
 		public string FilterValue { get; private set; }
 
+		[DataMember]
 		public List<string> OnMatchRules { get; private set; }
+		[DataMember]
 		public List<string> NoMatchRules { get; private set; }
+
+		public YaraFilter()
+		{ }
 
 		public YaraFilter(YaraFilterType filterType, string filterValue, List<string> onMatchRules, List<string> noMatchRules)
 		{

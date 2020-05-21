@@ -367,12 +367,23 @@ namespace FilePropertiesBaselineGUI
 
 		private void btnYaraSave_Click(object sender, EventArgs e)
 		{
+			string selectedFile = DialogHelper.SaveFileDialog();
 
+			if (!string.IsNullOrWhiteSpace(selectedFile))
+			{
+				JsonSerialization.Save.Object(currentYaraFilters, selectedFile);
+			}
 		}
 
 		private void btnYaraLoad_Click(object sender, EventArgs e)
 		{
+			string selectedFile = DialogHelper.BrowseForFileDialog();
 
+			if (!string.IsNullOrWhiteSpace(selectedFile) && File.Exists(selectedFile))
+			{
+				currentYaraFilters = JsonSerialization.Load.Generic<List<YaraFilter>>(selectedFile);
+				UpdateYaraFilterListbox();
+			}
 		}
 
 		#endregion
