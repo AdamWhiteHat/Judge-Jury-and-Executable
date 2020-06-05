@@ -102,6 +102,8 @@ namespace DataAccessLayer
 				});
 			}
 
+			sqlParameters.Add(ParameterHelper.GetNewParameterByType("IsTrusted", (object)fileProperties.IsTrusted, SqlDbType.Bit));
+
 			if (fileProperties.IsEntropyPopulated)
 			{
 				sqlParameters.Add(ParameterHelper.GetNewDoubleParameter("Entropy", fileProperties.Entropy ?? 0));

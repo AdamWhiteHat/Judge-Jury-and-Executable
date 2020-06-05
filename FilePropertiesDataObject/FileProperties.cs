@@ -39,6 +39,7 @@ namespace FilePropertiesDataObject
 		public DateTime LastAccessTime { get; private set; }
 		public DateTime LastWriteTime { get; private set; }
 
+		public bool IsTrusted { get; private set; }
 		public PeDataObject PeData { get; private set; }
 		public AuthenticodeData Authenticode { get; private set; }
 		public double? Entropy { get; private set; }
@@ -140,6 +141,9 @@ namespace FilePropertiesDataObject
 					PopulateSmallFile(parameters, node, hasFileReadPermissions);
 				}
 			}
+
+			PopulateIsTrusted();
+			CancellationHelper.ThrowIfCancelled();
 
 			this.Attributes = new Attributes(node);
 			CancellationHelper.ThrowIfCancelled();
@@ -262,6 +266,19 @@ namespace FilePropertiesDataObject
 					this.YaraRulesMatched = YaraHelper.ScanBytes(fileBytes, yaraIndexFilename);
 				}
 			}
+		}
+
+		private void PopulateIsTrusted()
+		{
+			bool result = false;
+
+			try
+			{
+				result = VerifyTrustHelper.IsTrusted(FullPath);
+			}
+			catch { }
+
+			this.IsTrusted = result;
 		}
 
 		private string PopulateYaraInfo(List<YaraFilter> yaraFilters, bool fileBytes)
