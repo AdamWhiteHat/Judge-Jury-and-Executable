@@ -174,8 +174,13 @@ namespace FilePropertiesBaselineGUI
 
 			foreach (FailSuccessCount count in counts)
 			{
-				count.ToStrings().ForEach(s => Logging.ReportOutput(s));
+				Logging.ReportOutput($"Succeeded: {count.SucceededCount} {count.Description}.");
 			}
+			foreach (FailSuccessCount count in counts)
+			{
+				Logging.ReportOutput($"Failed: {count.FailedCount} {count.Description}.");
+			}
+
 			Logging.ReportOutput($"Enumeration time: {enumerationTimeSpan.ToString()}");
 			Logging.ReportOutput();
 			Logging.ReportOutput("Enumeration finished!");

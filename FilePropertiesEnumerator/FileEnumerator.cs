@@ -20,7 +20,6 @@ namespace FilePropertiesEnumerator
 
 		private static FailSuccessCount fileEnumCount = null;
 		private static FailSuccessCount databaseInsertCount = null;
-		private static FailSuccessCount directoryEnumCount = null;
 
 		public static void LaunchFileEnumerator(FileEnumeratorParameters parameters)
 		{
@@ -50,7 +49,6 @@ namespace FilePropertiesEnumerator
 		{
 			fileEnumCount = new FailSuccessCount("OS files enumerated");
 			databaseInsertCount = new FailSuccessCount("OS database rows updated");
-			directoryEnumCount = new FailSuccessCount("directories enumerated");
 
 			try
 			{
@@ -119,7 +117,7 @@ namespace FilePropertiesEnumerator
 			catch (OperationCanceledException)
 			{ }
 
-			return new List<FailSuccessCount> { fileEnumCount, databaseInsertCount, directoryEnumCount };
+			return new List<FailSuccessCount> { fileEnumCount, databaseInsertCount };
 		}
 
 		private static bool FileMatchesPattern(string fullName, string[] searchPatterns)
