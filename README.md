@@ -1,4 +1,6 @@
-# Judge-Jury-and-Executable
+# Judge Jury and Executable
+
+![Judge Jury and Executable Logo](https://github.com/AdamWhiteHat/Judge-Jury-and-Executable/blob/master/Logo.png)
 
 ## Requirements:
  - .NET Framework v4.8
