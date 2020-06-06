@@ -77,7 +77,6 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="DialogHelper.cs" />
-    <Compile Include="Logging.cs" />
     <Compile Include="MainForm.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -149,6 +148,10 @@
     <ProjectReference Include="..\FilePropertiesEnumerator\FilePropertiesEnumerator.csproj">
       <Project>{029ce37f-cdbe-46bd-9aef-1212f0c99e90}</Project>
       <Name>FilePropertiesEnumerator</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Logging\Logging.csproj">
+      <Project>{24ef744b-578f-4a0e-8a56-5828ca072137}</Project>
+      <Name>Logging</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

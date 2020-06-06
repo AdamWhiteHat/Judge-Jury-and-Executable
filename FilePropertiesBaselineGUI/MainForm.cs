@@ -10,6 +10,7 @@ using FilePropertiesEnumerator;
 using FilePropertiesDataObject;
 using FilePropertiesDataObject.Parameters;
 using System.Diagnostics;
+using Logging;
 
 namespace FilePropertiesBaselineGUI
 {
@@ -24,8 +25,9 @@ namespace FilePropertiesBaselineGUI
 		{
 			InitializeComponent();
 
-			Logging.FormOutputControl = tbOutput;
-			SQLHelper.LogExceptionAction = Logging.LogExceptionMessage;
+			OutputTextBox = tbOutput;
+			Log.LogOutputAction = LogOutput;
+			SQLHelper.LogExceptionAction = Log.ExceptionMessage;
 			ProcessingToggle = new Toggle(ActivationBehavior, DeactivationBehavior);
 
 			panelYara.Enabled = checkBoxYaraRules.Checked;
@@ -36,7 +38,7 @@ namespace FilePropertiesBaselineGUI
 			string connectionString = Settings.Database_ConnectionString;
 			if (string.IsNullOrWhiteSpace(connectionString) || connectionString == "SetMe")
 			{
-				Logging.ReportOutput("ERROR: Connection string not set! Please set the SQL connection string in .config file. Browse button disabled.");
+				Log.ToAll("ERROR: Connection string not set! Please set the SQL connection string in .config file. Browse button disabled.");
 				btnBrowse.Enabled = false;
 			}
 			else
@@ -52,6 +54,32 @@ namespace FilePropertiesBaselineGUI
 			if (!string.IsNullOrWhiteSpace(Settings.GUI_SearchPattern))
 			{
 				tbSearchPatterns.Text = Settings.GUI_SearchPattern;
+			}
+		}
+
+		private static TextBox OutputTextBox;
+
+		public static void LogOutput(string message)
+		{
+			if (OutputTextBox != null)
+			{
+				if (OutputTextBox.InvokeRequired)
+				{
+					OutputTextBox.Invoke(new MethodInvoker(() => LogOutput(message)));
+				}
+				else
+				{
+					if (!string.IsNullOrWhiteSpace(message))
+					{
+						if (OutputTextBox.Lines.Length > 200)
+						{
+							string[] lines = OutputTextBox.Lines.Skip(OutputTextBox.Lines.Length - 50).ToArray();
+							OutputTextBox.Lines = lines;
+						}
+						OutputTextBox.AppendText($"[{DateTime.Now.TimeOfDay.ToString()}] - " + message);
+					}
+					OutputTextBox.AppendText(Environment.NewLine);
+				}
 			}
 		}
 
@@ -126,10 +154,10 @@ namespace FilePropertiesBaselineGUI
 
 				FileEnumeratorParameters parameters =
 					new FileEnumeratorParameters(cancelToken, Settings.FileEnumeration_DisableWorkerThread, selectedFolder, searchPatterns, calculateEntropy, onlineCertValidation, yaraParameters,
-													Logging.ReportOutput, Logging.LogOutput, ReportNumbers, Logging.LogExceptionMessage);
+													Log.ToUI, Log.ToFile, ReportNumbers, Log.ExceptionMessage);
 
 				tbOutput.AppendText(Environment.NewLine);
-				Logging.ReportOutput($"Beginning Enumeration of folder: \"{selectedFolder}\"");
+				Log.ToAll($"Beginning Enumeration of folder: \"{selectedFolder}\"");
 
 				enumerationStart = DateTime.Now;
 
@@ -174,16 +202,16 @@ namespace FilePropertiesBaselineGUI
 
 			foreach (FailSuccessCount count in counts)
 			{
-				Logging.ReportOutput($"Succeeded: {count.SucceededCount} {count.Description}.");
+				Log.ToAll($"Succeeded: {count.SucceededCount} {count.Description}.");
 			}
 			foreach (FailSuccessCount count in counts)
 			{
-				Logging.ReportOutput($"Failed: {count.FailedCount} {count.Description}.");
+				Log.ToAll($"Failed: {count.FailedCount} {count.Description}.");
 			}
 
-			Logging.ReportOutput($"Enumeration time: {enumerationTimeSpan.ToString()}");
-			Logging.ReportOutput();
-			Logging.ReportOutput("Enumeration finished!");
+			Log.ToAll($"Enumeration time: {enumerationTimeSpan.ToString()}");
+			Log.ToAll();
+			Log.ToAll("Enumeration finished!");
 
 			ProcessingToggle.SetState(false);
 			EnableControls();
