@@ -60,7 +60,7 @@ namespace FilePropertiesDataObject
 			}
 			else if (FilterType == YaraFilterType.IsPeFile)
 			{
-				return fileProperties.IsPeDataPopulated && (fileProperties.PeData.IsPe || fileProperties.PeData.IsDll || fileProperties.PeData.IsDriver);
+				return fileProperties.IsPeDataPopulated && (fileProperties.PeData.IsExe || fileProperties.PeData.IsDll || fileProperties.PeData.IsDriver);
 			}
 			else if (FilterType == YaraFilterType.FileExtension)
 			{

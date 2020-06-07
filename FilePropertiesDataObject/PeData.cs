@@ -17,9 +17,11 @@ namespace FilePropertiesDataObject
 
 		public string ImpHash { get; private set; }
 		public bool IsDll { get; private set; }
-		public bool IsPe { get; private set; }
+		public bool IsExe { get; private set; }
 		public bool IsDriver { get; private set; }
 		public bool IsSigned { get; private set; }
+
+		public bool IsSignatureValid { get; private set; }
 		public bool IsValidCertChain { get; private set; }
 
 		public DateTime CompileDate { get; private set; }
@@ -93,12 +95,13 @@ namespace FilePropertiesDataObject
 			}
 
 			this.IsDll = peFile.IsDLL;
-			this.IsPe = peFile.IsValidPeFile;
+			this.IsExe = peFile.IsEXE;
 			this.IsDriver = peFile.IsDriver;
 			this.IsSigned = peFile.IsSigned;
+			this.IsSignatureValid = peFile.IsSignatureValid;
 			this.IsValidCertChain = peFile.IsValidCertChain(onlineCertValidation);
 
-			if (IsPe || IsDll || IsDriver)
+			if (IsExe || IsDll || IsDriver)
 			{
 				if (peFile.Is32Bit)
 				{
