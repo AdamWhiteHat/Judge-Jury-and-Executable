@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using System.Collections.Generic;
 using PeNet;
 using PeNet.ImpHash;
+using System.Security.Cryptography.X509Certificates;
 
 namespace FilePropertiesDataObject
 {
@@ -27,6 +28,8 @@ namespace FilePropertiesDataObject
 		public DateTime CompileDate { get; private set; }
 
 		public int BinaryType { get; private set; }
+
+		public X509Certificate2 Certificate { get; private set; }
 
 		public static PeDataObject TryGetPeDataObject(byte[] fileBytes, bool onlineCertValidation)
 		{
@@ -100,6 +103,7 @@ namespace FilePropertiesDataObject
 			this.IsSigned = peFile.IsSigned;
 			this.IsSignatureValid = peFile.IsSignatureValid;
 			this.IsValidCertChain = peFile.IsValidCertChain(onlineCertValidation);
+			this.Certificate = peFile.PKCS7;
 
 			if (IsExe || IsDll || IsDriver)
 			{

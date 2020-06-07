@@ -169,9 +169,10 @@ namespace FilePropertiesDataObject
 			if (hasFileReadPermissions)
 			{
 				this.PeData = PeDataObject.TryGetPeDataObject(FullPath, parameters.OnlineCertValidation);
-				CancellationHelper.ThrowIfCancelled();
-
-				this.Authenticode = AuthenticodeData.TryGetAuthenticodeData(FullPath);
+				if (PeData != null)
+				{
+					this.Authenticode = AuthenticodeData.GetAuthenticodeData(PeData.Certificate);
+				}
 				CancellationHelper.ThrowIfCancelled();
 			}
 
@@ -248,8 +249,11 @@ namespace FilePropertiesDataObject
 			}
 			CancellationHelper.ThrowIfCancelled();
 
-			this.Authenticode = AuthenticodeData.TryGetAuthenticodeData(fileBytes);
-			CancellationHelper.ThrowIfCancelled();
+			if (PeData != null)
+			{
+				this.Authenticode = AuthenticodeData.GetAuthenticodeData(PeData.Certificate);
+				CancellationHelper.ThrowIfCancelled();
+			}
 
 			if (parameters.CalculateEntropy)
 			{
