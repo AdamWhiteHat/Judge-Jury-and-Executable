@@ -80,9 +80,10 @@ namespace DataAccessLayer
 					ParameterHelper.GetNewStringParameter("MD5", fileProperties.PeData?.MD5Hash ?? ""),
 					ParameterHelper.GetNewStringParameter("ImpHash", fileProperties.PeData?.ImpHash ?? ""),
 					ParameterHelper.GetNewParameterByType("IsDll", (object)fileProperties.PeData?.IsDll ?? DBNull.Value, SqlDbType.Bit),
-					ParameterHelper.GetNewParameterByType("IsPe", (object)fileProperties.PeData?.IsPe ?? DBNull.Value, SqlDbType.Bit),
+					ParameterHelper.GetNewParameterByType("IsExe", (object)fileProperties.PeData?.IsExe ?? DBNull.Value, SqlDbType.Bit),
 					ParameterHelper.GetNewParameterByType("IsDriver", (object)fileProperties.PeData?.IsDriver ?? DBNull.Value, SqlDbType.Bit),
 					ParameterHelper.GetNewParameterByType("IsSigned", (object)fileProperties.PeData?.IsSigned ?? DBNull.Value, SqlDbType.Bit),
+					ParameterHelper.GetNewParameterByType("IsSignatureValid", (object)fileProperties.PeData?.IsSignatureValid ?? DBNull.Value, SqlDbType.Bit),
 					ParameterHelper.GetNewParameterByType("IsValidCertChain", (object)fileProperties.PeData?.IsValidCertChain ?? DBNull.Value, SqlDbType.Bit),
 					ParameterHelper.GetNewParameterByType("BinaryType", (object)fileProperties.PeData?.BinaryType ?? DBNull.Value, SqlDbType.Int),
 					ParameterHelper.GetNewParameterByType("CompileDate", (object)fileProperties.PeData?.CompileDate ?? DBNull.Value, SqlDbType.DateTime2)
