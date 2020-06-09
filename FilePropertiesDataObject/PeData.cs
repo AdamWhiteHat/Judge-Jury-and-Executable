@@ -102,8 +102,14 @@ namespace FilePropertiesDataObject
 			this.IsDriver = peFile.IsDriver;
 			this.IsSigned = peFile.IsSigned;
 			this.IsSignatureValid = peFile.IsSignatureValid;
-			this.IsValidCertChain = peFile.IsValidCertChain(onlineCertValidation);
 			this.Certificate = peFile.PKCS7;
+
+			//this.IsValidCertChain = peFile.IsValidCertChain(onlineCertValidation);
+			if (onlineCertValidation && this.Certificate != null)
+			{
+				this.IsValidCertChain = this.Certificate.Verify();
+			}
+
 
 			if (IsExe || IsDll || IsDriver)
 			{
