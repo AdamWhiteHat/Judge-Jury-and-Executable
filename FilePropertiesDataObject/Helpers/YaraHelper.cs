@@ -53,7 +53,7 @@ namespace FilePropertiesDataObject.Helpers
 
 		public static string FormatDelimitedRulesString(List<string> rules)
 		{
-			string result = null;
+			string result = "";
 			if (rules.Any())
 			{
 				List<string> orderedRules = rules.Distinct().OrderBy(s => s).ToList();
