@@ -80,8 +80,8 @@ namespace DataAccessLayer
 				ParameterHelper.GetNewParameterByType("IsSigned", (object)fileProperties.PeData?.IsSigned ?? false, SqlDbType.Bit),
 				ParameterHelper.GetNewParameterByType("IsSignatureValid", (object)fileProperties.PeData?.IsSignatureValid ?? false, SqlDbType.Bit),
 				ParameterHelper.GetNewParameterByType("IsValidCertChain", (object)fileProperties.PeData?.IsValidCertChain ?? false, SqlDbType.Bit),
-				ParameterHelper.GetNewParameterByType("BinaryType", (object)fileProperties.PeData?.BinaryType ?? false, SqlDbType.Int),
-				ParameterHelper.GetNewParameterByType("CompileDate", (object)fileProperties.PeData?.CompileDate ?? false, SqlDbType.DateTime2),
+				ParameterHelper.GetNewParameterByType("BinaryType", (object)fileProperties.PeData?.BinaryType ??  DBNull.Value, SqlDbType.Int),
+				ParameterHelper.GetNewParameterByType("CompileDate", (object)fileProperties.PeData?.CompileDate ??  DBNull.Value, SqlDbType.DateTime2),
 				ParameterHelper.GetNewParameterByType("IsTrusted", (object)fileProperties.IsTrusted, SqlDbType.Bit),
 
 				ParameterHelper.GetNewStringParameter("CertSubject", fileProperties.Authenticode?.CertSubject ?? ""),
