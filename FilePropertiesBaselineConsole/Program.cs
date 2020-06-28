@@ -6,14 +6,33 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Collections.Generic;
 
+using Logging;
 using DataAccessLayer;
 using FilePropertiesEnumerator;
 using FilePropertiesDataObject;
+using FilePropertiesDataObject.Parameters;
+using Newtonsoft.Json;
 
 namespace FilePropertiesBaselineConsole
 {
 	sealed class Program
 	{
+		static Program()
+		{
+			Log.LogOutputAction = Console.WriteLine;
+			SQLHelper.LogExceptionAction = Log.ExceptionMessage;
+		}
+
+		private static void DisplayUsageSyntax()
+		{
+			ReportOutput();
+			ReportOutput("-p:C:\\Windows        -   Search [p]ath");
+			ReportOutput("-m:*.exe             -   Search [m]ask");
+			ReportOutput("-e                   -   Enable calulate [e]ntropy");
+			ReportOutput("-v                   -   Enable online [v]alidation");
+			ReportOutput("-y:C:\\YaraRules.yar  -   [Y]ara rules file");
+		}
+
 		private static void Main(string[] args)
 		{
 			string connectionString = Settings.Database_ConnectionString;
@@ -80,7 +99,36 @@ namespace FilePropertiesBaselineConsole
 			ReportOutput($"[Y]ara Rules File: \"{yaraRulesFile}\"");
 			ReportOutput("");
 
-			FileEnumeratorParameters parameters = new FileEnumeratorParameters(CancellationToken.None, Settings.FileEnumeration_DisableWorkerThread, searchPath, searchMask, calcEntropy, onlineValidation, yaraRulesFile, ReportOutput, LogOutput, ReportResults, ReportException);
+
+			if (!File.Exists(yaraRulesFile))
+			{
+				ReportOutput($"The yara rules file path suppled does not exist: \"{yaraRulesFile}\".");
+				return;
+			}
+
+			List<YaraFilter> yaraFilters = new List<YaraFilter>();
+			try
+			{
+				string loadJson = File.ReadAllText(yaraRulesFile);
+				yaraFilters = JsonConvert.DeserializeObject<List<YaraFilter>>(loadJson);
+			}
+			catch
+			{
+				ReportOutput("The yara rules file must be a JSON file.");
+				return;
+			}
+
+			FileEnumeratorParameters parameters =
+				new FileEnumeratorParameters(
+					CancellationToken.None,
+					Settings.FileEnumeration_DisableWorkerThread,
+					searchPath, searchMask, calcEntropy,
+					onlineValidation,
+					yaraFilters,
+					ReportOutput,
+					Log.ToAll,
+					ReportResults,
+					Log.ExceptionMessage);
 
 			ReportOutput("Beginning enumeration...");
 			FileEnumerator.LaunchFileEnumerator(parameters);
@@ -135,19 +183,9 @@ namespace FilePropertiesBaselineConsole
 			return result;
 		}
 
-		private static void DisplayUsageSyntax()
-		{
-			ReportOutput();
-			ReportOutput("-p:C:\\Windows        -   Search [p]ath");
-			ReportOutput("-m:*.exe             -   Search [m]ask");
-			ReportOutput("-e                   -   Enable calulate [e]ntropy");
-			ReportOutput("-v                   -   Enable online [v]alidation");
-			ReportOutput("-y:C:\\YaraRules.yar  -   [Y]ara rules file");
-		}
-
 		private static void ReportOutput(string message = "")
 		{
-			Console.WriteLine(message);
+			Log.ToUI(message);
 		}
 
 		private static void ReportResults(List<FailSuccessCount> counts)
@@ -159,47 +197,6 @@ namespace FilePropertiesBaselineConsole
 
 			ReportOutput();
 			ReportOutput("Enumeration finished!");
-		}
-
-		private static void ReportException(string location, string commandText, Exception exception)
-		{
-			string cmdTextLine = string.Empty;
-
-			if (!string.IsNullOrWhiteSpace(commandText))
-			{
-				cmdTextLine = $"Exception.SQL.CommandText: \"{commandText}\"";
-			}
-
-			string stackTrace = "";
-
-			if (exception.StackTrace != null)
-			{
-				stackTrace = $"    Exception.StackTrace = {Environment.NewLine}    {{{Environment.NewLine}        {exception.StackTrace.Replace("\r\n", "\r\n     ")}    }}{Environment.NewLine}";
-			}
-
-			string[] lines =
-			{
-				"Exception.Information = ",
-				"[",
-				$"    Exception.Location (Name of function exception was thrown in): \"{location}\"",
-				$"    Exception.Type: \"{exception.GetType().FullName}\"",
-				$"    Exception.Message: \"{exception.Message}\"",
-				$"{stackTrace}",
-				 cmdTextLine,
-				"]" +
-				" ",
-				"---",
-				" "
-			};
-
-			string toLog = string.Join(Environment.NewLine, lines);
-			LogOutput(toLog);
-			ReportOutput("Exception logged to Exceptions.log");
-		}
-
-		private static void LogOutput(string message)
-		{
-			File.AppendAllText("Exceptions.log", message + Environment.NewLine);
 		}
 	}
 }

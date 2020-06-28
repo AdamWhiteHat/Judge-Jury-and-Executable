@@ -5,12 +5,12 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("FilePropertiesBaseline")]
-[assembly: AssemblyDescription("")]
+[assembly: AssemblyTitle("FilePropertiesBaselineGUI")]
+[assembly: AssemblyDescription("A file system forensics analysis scanner and threat hunting tool. Windows Form GUI Driver.")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("")]
-[assembly: AssemblyProduct("FilePropertiesBaseline")]
-[assembly: AssemblyCopyright("Copyright ©  2017")]
+[assembly: AssemblyCompany("https://github.com/AdamWhiteHat/Judge-Jury-and-Executable")]
+[assembly: AssemblyProduct("FilePropertiesBaselineGUI")]
+[assembly: AssemblyCopyright("GNU Affero General Public License v3.0. See more @ https://github.com/AdamWhiteHat/Judge-Jury-and-Executable/blob/master/LICENSE")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
