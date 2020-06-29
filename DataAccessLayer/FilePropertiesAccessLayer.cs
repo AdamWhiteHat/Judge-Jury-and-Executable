@@ -1,18 +1,14 @@
 ﻿using System;
 using System.Linq;
-using System.Text;
 using System.Data;
-using System.Data.Sql;
 using System.Collections;
 using System.Data.SqlClient;
-using System.Threading.Tasks;
 using System.Collections.Generic;
 
 namespace DataAccessLayer
 {
 	using FilePropertiesDataObject;
 	using FilePropertiesDataObject.Helpers;
-	using FilePropertiesDataObject.Parameters;
 
 	public class FilePropertiesAccessLayer
 	{
