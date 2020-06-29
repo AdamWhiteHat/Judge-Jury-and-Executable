@@ -26,11 +26,11 @@ namespace FilePropertiesBaselineConsole
 		private static void DisplayUsageSyntax()
 		{
 			ReportOutput();
-			ReportOutput("-p:C:\\Windows        -   Search [p]ath");
-			ReportOutput("-m:*.exe             -   Search [m]ask");
-			ReportOutput("-e                   -   Enable calulate [e]ntropy");
-			ReportOutput("-v                   -   Enable online [v]alidation");
-			ReportOutput("-y:C:\\YaraRules.yar  -   [Y]ara rules file");
+			ReportOutput("-p:C:\\Windows           -  Search [p]ath");
+			ReportOutput("-m:*.exe                 -  Search [m]ask");
+			ReportOutput("-e                       -  Enable calulate [e]ntropy");
+			ReportOutput("-v                       -  Enable online [v]alidation");
+			ReportOutput("-y:C:\\YaraFilters.json  -  [Y]ara filters file");
 		}
 
 		private static void Main(string[] args)
@@ -55,9 +55,9 @@ namespace FilePropertiesBaselineConsole
 
 			// Will hold flag & parameter to flag, such as: "-p", "C:\Windows\"
 			List<Tuple<string, string>> flags = GetFlags(args);
-
 			if (!flags.Any())
 			{
+				DisplayUsageSyntax();
 				return;
 			}
 
@@ -65,7 +65,9 @@ namespace FilePropertiesBaselineConsole
 			string searchMask = "*.*";
 			bool calcEntropy = false;
 			bool onlineValidation = false;
-			string yaraRulesFile = "";
+			bool yaraScan = false;
+			string yaraFiltersFile = "";
+			List<YaraFilter> yaraFilters = new List<YaraFilter>();
 
 			foreach (Tuple<string, string> flagTuple in flags)
 			{
@@ -87,56 +89,62 @@ namespace FilePropertiesBaselineConsole
 						searchMask = parameter;
 						break;
 					case "y":
-						yaraRulesFile = parameter;
+						yaraScan = true;
+						yaraFiltersFile = parameter;
 						break;
 				}
 			}
 
-			ReportOutput($"Search [P]ath: \"{searchPath}\"");
-			ReportOutput($"Search [M]ask: {searchMask}");
-			ReportOutput($"Calulate [E]ntropy: {calcEntropy}");
-			ReportOutput($"Online [V]alidation: {onlineValidation}");
-			ReportOutput($"[Y]ara Rules File: \"{yaraRulesFile}\"");
-			ReportOutput("");
+			ReportOutput();
+			ReportOutput("Running with these parameters:");
+			ReportOutput($"   Search [P]ath:       \"{searchPath}\"");
+			ReportOutput($"   Search [M]ask:       {searchMask}");
+			ReportOutput($"   Calulate [E]ntropy:  {calcEntropy}");
+			ReportOutput($"   Online [V]alidation: {onlineValidation}");
+			ReportOutput($"   [Y]ara filters file: \"{yaraFiltersFile}\"");
+			ReportOutput();
 
-
-			if (!File.Exists(yaraRulesFile))
+			if (yaraScan)
 			{
-				ReportOutput($"The yara rules file path suppled does not exist: \"{yaraRulesFile}\".");
-				return;
-			}
-
-			List<YaraFilter> yaraFilters = new List<YaraFilter>();
-			try
-			{
-				string loadJson = File.ReadAllText(yaraRulesFile);
-				yaraFilters = JsonConvert.DeserializeObject<List<YaraFilter>>(loadJson);
-			}
-			catch
-			{
-				ReportOutput("The yara rules file must be a JSON file.");
-				return;
+				if (!File.Exists(yaraFiltersFile))
+				{
+					ReportOutput($"The yara filters file path suppled does not exist: \"{yaraFiltersFile}\".");
+					return;
+				}
+				try
+				{
+					string loadJson = File.ReadAllText(yaraFiltersFile);
+					yaraFilters = JsonConvert.DeserializeObject<List<YaraFilter>>(loadJson);
+				}
+				catch
+				{
+					ReportOutput("The yara filters file must be a JSON file.");
+					return;
+				}
 			}
 
 			FileEnumeratorParameters parameters =
-				new FileEnumeratorParameters(
-					CancellationToken.None,
-					Settings.FileEnumeration_DisableWorkerThread,
-					searchPath, searchMask, calcEntropy,
-					onlineValidation,
-					yaraFilters,
-					ReportOutput,
-					Log.ToAll,
-					ReportResults,
-					Log.ExceptionMessage);
+					new FileEnumeratorParameters(
+						CancellationToken.None,
+						true, // Do not change this. If set to false, it will run on a thread, return immediately and exit, killing the thread.
+						searchPath,
+						searchMask,
+						calcEntropy,
+						onlineValidation,
+						yaraFilters,
+						ReportOutput,
+						Log.ToAll,
+						ReportResults,
+						Log.ExceptionMessage
+					);
 
-			ReportOutput("Beginning enumeration...");
+			ReportOutput("Beginning scan...");
 			FileEnumerator.LaunchFileEnumerator(parameters);
 		}
 
 		private static List<Tuple<string, string>> GetFlags(string[] args)
 		{
-			List<Tuple<string, string>> result = new List<Tuple<string, string>>();
+			List<Tuple<string, string>> results = new List<Tuple<string, string>>();
 
 			foreach (string arg in args)
 			{
@@ -149,7 +157,6 @@ namespace FilePropertiesBaselineConsole
 
 				if (currentCharacter != "-")
 				{
-					DisplayUsageSyntax();
 					return new List<Tuple<string, string>>();
 				}
 
@@ -162,10 +169,10 @@ namespace FilePropertiesBaselineConsole
 					parameter = argument;
 				}
 
-				result.Add(new Tuple<string, string>(flag, parameter));
+				results.Add(new Tuple<string, string>(flag, parameter));
 			}
 
-			return result;
+			return results;
 		}
 
 		// Removes the first character from the string and returns it. The source string is modified to exclude the returned character.
@@ -174,7 +181,6 @@ namespace FilePropertiesBaselineConsole
 			if (string.IsNullOrEmpty(source))
 			{
 				return string.Empty;
-
 			}
 
 			string result = source[0].ToString();
@@ -196,7 +202,8 @@ namespace FilePropertiesBaselineConsole
 			}
 
 			ReportOutput();
-			ReportOutput("Enumeration finished!");
+			ReportOutput("Scan completed!");
+			ReportOutput("Exiting...");
 		}
 	}
 }
