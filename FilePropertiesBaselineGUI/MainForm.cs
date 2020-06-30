@@ -78,7 +78,7 @@ namespace FilePropertiesBaselineGUI
             if (string.IsNullOrWhiteSpace(connectionString) || connectionString == "SetMe")
             {
                 Log.ToAll("ERROR: Connection string not set! Please set the SQL connection string in .config file. Browse button disabled.");
-                btnBrowse.Enabled = false;
+                btnScan.Enabled = false;
             }
             else
             {

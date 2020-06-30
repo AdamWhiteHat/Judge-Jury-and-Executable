@@ -85,6 +85,7 @@
             this.MinimumSize = new System.Drawing.Size(200, 250);
             this.Name = "FileSelectionForm";
             this.SizeGripStyle = System.Windows.Forms.SizeGripStyle.Hide;
+            this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
             this.TopMost = true;
             this.Load += new System.EventHandler(this.FileSelectionForm_Load);
             this.Shown += new System.EventHandler(this.FileSelectionForm_Shown);
