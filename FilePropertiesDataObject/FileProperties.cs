@@ -13,170 +13,170 @@ using System.IO.Filesystem.Ntfs;
 
 namespace FilePropertiesDataObject
 {
-	using Helpers;
-	using Parameters;
+    using Helpers;
+    using Parameters;
 
-	public class FileProperties
-	{
-		#region Public properties
+    public class FileProperties
+    {
+        #region Public properties
 
-		public uint MFTNumber { get; private set; }
-		public ushort SequenceNumber { get; private set; }
-		public string Sha256Hash { get; private set; }
+        public uint MFTNumber { get; private set; }
+        public ushort SequenceNumber { get; private set; }
+        public string Sha256Hash { get; private set; }
 
-		public ulong Length { get; private set; }
-		public char DriveLetter { get; private set; }
-		public string FullPath { get; private set; }
-		public string FileName { get; private set; }
-		public string Extension { get; private set; }
-		public string DirectoryLocation { get; private set; }
+        public ulong Length { get; private set; }
+        public char DriveLetter { get; private set; }
+        public string FullPath { get; private set; }
+        public string FileName { get; private set; }
+        public string Extension { get; private set; }
+        public string DirectoryLocation { get; private set; }
 
-		public DateTime MftTimeAccessed { get; set; }
-		public DateTime MftTimeCreation { get; set; }
-		public DateTime MftTimeModified { get; set; }
-		public DateTime MftTimeMftModified { get; set; }
-		public DateTime CreationTime { get; private set; }
-		public DateTime LastAccessTime { get; private set; }
-		public DateTime LastWriteTime { get; private set; }
+        public DateTime MftTimeAccessed { get; set; }
+        public DateTime MftTimeCreation { get; set; }
+        public DateTime MftTimeModified { get; set; }
+        public DateTime MftTimeMftModified { get; set; }
+        public DateTime CreationTime { get; private set; }
+        public DateTime LastAccessTime { get; private set; }
+        public DateTime LastWriteTime { get; private set; }
 
-		public bool IsTrusted { get; private set; }
-		public PeDataObject PeData { get; private set; }
-		public AuthenticodeData Authenticode { get; private set; }
-		public double? Entropy { get; private set; }
-		public List<string> YaraRulesMatched { get; private set; }
+        public bool IsTrusted { get; private set; }
+        public PeDataObject PeData { get; private set; }
+        public AuthenticodeData Authenticode { get; private set; }
+        public double? Entropy { get; private set; }
+        public List<string> YaraRulesMatched { get; private set; }
 
-		public Attributes Attributes { get; private set; }
-		public string Project { get; private set; }
-		public string ProviderItemID { get; private set; }
-		public string OriginalFileName { get; private set; }
-		public string FileOwner { get; private set; }
-		public string FileVersion { get; private set; }
-		public string FileDescription { get; private set; }
-		public string Trademarks { get; private set; }
-		public string Copyright { get; private set; }
-		public string Company { get; private set; }
-		public string ApplicationName { get; private set; }
-		public string Comment { get; private set; }
-		public string Title { get; private set; }
-		public string Link { get; private set; }
-		public string MimeType { get; private set; }
-		public string InternalName { get; private set; }
-		public string ProductName { get; private set; }
-		public string Language { get; private set; }
-		public string ComputerName { get; private set; }
+        public Attributes Attributes { get; private set; }
+        public string Project { get; private set; }
+        public string ProviderItemID { get; private set; }
+        public string OriginalFileName { get; private set; }
+        public string FileOwner { get; private set; }
+        public string FileVersion { get; private set; }
+        public string FileDescription { get; private set; }
+        public string Trademarks { get; private set; }
+        public string Copyright { get; private set; }
+        public string Company { get; private set; }
+        public string ApplicationName { get; private set; }
+        public string Comment { get; private set; }
+        public string Title { get; private set; }
+        public string Link { get; private set; }
+        public string MimeType { get; private set; }
+        public string InternalName { get; private set; }
+        public string ProductName { get; private set; }
+        public string Language { get; private set; }
+        public string ComputerName { get; private set; }
 
-		public bool IsPeDataPopulated { get { return !(PeData == null); } }
-		public bool IsAuthenticodePopulated { get { return !(Authenticode == null); } }
-		public bool IsEntropyPopulated { get { return (Entropy.HasValue && Entropy.Value > 0); } }
-		public bool IsYaraRulesMatchedPopulated { get { return (YaraRulesMatched != null && YaraRulesMatched.Any()); } }
+        public bool IsPeDataPopulated { get { return !(PeData == null); } }
+        public bool IsAuthenticodePopulated { get { return !(Authenticode == null); } }
+        public bool IsEntropyPopulated { get { return (Entropy.HasValue && Entropy.Value > 0); } }
+        public bool IsYaraRulesMatchedPopulated { get { return (YaraRulesMatched != null && YaraRulesMatched.Any()); } }
 
-		#endregion
+        #endregion
 
-		public FileProperties()
-		{
-			PeData = null;
-			Authenticode = null;
-			Entropy = null;
-			YaraRulesMatched = null;
-		}
+        public FileProperties()
+        {
+            PeData = null;
+            Authenticode = null;
+            Entropy = null;
+            YaraRulesMatched = null;
+        }
 
-		public void PopulateFileProperties(FileEnumeratorParameters parameters, char driveLetter, INode node)
-		{
-			if (parameters == null) return;
-			if (node == null) return;
+        public void PopulateFileProperties(FileEnumeratorParameters parameters, char driveLetter, INode node)
+        {
+            if (parameters == null) return;
+            if (node == null) return;
 
-			CancellationHelper.SetCancellationToken(parameters.CancelToken);
-			CancellationHelper.ThrowIfCancelled();
+            CancellationHelper.SetCancellationToken(parameters.CancelToken);
+            CancellationHelper.ThrowIfCancelled();
 
-			MFTNumber = node.MFTRecordNumber;
-			SequenceNumber = node.SequenceNumber;
+            MFTNumber = node.MFTRecordNumber;
+            SequenceNumber = node.SequenceNumber;
 
-			DriveLetter = driveLetter;
-			FileName = node.Name;
+            DriveLetter = driveLetter;
+            FileName = node.Name;
 
-			MftTimeAccessed = node.LastAccessTime;
-			MftTimeCreation = node.CreationTime;
-			MftTimeModified = node.LastChangeTime;
-			MftTimeMftModified = node.TimeMftModified;
+            MftTimeAccessed = node.LastAccessTime;
+            MftTimeCreation = node.CreationTime;
+            MftTimeModified = node.LastChangeTime;
+            MftTimeMftModified = node.TimeMftModified;
 
-			DirectoryLocation = Path.GetDirectoryName(node.FullName);
-			Extension = Path.GetExtension(FileName);
-			FullPath = node.FullName;
+            DirectoryLocation = Path.GetDirectoryName(node.FullName);
+            Extension = Path.GetExtension(FileName);
+            FullPath = node.FullName;
 
-			this.Length = node.Size;
+            this.Length = node.Size;
 
-			CancellationHelper.ThrowIfCancelled();
+            CancellationHelper.ThrowIfCancelled();
 
-			if (this.Length == 0) //Workaround for hard links
-			{
-				if (System.IO.File.Exists(FullPath))
-				{
-					long length = new System.IO.FileInfo(FullPath).Length;
-					if (length > 0)
-					{
-						this.Length = (ulong)length;
-						node.Size = this.Length;
+            if (this.Length == 0) //Workaround for hard links
+            {
+                if (System.IO.File.Exists(FullPath))
+                {
+                    long length = new System.IO.FileInfo(FullPath).Length;
+                    if (length > 0)
+                    {
+                        this.Length = (ulong)length;
+                        node.Size = this.Length;
 
-					}
-				}
-			}
+                    }
+                }
+            }
 
-			bool hasFileReadPermissions = true;
-			var fileIOPermission = new FileIOPermission(FileIOPermissionAccess.Read, AccessControlActions.View, FullPath);
-			if (fileIOPermission.AllFiles == FileIOPermissionAccess.Read)
-			{
-				hasFileReadPermissions = true;
-			}
+            bool hasFileReadPermissions = true;
+            var fileIOPermission = new FileIOPermission(FileIOPermissionAccess.Read, AccessControlActions.View, FullPath);
+            if (fileIOPermission.AllFiles == FileIOPermissionAccess.Read)
+            {
+                hasFileReadPermissions = true;
+            }
 
-			if (this.Length != 0)
-			{
-				var maxLength = ((ulong)NtfsReader.MaxClustersToRead * (ulong)4096);
-				// Some entries in the MFT are greater than int.MaxValue !! That or the size is corrupt. Either way, we handle that here.
-				if (this.Length > maxLength) //(int.MaxValue - 1))
-				{
-					PopulateLargeFile(parameters, node, hasFileReadPermissions);
-				}
-				else
-				{
-					PopulateSmallFile(parameters, node, hasFileReadPermissions);
-				}
-			}
+            if (this.Length != 0)
+            {
+                var maxLength = ((ulong)NtfsReader.MaxClustersToRead * (ulong)4096);
+                // Some entries in the MFT are greater than int.MaxValue !! That or the size is corrupt. Either way, we handle that here.
+                if (this.Length > maxLength) //(int.MaxValue - 1))
+                {
+                    PopulateLargeFile(parameters, node, hasFileReadPermissions);
+                }
+                else
+                {
+                    PopulateSmallFile(parameters, node, hasFileReadPermissions);
+                }
+            }
 
-			PopulateIsTrusted();
-			CancellationHelper.ThrowIfCancelled();
+            PopulateIsTrusted();
+            CancellationHelper.ThrowIfCancelled();
 
-			this.Attributes = new Attributes(node);
-			CancellationHelper.ThrowIfCancelled();
+            this.Attributes = new Attributes(node);
+            CancellationHelper.ThrowIfCancelled();
 
-			if (hasFileReadPermissions)
-			{
-				PopulateFileInfoProperties(FullPath);
-				CancellationHelper.ThrowIfCancelled();
+            if (hasFileReadPermissions)
+            {
+                PopulateFileInfoProperties(FullPath);
+                CancellationHelper.ThrowIfCancelled();
 
-				PopulateShellFileInfo(FullPath);
-				CancellationHelper.ThrowIfCancelled();
-			}
-		}
+                PopulateShellFileInfo(FullPath);
+                CancellationHelper.ThrowIfCancelled();
+            }
+        }
 
-		private void PopulateLargeFile(FileEnumeratorParameters parameters, INode node, bool hasFileReadPermissions)
-		{
-			IEnumerable<byte[]> fileChunks = node.GetBytes();
-			CancellationHelper.ThrowIfCancelled();
+        private void PopulateLargeFile(FileEnumeratorParameters parameters, INode node, bool hasFileReadPermissions)
+        {
+            IEnumerable<byte[]> fileChunks = node.GetBytes();
+            CancellationHelper.ThrowIfCancelled();
 
-			this.Sha256Hash = Sha256Helper.GetSha256Hash_IEnumerable(fileChunks, this.Length);
-			CancellationHelper.ThrowIfCancelled();
+            this.Sha256Hash = Sha256Helper.GetSha256Hash_IEnumerable(fileChunks, this.Length);
+            CancellationHelper.ThrowIfCancelled();
 
-			if (hasFileReadPermissions)
-			{
-				this.PeData = PeDataObject.TryGetPeDataObject(FullPath, parameters.OnlineCertValidation);
-				if (PeData != null)
-				{
-					this.Authenticode = AuthenticodeData.GetAuthenticodeData(PeData.Certificate);
-				}
-				CancellationHelper.ThrowIfCancelled();
-			}
+            if (hasFileReadPermissions)
+            {
+                this.PeData = PeDataObject.TryGetPeDataObject(FullPath, parameters.OnlineCertValidation);
+                if (PeData != null)
+                {
+                    this.Authenticode = AuthenticodeData.GetAuthenticodeData(PeData.Certificate);
+                }
+                CancellationHelper.ThrowIfCancelled();
+            }
 
-			/*
+            /*
 			if (parameters.CalculateEntropy)
 			{
 				this.Entropy = EntropyHelper.CalculateFileEntropy(fileChunks, this.Length);
@@ -184,196 +184,217 @@ namespace FilePropertiesDataObject
 			}
 			*/
 
-			if (hasFileReadPermissions)
-			{
-				string yaraIndexFilename = PopulateYaraInfo(parameters.YaraParameters, false);
+            if (hasFileReadPermissions)
+            {
+                string yaraIndexFilename = ConsolidateYaraRules(parameters.YaraParameters);
 
-				if (!string.IsNullOrWhiteSpace(yaraIndexFilename))
-				{
-					this.YaraRulesMatched = YaraHelper.ScanFile(FullPath, yaraIndexFilename);
-				}
-			}
-		}
+                if (!string.IsNullOrWhiteSpace(yaraIndexFilename))
+                {
+                    this.YaraRulesMatched = YaraHelper.ScanFile(FullPath, yaraIndexFilename);
+                }
+            }
+        }
 
-		private void PopulateSmallFile(FileEnumeratorParameters parameters, INode node, bool hasFileReadPermissions)
-		{
-			byte[] fileBytes = new byte[0];
-			if (!node.Streams.Any()) //workaround for no file stream such as with hard links
-			{
-				try
-				{
+        private void PopulateSmallFile(FileEnumeratorParameters parameters, INode node, bool hasFileReadPermissions)
+        {
+            byte[] fileBytes = new byte[0];
+            if (!node.Streams.Any()) //workaround for no file stream such as with hard links
+            {
+                try
+                {
 
-					using (FileStream fsSource = new FileStream(FullPath,
-						FileMode.Open, FileAccess.Read))
-					{
+                    using (FileStream fsSource = new FileStream(FullPath,
+                        FileMode.Open, FileAccess.Read))
+                    {
 
-						// Read the source file into a byte array.
-						fileBytes = new byte[fsSource.Length];
-						int numBytesToRead = (int)fsSource.Length;
-						int numBytesRead = 0;
-						while (numBytesToRead > 0)
-						{
-							// Read may return anything from 0 to numBytesToRead.
-							int n = fsSource.Read(fileBytes, numBytesRead, numBytesToRead);
+                        // Read the source file into a byte array.
+                        fileBytes = new byte[fsSource.Length];
+                        int numBytesToRead = (int)fsSource.Length;
+                        int numBytesRead = 0;
+                        while (numBytesToRead > 0)
+                        {
+                            // Read may return anything from 0 to numBytesToRead.
+                            int n = fsSource.Read(fileBytes, numBytesRead, numBytesToRead);
 
-							// Break when the end of the file is reached.
-							if (n == 0)
-								break;
+                            // Break when the end of the file is reached.
+                            if (n == 0)
+                                break;
 
-							numBytesRead += n;
-							numBytesToRead -= n;
-						}
-						numBytesToRead = fileBytes.Length;
+                            numBytesRead += n;
+                            numBytesToRead -= n;
+                        }
+                        numBytesToRead = fileBytes.Length;
 
-					}
-				}
-				catch (Exception ex)
-				{
+                    }
+                }
+                catch (Exception ex)
+                {
 
-				}
-			}
+                }
+            }
 
-			else
-			{
-				fileBytes = node.GetBytes().SelectMany(chunk => chunk).ToArray();
-				CancellationHelper.ThrowIfCancelled();
-			}
-			this.PeData = PeDataObject.TryGetPeDataObject(fileBytes, parameters.OnlineCertValidation);
-			if (IsPeDataPopulated)
-			{
-				this.Sha256Hash = PeData.SHA256Hash;
-			}
-			else
-			{
-				this.Sha256Hash = Sha256Helper.GetSha256Hash_Array(fileBytes);
-			}
-			CancellationHelper.ThrowIfCancelled();
+            else
+            {
+                fileBytes = node.GetBytes().SelectMany(chunk => chunk).ToArray();
+                CancellationHelper.ThrowIfCancelled();
+            }
+            this.PeData = PeDataObject.TryGetPeDataObject(fileBytes, parameters.OnlineCertValidation);
+            if (IsPeDataPopulated)
+            {
+                this.Sha256Hash = PeData.SHA256Hash;
+            }
+            else
+            {
+                this.Sha256Hash = Sha256Helper.GetSha256Hash_Array(fileBytes);
+            }
+            CancellationHelper.ThrowIfCancelled();
 
-			if (PeData != null)
-			{
-				this.Authenticode = AuthenticodeData.GetAuthenticodeData(PeData.Certificate);
-				CancellationHelper.ThrowIfCancelled();
-			}
+            if (PeData != null)
+            {
+                this.Authenticode = AuthenticodeData.GetAuthenticodeData(PeData.Certificate);
+                CancellationHelper.ThrowIfCancelled();
+            }
 
-			if (parameters.CalculateEntropy)
-			{
-				this.Entropy = EntropyHelper.CalculateFileEntropy(fileBytes);
-				CancellationHelper.ThrowIfCancelled();
-			}
+            if (parameters.CalculateEntropy)
+            {
+                this.Entropy = EntropyHelper.CalculateFileEntropy(fileBytes);
+                CancellationHelper.ThrowIfCancelled();
+            }
 
-			if (hasFileReadPermissions)
-			{
-				string yaraIndexFilename = PopulateYaraInfo(parameters.YaraParameters, true);
+            if (hasFileReadPermissions)
+            {
+                string yaraIndexFilename = ConsolidateYaraRules(parameters.YaraParameters);
 
-				if (!string.IsNullOrWhiteSpace(yaraIndexFilename))
-				{
-					this.YaraRulesMatched = YaraHelper.ScanBytes(fileBytes, yaraIndexFilename);
-				}
-			}
-		}
+                if (!string.IsNullOrWhiteSpace(yaraIndexFilename))
+                {
+                    this.YaraRulesMatched = YaraHelper.ScanBytes(fileBytes, yaraIndexFilename);
+                }
+            }
+        }
 
-		private void PopulateIsTrusted()
-		{
-			bool result = false;
+        private void PopulateIsTrusted()
+        {
+            bool result = false;
 
-			try
-			{
-				result = VerifyTrustHelper.IsTrusted(FullPath);
-			}
-			catch { }
+            try
+            {
+                result = VerifyTrustHelper.IsTrusted(FullPath);
+            }
+            catch { }
 
-			this.IsTrusted = result;
-		}
+            this.IsTrusted = result;
+        }
 
-		private string PopulateYaraInfo(List<YaraFilter> yaraFilters, bool fileBytes)
-		{
-			List<string> distinctRulesToRun =
-				yaraFilters
-				.SelectMany(yf => yf.ProcessRule(this))
-				.Distinct()
-				.OrderBy(s => s)
-				.ToList();
+        private string ConsolidateYaraRules(YaraScanConfiguration yaraConfig)
+        {
+            IEnumerable<string> distinctRulesToRun =
+                yaraConfig
+                .Conditions
+                .SelectMany(y => y.GetMatchingYaraRules(this));
 
-			string yaraIndexContents = YaraHelper.MakeYaraIndexFile(distinctRulesToRun);
+            if (!distinctRulesToRun.Any())
+            {
+                if (yaraConfig.ElseRuleset.Any())
+                {
+                    distinctRulesToRun = distinctRulesToRun.Concat(yaraConfig.ElseRuleset);
+                }
+            }
 
-			string indexFileHash = Sha256Helper.GetSha256Hash_Array(Encoding.UTF8.GetBytes(yaraIndexContents));
+            if (yaraConfig.BaseRuleset.Any())
+            {
+                distinctRulesToRun = distinctRulesToRun.Concat(yaraConfig.BaseRuleset);
+            }
 
-			string yaraIndexFilename = Path.Combine(Path.GetTempPath(), $"{indexFileHash}-index.yar");
+            return CacheYaraIndexFile(
+                    distinctRulesToRun
+                        .Distinct()
+                        .OrderBy(s => s)
+                        .ToList()
+                );
+        }
 
-			if (!File.Exists(yaraIndexFilename))
-			{
-				File.WriteAllText(yaraIndexFilename, yaraIndexContents);
-			}
+        private string CacheYaraIndexFile(List<string> yaraRules)
+        {
+            string yaraIndexContents = YaraHelper.MakeYaraIndexFile(yaraRules);
 
-			return yaraIndexFilename;
-		}
+            string indexFileHash = Sha256Helper.GetSha256Hash_Array(Encoding.UTF8.GetBytes(yaraIndexContents));
 
-		private void PopulateFileInfoProperties(string fullPath)
-		{
-			try
-			{
-				FileInfo fileInfo = new FileInfo(fullPath);
-				if (fileInfo != null && fileInfo.Exists)
-				{
-					PopulateFileTimestamps(fileInfo);
-				}
-			}
-			catch
-			{ }
-		}
+            string yaraIndexFilename = Path.Combine(Path.GetTempPath(), $"{indexFileHash}-index.yar");
 
-		private void PopulateFileTimestamps(FileInfo fileInfo)
-		{
-			try
-			{
-				CreationTime = fileInfo.CreationTimeUtc;
-				LastAccessTime = fileInfo.LastAccessTimeUtc;
-				LastWriteTime = fileInfo.LastWriteTimeUtc;
-			}
-			catch
-			{ }
-		}
+            if (!File.Exists(yaraIndexFilename))
+            {
+                File.WriteAllText(yaraIndexFilename, yaraIndexContents);
+            }
 
-		private void PopulateShellFileInfo(string fullPath)
-		{
-			try
-			{
-				if (!ShellFile.IsPlatformSupported)
-				{
-					return;
-				}
+            return yaraIndexFilename;
+        }
 
-				using (ShellFile file = ShellFile.FromFilePath(fullPath))
-				{
-					using (ShellProperties fileProperties = file.Properties)
-					{
-						ShellProperties.PropertySystem shellProperty = fileProperties.System;
+        private void PopulateFileInfoProperties(string fullPath)
+        {
+            try
+            {
+                FileInfo fileInfo = new FileInfo(fullPath);
+                if (fileInfo != null && fileInfo.Exists)
+                {
+                    PopulateFileTimestamps(fileInfo);
+                }
+            }
+            catch
+            { }
+        }
 
-						Project = shellProperty.Project.Value ?? "";
-						ProviderItemID = shellProperty.ProviderItemID.Value ?? "";
-						OriginalFileName = shellProperty.OriginalFileName.Value ?? "";
-						FileOwner = shellProperty.FileOwner.Value ?? "";
-						FileVersion = shellProperty.FileVersion.Value ?? "";
-						FileDescription = shellProperty.FileDescription.Value ?? "";
-						Trademarks = shellProperty.Trademarks.Value ?? "";
-						Link = shellProperty.Link.TargetUrl.Value ?? "";
-						Copyright = shellProperty.Copyright.Value ?? "";
-						Company = shellProperty.Company.Value ?? "";
-						ApplicationName = shellProperty.ApplicationName.Value ?? "";
-						Comment = shellProperty.Comment.Value ?? "";
-						Title = shellProperty.Title.Value ?? "";
-						CancellationHelper.ThrowIfCancelled();
-						MimeType = shellProperty.ContentType.Value ?? "";
-						InternalName = shellProperty.InternalName.Value ?? "";
-						ProductName = shellProperty.Software.ProductName.Value ?? "";
-						Language = shellProperty.Language.Value ?? "";
-						ComputerName = shellProperty.ComputerName.Value ?? "";
-					}
-				}
-			}
-			catch
-			{ }
-		}
+        private void PopulateFileTimestamps(FileInfo fileInfo)
+        {
+            try
+            {
+                CreationTime = fileInfo.CreationTimeUtc;
+                LastAccessTime = fileInfo.LastAccessTimeUtc;
+                LastWriteTime = fileInfo.LastWriteTimeUtc;
+            }
+            catch
+            { }
+        }
 
-	}
+        private void PopulateShellFileInfo(string fullPath)
+        {
+            try
+            {
+                if (!ShellFile.IsPlatformSupported)
+                {
+                    return;
+                }
+
+                using (ShellFile file = ShellFile.FromFilePath(fullPath))
+                {
+                    using (ShellProperties fileProperties = file.Properties)
+                    {
+                        ShellProperties.PropertySystem shellProperty = fileProperties.System;
+
+                        Project = shellProperty.Project.Value ?? "";
+                        ProviderItemID = shellProperty.ProviderItemID.Value ?? "";
+                        OriginalFileName = shellProperty.OriginalFileName.Value ?? "";
+                        FileOwner = shellProperty.FileOwner.Value ?? "";
+                        FileVersion = shellProperty.FileVersion.Value ?? "";
+                        FileDescription = shellProperty.FileDescription.Value ?? "";
+                        Trademarks = shellProperty.Trademarks.Value ?? "";
+                        Link = shellProperty.Link.TargetUrl.Value ?? "";
+                        Copyright = shellProperty.Copyright.Value ?? "";
+                        Company = shellProperty.Company.Value ?? "";
+                        ApplicationName = shellProperty.ApplicationName.Value ?? "";
+                        Comment = shellProperty.Comment.Value ?? "";
+                        Title = shellProperty.Title.Value ?? "";
+                        CancellationHelper.ThrowIfCancelled();
+                        MimeType = shellProperty.ContentType.Value ?? "";
+                        InternalName = shellProperty.InternalName.Value ?? "";
+                        ProductName = shellProperty.Software.ProductName.Value ?? "";
+                        Language = shellProperty.Language.Value ?? "";
+                        ComputerName = shellProperty.ComputerName.Value ?? "";
+                    }
+                }
+            }
+            catch
+            { }
+        }
+
+    }
 }

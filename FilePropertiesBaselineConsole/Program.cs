@@ -30,7 +30,7 @@ namespace FilePropertiesBaselineConsole
 			ReportOutput("-m:*.exe                 -  Search [m]ask");
 			ReportOutput("-e                       -  Enable calulate [e]ntropy");
 			ReportOutput("-v                       -  Enable online [v]alidation");
-			ReportOutput("-y:C:\\YaraFilters.json  -  [Y]ara filters file");
+			ReportOutput("-y:C:\\YaraConfig.json   -  [Y]ara configuration file");
 		}
 
 		private static void Main(string[] args)
@@ -66,8 +66,8 @@ namespace FilePropertiesBaselineConsole
 			bool calcEntropy = false;
 			bool onlineValidation = false;
 			bool yaraScan = false;
-			string yaraFiltersFile = "";
-			List<YaraFilter> yaraFilters = new List<YaraFilter>();
+			string yaraConfigFile = "";
+            YaraScanConfiguration yaraConfiguration = new YaraScanConfiguration();
 
 			foreach (Tuple<string, string> flagTuple in flags)
 			{
@@ -90,7 +90,7 @@ namespace FilePropertiesBaselineConsole
 						break;
 					case "y":
 						yaraScan = true;
-						yaraFiltersFile = parameter;
+						yaraConfigFile = parameter;
 						break;
 				}
 			}
@@ -101,24 +101,24 @@ namespace FilePropertiesBaselineConsole
 			ReportOutput($"   Search [M]ask:       {searchMask}");
 			ReportOutput($"   Calulate [E]ntropy:  {calcEntropy}");
 			ReportOutput($"   Online [V]alidation: {onlineValidation}");
-			ReportOutput($"   [Y]ara filters file: \"{yaraFiltersFile}\"");
+			ReportOutput($"   [Y]ara configuration file: \"{yaraConfigFile}\"");
 			ReportOutput();
 
 			if (yaraScan)
 			{
-				if (!File.Exists(yaraFiltersFile))
+				if (!File.Exists(yaraConfigFile))
 				{
-					ReportOutput($"The yara filters file path suppled does not exist: \"{yaraFiltersFile}\".");
+					ReportOutput($"The yara configuration file path suppled does not exist: \"{yaraConfigFile}\".");
 					return;
 				}
 				try
 				{
-					string loadJson = File.ReadAllText(yaraFiltersFile);
-					yaraFilters = JsonConvert.DeserializeObject<List<YaraFilter>>(loadJson);
+					string loadJson = File.ReadAllText(yaraConfigFile);
+					yaraConfiguration = JsonConvert.DeserializeObject< YaraScanConfiguration> (loadJson);
 				}
 				catch
 				{
-					ReportOutput("The yara filters file must be a JSON file.");
+					ReportOutput("The yara configuration file must be a JSON file.");
 					return;
 				}
 			}
@@ -131,7 +131,7 @@ namespace FilePropertiesBaselineConsole
 						searchMask,
 						calcEntropy,
 						onlineValidation,
-						yaraFilters,
+						yaraConfiguration,
 						ReportOutput,
 						Log.ToAll,
 						ReportResults,

@@ -25,13 +25,13 @@ namespace FilePropertiesBaselineGUI
 			return string.Empty;
 		}
 
-		public static string BrowseForFileDialog(string initialDirectory = "")
+		public static string BrowseForFileDialog(string extensionFilter = "", string initialDirectory = "")
 		{
 			using (OpenFileDialog browseDialog = new OpenFileDialog())
 			{
 				browseDialog.InitialDirectory = initialDirectory;
-				//browseDialog.RootFolder = Environment.SpecialFolder.ProgramFilesX86;
-				if (browseDialog.ShowDialog() == DialogResult.OK)
+                browseDialog.Filter = extensionFilter;
+                if (browseDialog.ShowDialog() == DialogResult.OK)
 				{
 					return browseDialog.FileName;
 				}
@@ -40,13 +40,13 @@ namespace FilePropertiesBaselineGUI
 			return string.Empty;
 		}
 
-		public static string SaveFileDialog(string initialDirectory = "")
+		public static string SaveFileDialog(string extensionFilter = "", string initialDirectory = "")
 		{
 			using (SaveFileDialog browseDialog = new SaveFileDialog())
 			{
 				browseDialog.InitialDirectory = initialDirectory;
-				//browseDialog.RootFolder = Environment.SpecialFolder.ProgramFilesX86;
-				if (browseDialog.ShowDialog() == DialogResult.OK)
+                browseDialog.Filter = extensionFilter;
+                if (browseDialog.ShowDialog() == DialogResult.OK)
 				{
 					return browseDialog.FileName;
 				}
@@ -55,12 +55,13 @@ namespace FilePropertiesBaselineGUI
 			return string.Empty;
 		}
 
-		public static string[] BrowseForFilesDialog(string initialDirectory = "")
+		public static string[] BrowseForFilesDialog(string extensionFilter = "", string initialDirectory = "")
 		{
 			using (OpenFileDialog browseDialog = new OpenFileDialog())
 			{
 				browseDialog.InitialDirectory = initialDirectory;
 				browseDialog.Multiselect = true;
+                browseDialog.Filter = extensionFilter;
 				if (browseDialog.ShowDialog() == DialogResult.OK)
 				{
 					return browseDialog.FileNames;

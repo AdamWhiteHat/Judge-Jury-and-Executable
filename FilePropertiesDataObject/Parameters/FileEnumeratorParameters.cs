@@ -16,7 +16,7 @@ namespace FilePropertiesDataObject.Parameters
 
 		public bool CalculateEntropy { get; set; }
 		public bool OnlineCertValidation { get; set; }
-		public List<YaraFilter> YaraParameters { get; set; }
+		public YaraScanConfiguration YaraParameters { get; set; }
 
 		public Action<string> ReportOutputFunction { get; set; }
 		public Action<string> LogOutputFunction { get; set; }
@@ -25,7 +25,7 @@ namespace FilePropertiesDataObject.Parameters
 
 		public FileEnumeratorParameters(CancellationToken cancelToken, bool disableWorkerThread,
 										string selectedFolder, string searchPatterns,
-										bool calculateEntropy, bool onlineCertValidation, List<YaraFilter> yaraParameters,
+										bool calculateEntropy, bool onlineCertValidation, YaraScanConfiguration yaraParameters,
 										Action<string> reportOutputFunction,
 										Action<string> logOutputFunction,
 										Action<List<FailSuccessCount>> reportResultsFunction,

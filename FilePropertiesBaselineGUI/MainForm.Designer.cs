@@ -1,458 +1,497 @@
 ﻿namespace FilePropertiesBaselineGUI
 {
-	partial class MainForm
-	{
-		/// <summary>
-		/// Required designer variable.
-		/// </summary>
-		private System.ComponentModel.IContainer components = null;
+    partial class MainForm
+    {
+        /// <summary>
+        /// Required designer variable.
+        /// </summary>
+        private System.ComponentModel.IContainer components = null;
 
-		/// <summary>
-		/// Clean up any resources being used.
-		/// </summary>
-		/// <param name="disposing">true if managed resources should be disposed; otherwise, false.</param>
-		protected override void Dispose(bool disposing)
-		{
-			if (disposing && (components != null))
-			{
-				components.Dispose();
-			}
-			base.Dispose(disposing);
-		}
+        /// <summary>
+        /// Clean up any resources being used.
+        /// </summary>
+        /// <param name="disposing">true if managed resources should be disposed; otherwise, false.</param>
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing && (components != null))
+            {
+                components.Dispose();
+            }
+            base.Dispose(disposing);
+        }
 
-		#region Windows Form Designer generated code
+        #region Windows Form Designer generated code
 
-		/// <summary>
-		/// Required method for Designer support - do not modify
-		/// the contents of this method with the code editor.
-		/// </summary>
-		private void InitializeComponent()
-		{
-			this.btnBrowse = new System.Windows.Forms.Button();
-			this.tbPath = new System.Windows.Forms.TextBox();
-			this.tbOutput = new System.Windows.Forms.TextBox();
-			this.checkboxCalculateEntropy = new System.Windows.Forms.CheckBox();
-			this.tbSearchPatterns = new System.Windows.Forms.TextBox();
-			this.label1 = new System.Windows.Forms.Label();
-			this.checkboxOnlineCertValidation = new System.Windows.Forms.CheckBox();
-			this.btnSearch = new System.Windows.Forms.Button();
-			this.panel1 = new System.Windows.Forms.Panel();
-			this.panelYara = new System.Windows.Forms.Panel();
-			this.btnYaraLoad = new System.Windows.Forms.Button();
-			this.btnYaraSave = new System.Windows.Forms.Button();
-			this.btnRemoveYaraFilter = new System.Windows.Forms.Button();
-			this.btnAddYaraFilter = new System.Windows.Forms.Button();
-			this.panelListBox = new System.Windows.Forms.Panel();
-			this.listBoxYaraFilters = new System.Windows.Forms.ListBox();
-			this.panel2 = new System.Windows.Forms.Panel();
-			this.checkBox1 = new System.Windows.Forms.CheckBox();
-			this.radioButtonYara_AlwaysRun = new System.Windows.Forms.RadioButton();
-			this.radioButtonYara_IsPeFile = new System.Windows.Forms.RadioButton();
-			this.label2 = new System.Windows.Forms.Label();
-			this.tbYaraFilterValue = new System.Windows.Forms.TextBox();
-			this.radioButtonYara_Extention = new System.Windows.Forms.RadioButton();
-			this.tbYaraRuleNoMatchFiles = new System.Windows.Forms.TextBox();
-			this.tbYaraRuleMatchFiles = new System.Windows.Forms.TextBox();
-			this.label5 = new System.Windows.Forms.Label();
-			this.btnBrowseYaraNoMatch = new System.Windows.Forms.Button();
-			this.btnBrowseYaraMatch = new System.Windows.Forms.Button();
-			this.radioButtonYara_MimeType = new System.Windows.Forms.RadioButton();
-			this.checkBoxYaraRules = new System.Windows.Forms.CheckBox();
-			this.panel1.SuspendLayout();
-			this.panelYara.SuspendLayout();
-			this.panelListBox.SuspendLayout();
-			this.panel2.SuspendLayout();
-			this.SuspendLayout();
-			// 
-			// btnBrowse
-			// 
-			this.btnBrowse.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-			this.btnBrowse.Location = new System.Drawing.Point(691, 3);
-			this.btnBrowse.Name = "btnBrowse";
-			this.btnBrowse.Size = new System.Drawing.Size(95, 23);
-			this.btnBrowse.TabIndex = 0;
-			this.btnBrowse.Text = "Browse...";
-			this.btnBrowse.UseVisualStyleBackColor = true;
-			this.btnBrowse.Click += new System.EventHandler(this.btnBrowse_Click);
-			// 
-			// tbPath
-			// 
-			this.tbPath.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+        /// <summary>
+        /// Required method for Designer support - do not modify
+        /// the contents of this method with the code editor.
+        /// </summary>
+        private void InitializeComponent()
+        {
+            this.components = new System.ComponentModel.Container();
+            this.toolTips = new System.Windows.Forms.ToolTip(this.components);
+            this.flowLayoutPanelTop = new System.Windows.Forms.FlowLayoutPanel();
+            this.panelParameters = new System.Windows.Forms.Panel();
+            this.checkBoxYaraRules = new System.Windows.Forms.CheckBox();
+            this.btnBrowse = new System.Windows.Forms.Button();
+            this.tbPath = new System.Windows.Forms.TextBox();
+            this.checkboxOnlineCertValidation = new System.Windows.Forms.CheckBox();
+            this.labelSearchPatterns = new System.Windows.Forms.Label();
+            this.tbSearchPatterns = new System.Windows.Forms.TextBox();
+            this.checkboxCalculateEntropy = new System.Windows.Forms.CheckBox();
+            this.panelYara = new System.Windows.Forms.Panel();
+            this.groupBoxYaraElseRuleset = new System.Windows.Forms.GroupBox();
+            this.labelYaraElseRulesFilesDescription = new System.Windows.Forms.Label();
+            this.groupBoxYaraConditionalRuleset = new System.Windows.Forms.GroupBox();
+            this.panelYaraCondition = new System.Windows.Forms.Panel();
+            this.labelYaraConditionRuleFilesDescription = new System.Windows.Forms.Label();
+            this.btnCancelAddYaraCondition = new System.Windows.Forms.Button();
+            this.btnOkAddYaraCondition = new System.Windows.Forms.Button();
+            this.comboConditionType = new System.Windows.Forms.ComboBox();
+            this.tbYaraConditionValue = new System.Windows.Forms.TextBox();
+            this.listBoxYaraConditions = new System.Windows.Forms.ListBox();
+            this.btnNewAddYaraCondition = new System.Windows.Forms.Button();
+            this.groupBoxYaraBaseRuleset = new System.Windows.Forms.GroupBox();
+            this.labelYaraBaseRulesFilesDescription = new System.Windows.Forms.Label();
+            this.btnYaraLoadConfig = new System.Windows.Forms.Button();
+            this.btnYaraSaveConfig = new System.Windows.Forms.Button();
+            this.btnScan = new System.Windows.Forms.Button();
+            this.tbOutput = new System.Windows.Forms.TextBox();
+            this.tableLayoutPanel1 = new System.Windows.Forms.TableLayoutPanel();
+            this.panelTop = new System.Windows.Forms.Panel();
+            this.panelBottom = new System.Windows.Forms.Panel();
+            this.flowLayoutPanelTop.SuspendLayout();
+            this.panelParameters.SuspendLayout();
+            this.panelYara.SuspendLayout();
+            this.groupBoxYaraElseRuleset.SuspendLayout();
+            this.groupBoxYaraConditionalRuleset.SuspendLayout();
+            this.panelYaraCondition.SuspendLayout();
+            this.groupBoxYaraBaseRuleset.SuspendLayout();
+            this.tableLayoutPanel1.SuspendLayout();
+            this.panelTop.SuspendLayout();
+            this.panelBottom.SuspendLayout();
+            this.SuspendLayout();
+            // 
+            // flowLayoutPanelTop
+            // 
+            this.flowLayoutPanelTop.AutoSize = true;
+            this.flowLayoutPanelTop.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
+            this.flowLayoutPanelTop.Controls.Add(this.panelParameters);
+            this.flowLayoutPanelTop.Controls.Add(this.panelYara);
+            this.flowLayoutPanelTop.Controls.Add(this.btnScan);
+            this.flowLayoutPanelTop.FlowDirection = System.Windows.Forms.FlowDirection.TopDown;
+            this.flowLayoutPanelTop.Location = new System.Drawing.Point(0, 0);
+            this.flowLayoutPanelTop.Margin = new System.Windows.Forms.Padding(0);
+            this.flowLayoutPanelTop.Name = "flowLayoutPanelTop";
+            this.flowLayoutPanelTop.Size = new System.Drawing.Size(644, 413);
+            this.flowLayoutPanelTop.TabIndex = 13;
+            this.flowLayoutPanelTop.WrapContents = false;
+            // 
+            // panelParameters
+            // 
+            this.panelParameters.Controls.Add(this.checkBoxYaraRules);
+            this.panelParameters.Controls.Add(this.btnBrowse);
+            this.panelParameters.Controls.Add(this.tbPath);
+            this.panelParameters.Controls.Add(this.checkboxOnlineCertValidation);
+            this.panelParameters.Controls.Add(this.labelSearchPatterns);
+            this.panelParameters.Controls.Add(this.tbSearchPatterns);
+            this.panelParameters.Controls.Add(this.checkboxCalculateEntropy);
+            this.panelParameters.Location = new System.Drawing.Point(1, 1);
+            this.panelParameters.Margin = new System.Windows.Forms.Padding(1);
+            this.panelParameters.Name = "panelParameters";
+            this.panelParameters.Size = new System.Drawing.Size(642, 117);
+            this.panelParameters.TabIndex = 8;
+            // 
+            // checkBoxYaraRules
+            // 
+            this.checkBoxYaraRules.AutoSize = true;
+            this.checkBoxYaraRules.Checked = true;
+            this.checkBoxYaraRules.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.checkBoxYaraRules.Location = new System.Drawing.Point(3, 96);
+            this.checkBoxYaraRules.Name = "checkBoxYaraRules";
+            this.checkBoxYaraRules.Size = new System.Drawing.Size(114, 17);
+            this.checkBoxYaraRules.TabIndex = 10;
+            this.checkBoxYaraRules.Text = "Scan with YARA...";
+            this.checkBoxYaraRules.UseVisualStyleBackColor = true;
+            this.checkBoxYaraRules.CheckedChanged += new System.EventHandler(this.checkBoxYaraRules_CheckedChanged);
+            // 
+            // btnBrowse
+            // 
+            this.btnBrowse.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.btnBrowse.Location = new System.Drawing.Point(543, 3);
+            this.btnBrowse.Name = "btnBrowse";
+            this.btnBrowse.Size = new System.Drawing.Size(95, 23);
+            this.btnBrowse.TabIndex = 0;
+            this.btnBrowse.Text = "Browse...";
+            this.btnBrowse.UseVisualStyleBackColor = true;
+            this.btnBrowse.Click += new System.EventHandler(this.btnBrowse_Click);
+            // 
+            // tbPath
+            // 
+            this.tbPath.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-			this.tbPath.Location = new System.Drawing.Point(3, 5);
-			this.tbPath.Name = "tbPath";
-			this.tbPath.Size = new System.Drawing.Size(682, 20);
-			this.tbPath.TabIndex = 1;
-			this.tbPath.Text = "C:\\";
-			this.tbPath.KeyDown += new System.Windows.Forms.KeyEventHandler(this.textbox_KeyDown);
-			// 
-			// tbOutput
-			// 
-			this.tbOutput.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
-            | System.Windows.Forms.AnchorStyles.Left) 
+            this.tbPath.Location = new System.Drawing.Point(3, 5);
+            this.tbPath.Name = "tbPath";
+            this.tbPath.Size = new System.Drawing.Size(530, 20);
+            this.tbPath.TabIndex = 1;
+            this.tbPath.Text = "C:\\";
+            // 
+            // checkboxOnlineCertValidation
+            // 
+            this.checkboxOnlineCertValidation.AutoSize = true;
+            this.checkboxOnlineCertValidation.Location = new System.Drawing.Point(3, 75);
+            this.checkboxOnlineCertValidation.Name = "checkboxOnlineCertValidation";
+            this.checkboxOnlineCertValidation.Size = new System.Drawing.Size(170, 17);
+            this.checkboxOnlineCertValidation.TabIndex = 6;
+            this.checkboxOnlineCertValidation.Text = "File certificate online validation";
+            this.checkboxOnlineCertValidation.UseVisualStyleBackColor = true;
+            // 
+            // labelSearchPatterns
+            // 
+            this.labelSearchPatterns.AutoSize = true;
+            this.labelSearchPatterns.Location = new System.Drawing.Point(7, 32);
+            this.labelSearchPatterns.Name = "labelSearchPatterns";
+            this.labelSearchPatterns.Size = new System.Drawing.Size(85, 13);
+            this.labelSearchPatterns.TabIndex = 5;
+            this.labelSearchPatterns.Text = "Search patterns:";
+            // 
+            // tbSearchPatterns
+            // 
+            this.tbSearchPatterns.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-			this.tbOutput.Location = new System.Drawing.Point(4, 347);
-			this.tbOutput.Multiline = true;
-			this.tbOutput.Name = "tbOutput";
-			this.tbOutput.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
-			this.tbOutput.Size = new System.Drawing.Size(785, 104);
-			this.tbOutput.TabIndex = 2;
-			this.tbOutput.KeyUp += new System.Windows.Forms.KeyEventHandler(this.tbOutput_KeyUp);
-			// 
-			// checkboxCalculateEntropy
-			// 
-			this.checkboxCalculateEntropy.AutoSize = true;
-			this.checkboxCalculateEntropy.Location = new System.Drawing.Point(3, 62);
-			this.checkboxCalculateEntropy.Name = "checkboxCalculateEntropy";
-			this.checkboxCalculateEntropy.Size = new System.Drawing.Size(109, 17);
-			this.checkboxCalculateEntropy.TabIndex = 3;
-			this.checkboxCalculateEntropy.Text = "Calculate Entropy";
-			this.checkboxCalculateEntropy.UseVisualStyleBackColor = true;
-			// 
-			// tbSearchPatterns
-			// 
-			this.tbSearchPatterns.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            this.tbSearchPatterns.Location = new System.Drawing.Point(98, 29);
+            this.tbSearchPatterns.Name = "tbSearchPatterns";
+            this.tbSearchPatterns.Size = new System.Drawing.Size(408, 20);
+            this.tbSearchPatterns.TabIndex = 4;
+            this.tbSearchPatterns.Text = "*.exe|*.dll|*.drv";
+            // 
+            // checkboxCalculateEntropy
+            // 
+            this.checkboxCalculateEntropy.AutoSize = true;
+            this.checkboxCalculateEntropy.Location = new System.Drawing.Point(3, 54);
+            this.checkboxCalculateEntropy.Name = "checkboxCalculateEntropy";
+            this.checkboxCalculateEntropy.Size = new System.Drawing.Size(124, 17);
+            this.checkboxCalculateEntropy.TabIndex = 3;
+            this.checkboxCalculateEntropy.Text = "Calculate file entropy";
+            this.checkboxCalculateEntropy.UseVisualStyleBackColor = true;
+            // 
+            // panelYara
+            // 
+            this.panelYara.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.panelYara.Controls.Add(this.groupBoxYaraElseRuleset);
+            this.panelYara.Controls.Add(this.groupBoxYaraConditionalRuleset);
+            this.panelYara.Controls.Add(this.groupBoxYaraBaseRuleset);
+            this.panelYara.Controls.Add(this.btnYaraLoadConfig);
+            this.panelYara.Controls.Add(this.btnYaraSaveConfig);
+            this.panelYara.Location = new System.Drawing.Point(1, 120);
+            this.panelYara.Margin = new System.Windows.Forms.Padding(1);
+            this.panelYara.Name = "panelYara";
+            this.panelYara.Size = new System.Drawing.Size(642, 259);
+            this.panelYara.TabIndex = 9;
+            // 
+            // groupBoxYaraElseRuleset
+            // 
+            this.groupBoxYaraElseRuleset.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-			this.tbSearchPatterns.Location = new System.Drawing.Point(98, 29);
-			this.tbSearchPatterns.Name = "tbSearchPatterns";
-			this.tbSearchPatterns.Size = new System.Drawing.Size(552, 20);
-			this.tbSearchPatterns.TabIndex = 4;
-			this.tbSearchPatterns.Text = "*.exe|*.dll|*.drv";
-			this.tbSearchPatterns.KeyDown += new System.Windows.Forms.KeyEventHandler(this.textbox_KeyDown);
-			// 
-			// label1
-			// 
-			this.label1.AutoSize = true;
-			this.label1.Location = new System.Drawing.Point(7, 32);
-			this.label1.Name = "label1";
-			this.label1.Size = new System.Drawing.Size(85, 13);
-			this.label1.TabIndex = 5;
-			this.label1.Text = "Search patterns:";
-			// 
-			// checkboxOnlineCertValidation
-			// 
-			this.checkboxOnlineCertValidation.AutoSize = true;
-			this.checkboxOnlineCertValidation.Location = new System.Drawing.Point(3, 83);
-			this.checkboxOnlineCertValidation.Name = "checkboxOnlineCertValidation";
-			this.checkboxOnlineCertValidation.Size = new System.Drawing.Size(127, 17);
-			this.checkboxOnlineCertValidation.TabIndex = 6;
-			this.checkboxOnlineCertValidation.Text = "Online Cert Validation";
-			this.checkboxOnlineCertValidation.UseVisualStyleBackColor = true;
-			// 
-			// btnSearch
-			// 
-			this.btnSearch.Location = new System.Drawing.Point(5, 314);
-			this.btnSearch.Name = "btnSearch";
-			this.btnSearch.Size = new System.Drawing.Size(198, 27);
-			this.btnSearch.TabIndex = 7;
-			this.btnSearch.Text = "Search";
-			this.btnSearch.UseVisualStyleBackColor = true;
-			this.btnSearch.Click += new System.EventHandler(this.btnSearch_Click);
-			// 
-			// panel1
-			// 
-			this.panel1.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            this.groupBoxYaraElseRuleset.Controls.Add(this.labelYaraElseRulesFilesDescription);
+            this.groupBoxYaraElseRuleset.Location = new System.Drawing.Point(6, 177);
+            this.groupBoxYaraElseRuleset.Name = "groupBoxYaraElseRuleset";
+            this.groupBoxYaraElseRuleset.Size = new System.Drawing.Size(626, 45);
+            this.groupBoxYaraElseRuleset.TabIndex = 26;
+            this.groupBoxYaraElseRuleset.TabStop = false;
+            this.groupBoxYaraElseRuleset.Text = "Else YARA ruleset:";
+            // 
+            // labelYaraElseRulesFilesDescription
+            // 
+            this.labelYaraElseRulesFilesDescription.AutoSize = true;
+            this.labelYaraElseRulesFilesDescription.Location = new System.Drawing.Point(13, 20);
+            this.labelYaraElseRulesFilesDescription.Name = "labelYaraElseRulesFilesDescription";
+            this.labelYaraElseRulesFilesDescription.Size = new System.Drawing.Size(177, 13);
+            this.labelYaraElseRulesFilesDescription.TabIndex = 11;
+            this.labelYaraElseRulesFilesDescription.Text = "0 file(s) selected. (Click here to edit) ";
+            this.labelYaraElseRulesFilesDescription.Click += new System.EventHandler(this.labelYaraElseRulesFilesDescription_Click);
+            this.labelYaraElseRulesFilesDescription.MouseEnter += new System.EventHandler(this.labelRuleFilesDescription_MouseEnter);
+            this.labelYaraElseRulesFilesDescription.MouseLeave += new System.EventHandler(this.labelRuleFilesDescription_MouseLeave);
+            // 
+            // groupBoxYaraConditionalRuleset
+            // 
+            this.groupBoxYaraConditionalRuleset.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-			this.panel1.Controls.Add(this.panelYara);
-			this.panel1.Controls.Add(this.checkBoxYaraRules);
-			this.panel1.Controls.Add(this.btnBrowse);
-			this.panel1.Controls.Add(this.tbPath);
-			this.panel1.Controls.Add(this.checkboxOnlineCertValidation);
-			this.panel1.Controls.Add(this.label1);
-			this.panel1.Controls.Add(this.tbSearchPatterns);
-			this.panel1.Controls.Add(this.checkboxCalculateEntropy);
-			this.panel1.Location = new System.Drawing.Point(2, 2);
-			this.panel1.Name = "panel1";
-			this.panel1.Size = new System.Drawing.Size(786, 306);
-			this.panel1.TabIndex = 8;
-			// 
-			// panelYara
-			// 
-			this.panelYara.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            this.groupBoxYaraConditionalRuleset.Controls.Add(this.panelYaraCondition);
+            this.groupBoxYaraConditionalRuleset.Controls.Add(this.listBoxYaraConditions);
+            this.groupBoxYaraConditionalRuleset.Controls.Add(this.btnNewAddYaraCondition);
+            this.groupBoxYaraConditionalRuleset.Location = new System.Drawing.Point(6, 56);
+            this.groupBoxYaraConditionalRuleset.Margin = new System.Windows.Forms.Padding(0);
+            this.groupBoxYaraConditionalRuleset.Name = "groupBoxYaraConditionalRuleset";
+            this.groupBoxYaraConditionalRuleset.Size = new System.Drawing.Size(626, 115);
+            this.groupBoxYaraConditionalRuleset.TabIndex = 25;
+            this.groupBoxYaraConditionalRuleset.TabStop = false;
+            this.groupBoxYaraConditionalRuleset.Text = "Conditional YARA rulesets:";
+            // 
+            // panelYaraCondition
+            // 
+            this.panelYaraCondition.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.panelYaraCondition.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.panelYaraCondition.Controls.Add(this.labelYaraConditionRuleFilesDescription);
+            this.panelYaraCondition.Controls.Add(this.btnCancelAddYaraCondition);
+            this.panelYaraCondition.Controls.Add(this.btnOkAddYaraCondition);
+            this.panelYaraCondition.Controls.Add(this.comboConditionType);
+            this.panelYaraCondition.Controls.Add(this.tbYaraConditionValue);
+            this.panelYaraCondition.Location = new System.Drawing.Point(254, 19);
+            this.panelYaraCondition.Name = "panelYaraCondition";
+            this.panelYaraCondition.Size = new System.Drawing.Size(366, 89);
+            this.panelYaraCondition.TabIndex = 26;
+            // 
+            // labelYaraConditionRuleFilesDescription
+            // 
+            this.labelYaraConditionRuleFilesDescription.AutoSize = true;
+            this.labelYaraConditionRuleFilesDescription.Location = new System.Drawing.Point(27, 47);
+            this.labelYaraConditionRuleFilesDescription.Name = "labelYaraConditionRuleFilesDescription";
+            this.labelYaraConditionRuleFilesDescription.Size = new System.Drawing.Size(177, 13);
+            this.labelYaraConditionRuleFilesDescription.TabIndex = 32;
+            this.labelYaraConditionRuleFilesDescription.Text = "0 file(s) selected. (Click here to edit) ";
+            this.labelYaraConditionRuleFilesDescription.Click += new System.EventHandler(this.labelYaraConditionRuleFilesDescription_Click);
+            this.labelYaraConditionRuleFilesDescription.MouseEnter += new System.EventHandler(this.labelRuleFilesDescription_MouseEnter);
+            this.labelYaraConditionRuleFilesDescription.MouseLeave += new System.EventHandler(this.labelRuleFilesDescription_MouseLeave);
+            // 
+            // btnCancelAddYaraCondition
+            // 
+            this.btnCancelAddYaraCondition.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+            this.btnCancelAddYaraCondition.Location = new System.Drawing.Point(299, 55);
+            this.btnCancelAddYaraCondition.Name = "btnCancelAddYaraCondition";
+            this.btnCancelAddYaraCondition.Size = new System.Drawing.Size(54, 23);
+            this.btnCancelAddYaraCondition.TabIndex = 31;
+            this.btnCancelAddYaraCondition.Text = "Cancel";
+            this.btnCancelAddYaraCondition.UseVisualStyleBackColor = true;
+            this.btnCancelAddYaraCondition.Click += new System.EventHandler(this.btnCancelAddYaraCondition_Click);
+            // 
+            // btnOkAddYaraCondition
+            // 
+            this.btnOkAddYaraCondition.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+            this.btnOkAddYaraCondition.Location = new System.Drawing.Point(244, 55);
+            this.btnOkAddYaraCondition.Name = "btnOkAddYaraCondition";
+            this.btnOkAddYaraCondition.Size = new System.Drawing.Size(54, 23);
+            this.btnOkAddYaraCondition.TabIndex = 20;
+            this.btnOkAddYaraCondition.Text = "OK";
+            this.btnOkAddYaraCondition.UseVisualStyleBackColor = true;
+            this.btnOkAddYaraCondition.Click += new System.EventHandler(this.btnOkAddCondition_Click);
+            // 
+            // comboConditionType
+            // 
+            this.comboConditionType.FormattingEnabled = true;
+            this.comboConditionType.Items.AddRange(new object[] {
+            "PE File",
+            "File Extension",
+            "MIME Type"});
+            this.comboConditionType.Location = new System.Drawing.Point(14, 12);
+            this.comboConditionType.Name = "comboConditionType";
+            this.comboConditionType.Size = new System.Drawing.Size(101, 21);
+            this.comboConditionType.TabIndex = 28;
+            this.comboConditionType.Text = "(select)";
+            this.comboConditionType.SelectionChangeCommitted += new System.EventHandler(this.comboConditionType_SelectionChangeCommitted);
+            // 
+            // tbYaraConditionValue
+            // 
+            this.tbYaraConditionValue.Location = new System.Drawing.Point(121, 12);
+            this.tbYaraConditionValue.Name = "tbYaraConditionValue";
+            this.tbYaraConditionValue.Size = new System.Drawing.Size(232, 20);
+            this.tbYaraConditionValue.TabIndex = 19;
+            this.tbYaraConditionValue.KeyUp += new System.Windows.Forms.KeyEventHandler(this.tbYaraConditionValue_KeyUp);
+            // 
+            // listBoxYaraConditions
+            // 
+            this.listBoxYaraConditions.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-			this.panelYara.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-			this.panelYara.Controls.Add(this.btnYaraLoad);
-			this.panelYara.Controls.Add(this.btnYaraSave);
-			this.panelYara.Controls.Add(this.btnRemoveYaraFilter);
-			this.panelYara.Controls.Add(this.btnAddYaraFilter);
-			this.panelYara.Controls.Add(this.panelListBox);
-			this.panelYara.Controls.Add(this.panel2);
-			this.panelYara.Location = new System.Drawing.Point(3, 127);
-			this.panelYara.Name = "panelYara";
-			this.panelYara.Size = new System.Drawing.Size(783, 175);
-			this.panelYara.TabIndex = 9;
-			// 
-			// btnYaraLoad
-			// 
-			this.btnYaraLoad.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-			this.btnYaraLoad.Location = new System.Drawing.Point(645, 144);
-			this.btnYaraLoad.Name = "btnYaraLoad";
-			this.btnYaraLoad.Size = new System.Drawing.Size(114, 23);
-			this.btnYaraLoad.TabIndex = 23;
-			this.btnYaraLoad.Text = "Load filter";
-			this.btnYaraLoad.UseVisualStyleBackColor = true;
-			this.btnYaraLoad.Click += new System.EventHandler(this.btnYaraLoad_Click);
-			// 
-			// btnYaraSave
-			// 
-			this.btnYaraSave.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-			this.btnYaraSave.Location = new System.Drawing.Point(645, 119);
-			this.btnYaraSave.Name = "btnYaraSave";
-			this.btnYaraSave.Size = new System.Drawing.Size(114, 23);
-			this.btnYaraSave.TabIndex = 22;
-			this.btnYaraSave.Text = "Export filters";
-			this.btnYaraSave.UseVisualStyleBackColor = true;
-			this.btnYaraSave.Click += new System.EventHandler(this.btnYaraSave_Click);
-			// 
-			// btnRemoveYaraFilter
-			// 
-			this.btnRemoveYaraFilter.Location = new System.Drawing.Point(522, 54);
-			this.btnRemoveYaraFilter.Name = "btnRemoveYaraFilter";
-			this.btnRemoveYaraFilter.Size = new System.Drawing.Size(101, 23);
-			this.btnRemoveYaraFilter.TabIndex = 21;
-			this.btnRemoveYaraFilter.Text = "<- Remove";
-			this.btnRemoveYaraFilter.UseVisualStyleBackColor = true;
-			this.btnRemoveYaraFilter.Click += new System.EventHandler(this.btnRemoveYaraFilter_Click);
-			// 
-			// btnAddYaraFilter
-			// 
-			this.btnAddYaraFilter.Location = new System.Drawing.Point(522, 25);
-			this.btnAddYaraFilter.Name = "btnAddYaraFilter";
-			this.btnAddYaraFilter.Size = new System.Drawing.Size(101, 23);
-			this.btnAddYaraFilter.TabIndex = 20;
-			this.btnAddYaraFilter.Text = "Add ->";
-			this.btnAddYaraFilter.UseVisualStyleBackColor = true;
-			this.btnAddYaraFilter.Click += new System.EventHandler(this.btnAddYaraFilter_Click);
-			// 
-			// panelListBox
-			// 
-			this.panelListBox.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            this.listBoxYaraConditions.FormattingEnabled = true;
+            this.listBoxYaraConditions.IntegralHeight = false;
+            this.listBoxYaraConditions.Location = new System.Drawing.Point(6, 19);
+            this.listBoxYaraConditions.Name = "listBoxYaraConditions";
+            this.listBoxYaraConditions.Size = new System.Drawing.Size(242, 89);
+            this.listBoxYaraConditions.TabIndex = 0;
+            this.listBoxYaraConditions.KeyUp += new System.Windows.Forms.KeyEventHandler(this.listBoxYaraConditions_KeyUp);
+            // 
+            // btnNewAddYaraCondition
+            // 
+            this.btnNewAddYaraCondition.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.btnNewAddYaraCondition.Location = new System.Drawing.Point(254, 19);
+            this.btnNewAddYaraCondition.Name = "btnNewAddYaraCondition";
+            this.btnNewAddYaraCondition.Size = new System.Drawing.Size(95, 23);
+            this.btnNewAddYaraCondition.TabIndex = 27;
+            this.btnNewAddYaraCondition.Text = "Add...";
+            this.btnNewAddYaraCondition.UseVisualStyleBackColor = true;
+            this.btnNewAddYaraCondition.Click += new System.EventHandler(this.btnNewAddYaraCondition_Click);
+            // 
+            // groupBoxYaraBaseRuleset
+            // 
+            this.groupBoxYaraBaseRuleset.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-			this.panelListBox.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-			this.panelListBox.Controls.Add(this.listBoxYaraFilters);
-			this.panelListBox.Location = new System.Drawing.Point(626, 3);
-			this.panelListBox.Name = "panelListBox";
-			this.panelListBox.Size = new System.Drawing.Size(151, 113);
-			this.panelListBox.TabIndex = 19;
-			// 
-			// listBoxYaraFilters
-			// 
-			this.listBoxYaraFilters.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
-            | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-			this.listBoxYaraFilters.FormattingEnabled = true;
-			this.listBoxYaraFilters.Location = new System.Drawing.Point(2, 1);
-			this.listBoxYaraFilters.Name = "listBoxYaraFilters";
-			this.listBoxYaraFilters.Size = new System.Drawing.Size(145, 108);
-			this.listBoxYaraFilters.TabIndex = 0;
-			this.listBoxYaraFilters.KeyUp += new System.Windows.Forms.KeyEventHandler(this.listBoxYaraFilters_KeyUp);
-			// 
-			// panel2
-			// 
-			this.panel2.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-			this.panel2.Controls.Add(this.checkBox1);
-			this.panel2.Controls.Add(this.radioButtonYara_AlwaysRun);
-			this.panel2.Controls.Add(this.radioButtonYara_IsPeFile);
-			this.panel2.Controls.Add(this.label2);
-			this.panel2.Controls.Add(this.tbYaraFilterValue);
-			this.panel2.Controls.Add(this.radioButtonYara_Extention);
-			this.panel2.Controls.Add(this.tbYaraRuleNoMatchFiles);
-			this.panel2.Controls.Add(this.tbYaraRuleMatchFiles);
-			this.panel2.Controls.Add(this.label5);
-			this.panel2.Controls.Add(this.btnBrowseYaraNoMatch);
-			this.panel2.Controls.Add(this.btnBrowseYaraMatch);
-			this.panel2.Controls.Add(this.radioButtonYara_MimeType);
-			this.panel2.Location = new System.Drawing.Point(3, 3);
-			this.panel2.Name = "panel2";
-			this.panel2.Size = new System.Drawing.Size(513, 139);
-			this.panel2.TabIndex = 18;
-			// 
-			// checkBox1
-			// 
-			this.checkBox1.AutoSize = true;
-			this.checkBox1.Location = new System.Drawing.Point(4, 101);
-			this.checkBox1.Name = "checkBox1";
-			this.checkBox1.Size = new System.Drawing.Size(132, 17);
-			this.checkBox1.TabIndex = 24;
-			this.checkBox1.Text = "IF NO filter match files:";
-			this.checkBox1.UseVisualStyleBackColor = true;
-			// 
-			// radioButtonYara_AlwaysRun
-			// 
-			this.radioButtonYara_AlwaysRun.AutoSize = true;
-			this.radioButtonYara_AlwaysRun.Location = new System.Drawing.Point(4, 7);
-			this.radioButtonYara_AlwaysRun.Name = "radioButtonYara_AlwaysRun";
-			this.radioButtonYara_AlwaysRun.Size = new System.Drawing.Size(76, 17);
-			this.radioButtonYara_AlwaysRun.TabIndex = 13;
-			this.radioButtonYara_AlwaysRun.TabStop = true;
-			this.radioButtonYara_AlwaysRun.Text = "Always run";
-			this.radioButtonYara_AlwaysRun.UseVisualStyleBackColor = true;
-			// 
-			// radioButtonYara_IsPeFile
-			// 
-			this.radioButtonYara_IsPeFile.AutoSize = true;
-			this.radioButtonYara_IsPeFile.Location = new System.Drawing.Point(4, 27);
-			this.radioButtonYara_IsPeFile.Name = "radioButtonYara_IsPeFile";
-			this.radioButtonYara_IsPeFile.Size = new System.Drawing.Size(64, 17);
-			this.radioButtonYara_IsPeFile.TabIndex = 15;
-			this.radioButtonYara_IsPeFile.TabStop = true;
-			this.radioButtonYara_IsPeFile.Text = "If PE file";
-			this.radioButtonYara_IsPeFile.UseVisualStyleBackColor = true;
-			// 
-			// label2
-			// 
-			this.label2.AutoSize = true;
-			this.label2.Location = new System.Drawing.Point(110, 8);
-			this.label2.Name = "label2";
-			this.label2.Size = new System.Drawing.Size(94, 13);
-			this.label2.TabIndex = 23;
-			this.label2.Text = "IF filter match files:";
-			// 
-			// tbYaraFilterValue
-			// 
-			this.tbYaraFilterValue.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-			this.tbYaraFilterValue.Location = new System.Drawing.Point(149, 70);
-			this.tbYaraFilterValue.Name = "tbYaraFilterValue";
-			this.tbYaraFilterValue.Size = new System.Drawing.Size(279, 20);
-			this.tbYaraFilterValue.TabIndex = 19;
-			// 
-			// radioButtonYara_Extention
-			// 
-			this.radioButtonYara_Extention.AutoSize = true;
-			this.radioButtonYara_Extention.Location = new System.Drawing.Point(4, 47);
-			this.radioButtonYara_Extention.Name = "radioButtonYara_Extention";
-			this.radioButtonYara_Extention.Size = new System.Drawing.Size(87, 17);
-			this.radioButtonYara_Extention.TabIndex = 16;
-			this.radioButtonYara_Extention.TabStop = true;
-			this.radioButtonYara_Extention.Text = "By Extention:";
-			this.radioButtonYara_Extention.UseVisualStyleBackColor = true;
-			// 
-			// tbYaraRuleNoMatchFiles
-			// 
-			this.tbYaraRuleNoMatchFiles.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-			this.tbYaraRuleNoMatchFiles.Location = new System.Drawing.Point(149, 98);
-			this.tbYaraRuleNoMatchFiles.Name = "tbYaraRuleNoMatchFiles";
-			this.tbYaraRuleNoMatchFiles.Size = new System.Drawing.Size(279, 20);
-			this.tbYaraRuleNoMatchFiles.TabIndex = 11;
-			// 
-			// tbYaraRuleMatchFiles
-			// 
-			this.tbYaraRuleMatchFiles.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-			this.tbYaraRuleMatchFiles.Location = new System.Drawing.Point(149, 24);
-			this.tbYaraRuleMatchFiles.Name = "tbYaraRuleMatchFiles";
-			this.tbYaraRuleMatchFiles.Size = new System.Drawing.Size(279, 20);
-			this.tbYaraRuleMatchFiles.TabIndex = 8;
-			// 
-			// label5
-			// 
-			this.label5.AutoSize = true;
-			this.label5.Location = new System.Drawing.Point(121, 51);
-			this.label5.Name = "label5";
-			this.label5.Size = new System.Drawing.Size(83, 13);
-			this.label5.TabIndex = 18;
-			this.label5.Text = "Yara filter value:";
-			// 
-			// btnBrowseYaraNoMatch
-			// 
-			this.btnBrowseYaraNoMatch.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-			this.btnBrowseYaraNoMatch.Location = new System.Drawing.Point(434, 96);
-			this.btnBrowseYaraNoMatch.Name = "btnBrowseYaraNoMatch";
-			this.btnBrowseYaraNoMatch.Size = new System.Drawing.Size(74, 23);
-			this.btnBrowseYaraNoMatch.TabIndex = 10;
-			this.btnBrowseYaraNoMatch.Text = "Browse...";
-			this.btnBrowseYaraNoMatch.UseVisualStyleBackColor = true;
-			this.btnBrowseYaraNoMatch.Click += new System.EventHandler(this.btnBrowseYaraNoMatch_Click);
-			// 
-			// btnBrowseYaraMatch
-			// 
-			this.btnBrowseYaraMatch.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-			this.btnBrowseYaraMatch.Location = new System.Drawing.Point(434, 21);
-			this.btnBrowseYaraMatch.Name = "btnBrowseYaraMatch";
-			this.btnBrowseYaraMatch.Size = new System.Drawing.Size(74, 23);
-			this.btnBrowseYaraMatch.TabIndex = 7;
-			this.btnBrowseYaraMatch.Text = "Browse...";
-			this.btnBrowseYaraMatch.UseVisualStyleBackColor = true;
-			this.btnBrowseYaraMatch.Click += new System.EventHandler(this.btnBrowseYaraMatch_Click);
-			// 
-			// radioButtonYara_MimeType
-			// 
-			this.radioButtonYara_MimeType.AutoSize = true;
-			this.radioButtonYara_MimeType.Location = new System.Drawing.Point(4, 67);
-			this.radioButtonYara_MimeType.Name = "radioButtonYara_MimeType";
-			this.radioButtonYara_MimeType.Size = new System.Drawing.Size(98, 17);
-			this.radioButtonYara_MimeType.TabIndex = 17;
-			this.radioButtonYara_MimeType.TabStop = true;
-			this.radioButtonYara_MimeType.Text = "By MIME Type:";
-			this.radioButtonYara_MimeType.UseVisualStyleBackColor = true;
-			// 
-			// checkBoxYaraRules
-			// 
-			this.checkBoxYaraRules.AutoSize = true;
-			this.checkBoxYaraRules.Location = new System.Drawing.Point(3, 104);
-			this.checkBoxYaraRules.Name = "checkBoxYaraRules";
-			this.checkBoxYaraRules.Size = new System.Drawing.Size(101, 17);
-			this.checkBoxYaraRules.TabIndex = 10;
-			this.checkBoxYaraRules.Text = "Run Yara Rules";
-			this.checkBoxYaraRules.UseVisualStyleBackColor = true;
-			this.checkBoxYaraRules.CheckedChanged += new System.EventHandler(this.checkBoxYaraRules_CheckedChanged);
-			// 
-			// MainForm
-			// 
-			this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
-			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-			this.ClientSize = new System.Drawing.Size(791, 454);
-			this.Controls.Add(this.panel1);
-			this.Controls.Add(this.btnSearch);
-			this.Controls.Add(this.tbOutput);
-			this.MinimumSize = new System.Drawing.Size(660, 460);
-			this.Name = "MainForm";
-			this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.MainForm_FormClosing);
-			this.panel1.ResumeLayout(false);
-			this.panel1.PerformLayout();
-			this.panelYara.ResumeLayout(false);
-			this.panelListBox.ResumeLayout(false);
-			this.panel2.ResumeLayout(false);
-			this.panel2.PerformLayout();
-			this.ResumeLayout(false);
-			this.PerformLayout();
+            this.groupBoxYaraBaseRuleset.Controls.Add(this.labelYaraBaseRulesFilesDescription);
+            this.groupBoxYaraBaseRuleset.Location = new System.Drawing.Point(6, 5);
+            this.groupBoxYaraBaseRuleset.Name = "groupBoxYaraBaseRuleset";
+            this.groupBoxYaraBaseRuleset.Size = new System.Drawing.Size(626, 45);
+            this.groupBoxYaraBaseRuleset.TabIndex = 24;
+            this.groupBoxYaraBaseRuleset.TabStop = false;
+            this.groupBoxYaraBaseRuleset.Text = "Base YARA ruleset:";
+            // 
+            // labelYaraBaseRulesFilesDescription
+            // 
+            this.labelYaraBaseRulesFilesDescription.AutoSize = true;
+            this.labelYaraBaseRulesFilesDescription.Location = new System.Drawing.Point(18, 20);
+            this.labelYaraBaseRulesFilesDescription.Name = "labelYaraBaseRulesFilesDescription";
+            this.labelYaraBaseRulesFilesDescription.Size = new System.Drawing.Size(177, 13);
+            this.labelYaraBaseRulesFilesDescription.TabIndex = 10;
+            this.labelYaraBaseRulesFilesDescription.Text = "0 file(s) selected. (Click here to edit) ";
+            this.labelYaraBaseRulesFilesDescription.Click += new System.EventHandler(this.labelYaraBaseRulesFilesDescription_Click);
+            this.labelYaraBaseRulesFilesDescription.MouseEnter += new System.EventHandler(this.labelRuleFilesDescription_MouseEnter);
+            this.labelYaraBaseRulesFilesDescription.MouseLeave += new System.EventHandler(this.labelRuleFilesDescription_MouseLeave);
+            // 
+            // btnYaraLoadConfig
+            // 
+            this.btnYaraLoadConfig.Location = new System.Drawing.Point(154, 229);
+            this.btnYaraLoadConfig.Name = "btnYaraLoadConfig";
+            this.btnYaraLoadConfig.Size = new System.Drawing.Size(142, 23);
+            this.btnYaraLoadConfig.TabIndex = 23;
+            this.btnYaraLoadConfig.Text = "Load YARA settings...";
+            this.btnYaraLoadConfig.UseVisualStyleBackColor = true;
+            this.btnYaraLoadConfig.Click += new System.EventHandler(this.btnYaraLoadConfiguration_Click);
+            // 
+            // btnYaraSaveConfig
+            // 
+            this.btnYaraSaveConfig.Location = new System.Drawing.Point(6, 229);
+            this.btnYaraSaveConfig.Name = "btnYaraSaveConfig";
+            this.btnYaraSaveConfig.Size = new System.Drawing.Size(142, 23);
+            this.btnYaraSaveConfig.TabIndex = 22;
+            this.btnYaraSaveConfig.Text = "Save YARA settings...";
+            this.btnYaraSaveConfig.UseVisualStyleBackColor = true;
+            this.btnYaraSaveConfig.Click += new System.EventHandler(this.btnYaraSaveConfiguration_Click);
+            // 
+            // btnScan
+            // 
+            this.btnScan.Location = new System.Drawing.Point(3, 383);
+            this.btnScan.Name = "btnScan";
+            this.btnScan.Size = new System.Drawing.Size(198, 27);
+            this.btnScan.TabIndex = 7;
+            this.btnScan.Text = "Begin scan...";
+            this.btnScan.UseVisualStyleBackColor = true;
+            this.btnScan.Click += new System.EventHandler(this.btnSearch_Click);
+            // 
+            // tbOutput
+            // 
+            this.tbOutput.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.tbOutput.Location = new System.Drawing.Point(0, 0);
+            this.tbOutput.Margin = new System.Windows.Forms.Padding(1);
+            this.tbOutput.MinimumSize = new System.Drawing.Size(4, 60);
+            this.tbOutput.Multiline = true;
+            this.tbOutput.Name = "tbOutput";
+            this.tbOutput.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
+            this.tbOutput.Size = new System.Drawing.Size(644, 64);
+            this.tbOutput.TabIndex = 14;
+            // 
+            // tableLayoutPanel1
+            // 
+            this.tableLayoutPanel1.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
+            this.tableLayoutPanel1.ColumnCount = 1;
+            this.tableLayoutPanel1.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle());
+            this.tableLayoutPanel1.Controls.Add(this.panelTop, 0, 0);
+            this.tableLayoutPanel1.Controls.Add(this.panelBottom, 0, 1);
+            this.tableLayoutPanel1.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.tableLayoutPanel1.Location = new System.Drawing.Point(0, 0);
+            this.tableLayoutPanel1.Margin = new System.Windows.Forms.Padding(0);
+            this.tableLayoutPanel1.Name = "tableLayoutPanel1";
+            this.tableLayoutPanel1.RowCount = 2;
+            this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle());
+            this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100F));
+            this.tableLayoutPanel1.Size = new System.Drawing.Size(644, 477);
+            this.tableLayoutPanel1.TabIndex = 15;
+            // 
+            // panelTop
+            // 
+            this.panelTop.AutoSize = true;
+            this.panelTop.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
+            this.panelTop.Controls.Add(this.flowLayoutPanelTop);
+            this.panelTop.Dock = System.Windows.Forms.DockStyle.Top;
+            this.panelTop.Location = new System.Drawing.Point(0, 0);
+            this.panelTop.Margin = new System.Windows.Forms.Padding(0);
+            this.panelTop.Name = "panelTop";
+            this.panelTop.Size = new System.Drawing.Size(644, 413);
+            this.panelTop.TabIndex = 0;
+            // 
+            // panelBottom
+            // 
+            this.panelBottom.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
+            this.panelBottom.Controls.Add(this.tbOutput);
+            this.panelBottom.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.panelBottom.Location = new System.Drawing.Point(0, 413);
+            this.panelBottom.Margin = new System.Windows.Forms.Padding(0);
+            this.panelBottom.Name = "panelBottom";
+            this.panelBottom.Size = new System.Drawing.Size(644, 64);
+            this.panelBottom.TabIndex = 1;
+            // 
+            // MainForm
+            // 
+            this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
+            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+            this.ClientSize = new System.Drawing.Size(644, 477);
+            this.Controls.Add(this.tableLayoutPanel1);
+            this.MinimumSize = new System.Drawing.Size(660, 270);
+            this.Name = "MainForm";
+            this.Text = "Judge, Jury, and Executable";
+            this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.MainForm_FormClosing);
+            this.Shown += new System.EventHandler(this.MainForm_Shown);
+            this.ResizeEnd += new System.EventHandler(this.MainForm_ResizeEnd);
+            this.flowLayoutPanelTop.ResumeLayout(false);
+            this.panelParameters.ResumeLayout(false);
+            this.panelParameters.PerformLayout();
+            this.panelYara.ResumeLayout(false);
+            this.groupBoxYaraElseRuleset.ResumeLayout(false);
+            this.groupBoxYaraElseRuleset.PerformLayout();
+            this.groupBoxYaraConditionalRuleset.ResumeLayout(false);
+            this.panelYaraCondition.ResumeLayout(false);
+            this.panelYaraCondition.PerformLayout();
+            this.groupBoxYaraBaseRuleset.ResumeLayout(false);
+            this.groupBoxYaraBaseRuleset.PerformLayout();
+            this.tableLayoutPanel1.ResumeLayout(false);
+            this.tableLayoutPanel1.PerformLayout();
+            this.panelTop.ResumeLayout(false);
+            this.panelTop.PerformLayout();
+            this.panelBottom.ResumeLayout(false);
+            this.panelBottom.PerformLayout();
+            this.ResumeLayout(false);
 
-		}
+        }
 
-		#endregion
-
-		private System.Windows.Forms.Button btnBrowse;
-		private System.Windows.Forms.TextBox tbPath;
-		private System.Windows.Forms.TextBox tbOutput;
-		private System.Windows.Forms.CheckBox checkboxCalculateEntropy;
-		private System.Windows.Forms.TextBox tbSearchPatterns;
-		private System.Windows.Forms.Label label1;
-		private System.Windows.Forms.CheckBox checkboxOnlineCertValidation;
-		private System.Windows.Forms.Button btnSearch;
-		private System.Windows.Forms.Panel panel1;
-		private System.Windows.Forms.Button btnBrowseYaraMatch;
-		private System.Windows.Forms.TextBox tbYaraRuleMatchFiles;
-		private System.Windows.Forms.Panel panelYara;
-		private System.Windows.Forms.CheckBox checkBoxYaraRules;
-		private System.Windows.Forms.Button btnBrowseYaraNoMatch;
-		private System.Windows.Forms.TextBox tbYaraRuleNoMatchFiles;
-		private System.Windows.Forms.Button btnAddYaraFilter;
-		private System.Windows.Forms.Panel panelListBox;
-		private System.Windows.Forms.ListBox listBoxYaraFilters;
-		private System.Windows.Forms.Panel panel2;
-		private System.Windows.Forms.RadioButton radioButtonYara_MimeType;
-		private System.Windows.Forms.RadioButton radioButtonYara_Extention;
-		private System.Windows.Forms.RadioButton radioButtonYara_IsPeFile;
-		private System.Windows.Forms.RadioButton radioButtonYara_AlwaysRun;
-		private System.Windows.Forms.TextBox tbYaraFilterValue;
-		private System.Windows.Forms.Label label5;
-		private System.Windows.Forms.Button btnRemoveYaraFilter;
-		private System.Windows.Forms.Button btnYaraSave;
-		private System.Windows.Forms.Button btnYaraLoad;
-		private System.Windows.Forms.CheckBox checkBox1;
-		private System.Windows.Forms.Label label2;
-	}
+        #endregion
+        private System.Windows.Forms.ToolTip toolTips;
+        private System.Windows.Forms.FlowLayoutPanel flowLayoutPanelTop;
+        private System.Windows.Forms.Panel panelParameters;
+        private System.Windows.Forms.CheckBox checkBoxYaraRules;
+        private System.Windows.Forms.Button btnBrowse;
+        private System.Windows.Forms.TextBox tbPath;
+        private System.Windows.Forms.CheckBox checkboxOnlineCertValidation;
+        private System.Windows.Forms.Label labelSearchPatterns;
+        private System.Windows.Forms.TextBox tbSearchPatterns;
+        private System.Windows.Forms.CheckBox checkboxCalculateEntropy;
+        private System.Windows.Forms.Panel panelYara;
+        private System.Windows.Forms.GroupBox groupBoxYaraElseRuleset;
+        private System.Windows.Forms.Label labelYaraElseRulesFilesDescription;
+        private System.Windows.Forms.GroupBox groupBoxYaraConditionalRuleset;
+        private System.Windows.Forms.Panel panelYaraCondition;
+        private System.Windows.Forms.Label labelYaraConditionRuleFilesDescription;
+        private System.Windows.Forms.Button btnCancelAddYaraCondition;
+        private System.Windows.Forms.Button btnOkAddYaraCondition;
+        private System.Windows.Forms.ComboBox comboConditionType;
+        private System.Windows.Forms.TextBox tbYaraConditionValue;
+        private System.Windows.Forms.ListBox listBoxYaraConditions;
+        private System.Windows.Forms.Button btnNewAddYaraCondition;
+        private System.Windows.Forms.GroupBox groupBoxYaraBaseRuleset;
+        private System.Windows.Forms.Label labelYaraBaseRulesFilesDescription;
+        private System.Windows.Forms.Button btnYaraLoadConfig;
+        private System.Windows.Forms.Button btnYaraSaveConfig;
+        private System.Windows.Forms.Button btnScan;
+        private System.Windows.Forms.TextBox tbOutput;
+        private System.Windows.Forms.TableLayoutPanel tableLayoutPanel1;
+        private System.Windows.Forms.Panel panelTop;
+        private System.Windows.Forms.Panel panelBottom;
+    }
 }
 

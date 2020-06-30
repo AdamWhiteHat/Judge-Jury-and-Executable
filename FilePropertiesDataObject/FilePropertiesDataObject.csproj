@@ -72,11 +72,12 @@
     <Compile Include="Helpers\VerifyTrustHelper.cs" />
     <Compile Include="Parameters\FileEnumeratorParameters.cs" />
     <Compile Include="FileProperties.cs" />
-    <Compile Include="YaraFilter.cs" />
+    <Compile Include="Parameters\YaraCondition.cs" />
     <Compile Include="PeData.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Helpers\Sha256Helper.cs" />
     <Compile Include="Helpers\YaraHelper.cs" />
+    <Compile Include="Parameters\YaraScanConfiguration.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />
