@@ -128,6 +128,15 @@ namespace FilePropertiesDataObject
                 hasFileReadPermissions = true;
             }
 
+            if (hasFileReadPermissions)
+            {
+                PopulateFileInfoProperties(FullPath);
+                CancellationHelper.ThrowIfCancelled();
+
+                PopulateShellFileInfo(FullPath);
+                CancellationHelper.ThrowIfCancelled();
+            }
+		
             if (this.Length != 0)
             {
                 var maxLength = ((ulong)NtfsReader.MaxClustersToRead * (ulong)4096);
@@ -148,14 +157,6 @@ namespace FilePropertiesDataObject
             this.Attributes = new Attributes(node);
             CancellationHelper.ThrowIfCancelled();
 
-            if (hasFileReadPermissions)
-            {
-                PopulateFileInfoProperties(FullPath);
-                CancellationHelper.ThrowIfCancelled();
-
-                PopulateShellFileInfo(FullPath);
-                CancellationHelper.ThrowIfCancelled();
-            }
         }
 
         private void PopulateLargeFile(FileEnumeratorParameters parameters, INode node, bool hasFileReadPermissions)
