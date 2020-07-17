@@ -31,6 +31,7 @@
             this.listBoxFiles = new System.Windows.Forms.ListBox();
             this.btnBrowse = new System.Windows.Forms.Button();
             this.btnOK = new System.Windows.Forms.Button();
+            this.btnClear = new System.Windows.Forms.Button();
             this.SuspendLayout();
             // 
             // listBoxFiles
@@ -51,9 +52,9 @@
             // btnBrowse
             // 
             this.btnBrowse.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this.btnBrowse.Location = new System.Drawing.Point(36, 189);
+            this.btnBrowse.Location = new System.Drawing.Point(8, 189);
             this.btnBrowse.Name = "btnBrowse";
-            this.btnBrowse.Size = new System.Drawing.Size(85, 23);
+            this.btnBrowse.Size = new System.Drawing.Size(78, 23);
             this.btnBrowse.TabIndex = 28;
             this.btnBrowse.Text = "Select files...";
             this.btnBrowse.UseVisualStyleBackColor = true;
@@ -63,13 +64,24 @@
             // 
             this.btnOK.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
             this.btnOK.DialogResult = System.Windows.Forms.DialogResult.OK;
-            this.btnOK.Location = new System.Drawing.Point(127, 189);
+            this.btnOK.Location = new System.Drawing.Point(147, 189);
             this.btnOK.Name = "btnOK";
-            this.btnOK.Size = new System.Drawing.Size(52, 23);
+            this.btnOK.Size = new System.Drawing.Size(32, 23);
             this.btnOK.TabIndex = 0;
             this.btnOK.Text = "OK";
             this.btnOK.UseVisualStyleBackColor = true;
             this.btnOK.Click += new System.EventHandler(this.btnOK_Click);
+            // 
+            // btnClear
+            // 
+            this.btnClear.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
+            this.btnClear.Location = new System.Drawing.Point(92, 189);
+            this.btnClear.Name = "btnClear";
+            this.btnClear.Size = new System.Drawing.Size(49, 23);
+            this.btnClear.TabIndex = 30;
+            this.btnClear.Text = "Clear";
+            this.btnClear.UseVisualStyleBackColor = true;
+            this.btnClear.Click += new System.EventHandler(this.btnClear_Click);
             // 
             // FileSelectionForm
             // 
@@ -77,6 +89,7 @@
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(184, 216);
+            this.Controls.Add(this.btnClear);
             this.Controls.Add(this.btnOK);
             this.Controls.Add(this.listBoxFiles);
             this.Controls.Add(this.btnBrowse);
@@ -98,5 +111,6 @@
         private System.Windows.Forms.ListBox listBoxFiles;
         private System.Windows.Forms.Button btnBrowse;
         private System.Windows.Forms.Button btnOK;
-    }
+		private System.Windows.Forms.Button btnClear;
+	}
 }

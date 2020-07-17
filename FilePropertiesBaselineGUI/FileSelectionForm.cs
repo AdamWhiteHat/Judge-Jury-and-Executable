@@ -13,7 +13,7 @@ namespace FilePropertiesBaselineGUI
 {
     public partial class FileSelectionForm : Form
     {
-        public string[] FileNames { get; set; }
+        public List<string> FileNames { get; set; }
         public string Filter { get; set; }
         public string InitialDirectory { get; set; }
 
@@ -50,7 +50,7 @@ namespace FilePropertiesBaselineGUI
                 browseDialog.Filter = Filter;
                 if (browseDialog.ShowDialog() == DialogResult.OK)
                 {
-                    FileNames = browseDialog.FileNames;
+                    FileNames.AddRange(browseDialog.FileNames);
                 }
             }
         }
@@ -66,14 +66,29 @@ namespace FilePropertiesBaselineGUI
 
         private void listBoxFiles_KeyUp(object sender, KeyEventArgs e)
         {
-            if (e.KeyCode == Keys.Delete)
+            if (e.Control)
+            {
+                if (e.KeyCode == Keys.A)
+                {
+                    int index = 0;
+                    int count = listBoxFiles.Items.Count;
+                    while (index < count)
+                    {
+                        listBoxFiles.SetSelected(index, true);
+                        index++;
+                    }
+                    e.Handled = true;
+                    e.SuppressKeyPress = true;
+                }
+            }
+            else if (e.KeyCode == Keys.Delete)
             {
                 if (listBoxFiles.SelectedItems.Count > 0)
                 {
                     int lastIndex = listBoxFiles.SelectedIndices.Cast<int>().Last();
                     List<string> selectedFilenames = listBoxFiles.SelectedItems.Cast<string>().ToList();
                     var toRemove = FileNames.Where(s => selectedFilenames.Contains(Path.GetFileName(s)));
-                    FileNames = FileNames.Except(toRemove).ToArray();
+                    FileNames = FileNames.Except(toRemove).ToList();
 
                     UpdateListbox();
 
@@ -86,6 +101,12 @@ namespace FilePropertiesBaselineGUI
         private void btnOK_Click(object sender, EventArgs e)
         {
             this.Close();
+        }
+
+        private void btnClear_Click(object sender, EventArgs e)
+        {
+            FileNames.Clear();
+            UpdateListbox();
         }
     }
 }
