@@ -168,7 +168,7 @@ namespace FilePropertiesDataObject
 
 			if (hasFileReadPermissions)
 			{
-				this.PeData = PeDataObject.TryGetPeDataObject(FullPath, parameters.OnlineCertValidation);
+				this.PeData = PeDataObject.TryGetPeDataObject(FullPath);
 				if (PeData != null)
 				{
 					this.Authenticode = AuthenticodeData.GetAuthenticodeData(PeData.Certificate);
@@ -238,7 +238,7 @@ namespace FilePropertiesDataObject
 				fileBytes = node.GetBytes().SelectMany(chunk => chunk).ToArray();
 				CancellationHelper.ThrowIfCancelled();
 			}
-			this.PeData = PeDataObject.TryGetPeDataObject(fileBytes, parameters.OnlineCertValidation);
+			this.PeData = PeDataObject.TryGetPeDataObject(fileBytes);
 			if (IsPeDataPopulated)
 			{
 				this.Sha256Hash = PeData.SHA256Hash;
