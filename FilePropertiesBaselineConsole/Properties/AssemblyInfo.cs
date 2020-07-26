@@ -6,11 +6,11 @@ using System.Runtime.InteropServices;
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
 [assembly: AssemblyTitle("FilePropertiesBaselineConsole")]
-[assembly: AssemblyDescription("")]
+[assembly: AssemblyDescription("A file system forensics analysis scanner and threat hunting tool. Command Line Driver.")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("")]
+[assembly: AssemblyCompany("https://github.com/AdamWhiteHat/Judge-Jury-and-Executable/")]
 [assembly: AssemblyProduct("FilePropertiesBaselineConsole")]
-[assembly: AssemblyCopyright("Copyright ©  2018")]
+[assembly: AssemblyCopyright("GNU Affero General Public License v3.0. See more @ https://github.com/AdamWhiteHat/Judge-Jury-and-Executable/blob/master/LICENSE")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 

@@ -90,11 +90,11 @@
 			this.tbOutput.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-			this.tbOutput.Location = new System.Drawing.Point(4, 347);
+			this.tbOutput.Location = new System.Drawing.Point(4, 328);
 			this.tbOutput.Multiline = true;
 			this.tbOutput.Name = "tbOutput";
 			this.tbOutput.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
-			this.tbOutput.Size = new System.Drawing.Size(785, 104);
+			this.tbOutput.Size = new System.Drawing.Size(785, 91);
 			this.tbOutput.TabIndex = 2;
 			this.tbOutput.KeyUp += new System.Windows.Forms.KeyEventHandler(this.tbOutput_KeyUp);
 			// 
@@ -130,7 +130,7 @@
 			// 
 			// btnSearch
 			// 
-			this.btnSearch.Location = new System.Drawing.Point(5, 314);
+			this.btnSearch.Location = new System.Drawing.Point(5, 295);
 			this.btnSearch.Name = "btnSearch";
 			this.btnSearch.Size = new System.Drawing.Size(198, 27);
 			this.btnSearch.TabIndex = 7;
@@ -151,7 +151,7 @@
 			this.panel1.Controls.Add(this.checkboxCalculateEntropy);
 			this.panel1.Location = new System.Drawing.Point(2, 2);
 			this.panel1.Name = "panel1";
-			this.panel1.Size = new System.Drawing.Size(786, 306);
+			this.panel1.Size = new System.Drawing.Size(786, 287);
 			this.panel1.TabIndex = 8;
 			// 
 			// panelYara
@@ -165,7 +165,7 @@
 			this.panelYara.Controls.Add(this.btnAddYaraFilter);
 			this.panelYara.Controls.Add(this.panelListBox);
 			this.panelYara.Controls.Add(this.panel2);
-			this.panelYara.Location = new System.Drawing.Point(3, 127);
+			this.panelYara.Location = new System.Drawing.Point(3, 106);
 			this.panelYara.Name = "panelYara";
 			this.panelYara.Size = new System.Drawing.Size(783, 175);
 			this.panelYara.TabIndex = 9;
@@ -377,7 +377,7 @@
 			// checkBoxYaraRules
 			// 
 			this.checkBoxYaraRules.AutoSize = true;
-			this.checkBoxYaraRules.Location = new System.Drawing.Point(3, 104);
+			this.checkBoxYaraRules.Location = new System.Drawing.Point(3, 84);
 			this.checkBoxYaraRules.Name = "checkBoxYaraRules";
 			this.checkBoxYaraRules.Size = new System.Drawing.Size(101, 17);
 			this.checkBoxYaraRules.TabIndex = 10;
@@ -389,7 +389,7 @@
 			// 
 			this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
 			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-			this.ClientSize = new System.Drawing.Size(791, 454);
+			this.ClientSize = new System.Drawing.Size(791, 422);
 			this.Controls.Add(this.panel1);
 			this.Controls.Add(this.btnSearch);
 			this.Controls.Add(this.tbOutput);
