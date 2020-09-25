@@ -137,10 +137,13 @@ namespace FilePropertiesEnumerator
 		private static bool FileMatchesPattern(string fullName, string[] searchPatterns)
 		{
 			string filename = Path.GetFileName(fullName);
+
+			/*
 			if (filename.FirstOrDefault() == '$')
 			{
 				return false;
 			}
+			*/
 
 			if (ignoreFiles.Contains(filename))
 			{
