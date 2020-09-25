@@ -185,7 +185,6 @@ namespace FilePropertiesBaselineGUI
 				ProcessingToggle.SetState(true);
 
 				bool calculateEntropy = checkboxCalculateEntropy.Checked;
-				bool onlineCertValidation = checkboxOnlineCertValidation.Checked;
 				string selectedFolder = tbPath.Text;
 				string searchPatterns = tbSearchPatterns.Text;
 
@@ -197,7 +196,7 @@ namespace FilePropertiesBaselineGUI
 				}
 
 				FileEnumeratorParameters parameters =
-					new FileEnumeratorParameters(cancelToken, Settings.FileEnumeration_DisableWorkerThread, selectedFolder, searchPatterns, calculateEntropy, onlineCertValidation, yaraParameters,
+					new FileEnumeratorParameters(cancelToken, Settings.FileEnumeration_DisableWorkerThread, selectedFolder, searchPatterns, calculateEntropy, yaraParameters,
 													Log.ToUI, Log.ToFile, ReportNumbers, Log.ExceptionMessage);
 
 				tbOutput.AppendText(Environment.NewLine);

@@ -31,32 +31,32 @@ namespace FilePropertiesDataObject
 
 		public X509Certificate2 Certificate { get; private set; }
 
-		public static PeDataObject TryGetPeDataObject(byte[] fileBytes, bool onlineCertValidation)
+		public static PeDataObject TryGetPeDataObject(byte[] fileBytes)
 		{
-			return Internal_TryGetPeDataObject(null, fileBytes, onlineCertValidation);
+			return Internal_TryGetPeDataObject(null, fileBytes);
 		}
 
-		public static PeDataObject TryGetPeDataObject(string filename, bool onlineCertValidation)
+		public static PeDataObject TryGetPeDataObject(string filename)
 		{
-			return Internal_TryGetPeDataObject(filename, null, onlineCertValidation);
+			return Internal_TryGetPeDataObject(filename, null);
 		}
 
-		private static PeDataObject Internal_TryGetPeDataObject(string filename, byte[] fileBytes, bool onlineCertValidation)
+		private static PeDataObject Internal_TryGetPeDataObject(string filename, byte[] fileBytes)
 		{
 			PeDataObject result = null;
 
 			bool useFileBytes;
-			if (filename == null)
+			if (fileBytes == null)
 			{
-				useFileBytes = true;
-			}
-			else if (fileBytes == null)
-			{
+				if (filename == null)
+				{
+					return result;
+				}
 				useFileBytes = false;
 			}
 			else
 			{
-				return result;
+				useFileBytes = true;
 			}
 
 			try
@@ -64,7 +64,7 @@ namespace FilePropertiesDataObject
 				if (fileBytes.Length > 0)
 				{
 					PeFile peFile = useFileBytes ? new PeFile(fileBytes) : new PeFile(filename);
-					result = new PeDataObject(peFile, onlineCertValidation);
+					result = new PeDataObject(peFile);
 				}
 			}
 			catch
@@ -73,7 +73,7 @@ namespace FilePropertiesDataObject
 			return result;
 		}
 
-		private PeDataObject(PeFile peFile, bool onlineCertValidation)
+		private PeDataObject(PeFile peFile)
 		{
 			this.SHA256Hash = peFile.SHA256;
 			this.SHA1Hash = peFile.SHA1;
@@ -104,12 +104,10 @@ namespace FilePropertiesDataObject
 			this.IsSignatureValid = peFile.IsSignatureValid;
 			this.Certificate = peFile.PKCS7;
 
-			//this.IsValidCertChain = peFile.IsValidCertChain(onlineCertValidation);
-			if (onlineCertValidation && this.Certificate != null)
+			if (this.Certificate != null)
 			{
 				this.IsValidCertChain = this.Certificate.Verify();
 			}
-
 
 			if (IsExe || IsDll || IsDriver)
 			{
