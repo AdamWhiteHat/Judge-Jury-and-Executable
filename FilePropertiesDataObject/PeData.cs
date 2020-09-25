@@ -46,17 +46,17 @@ namespace FilePropertiesDataObject
 			PeDataObject result = null;
 
 			bool useFileBytes;
-			if (filename == null)
+			if (fileBytes == null)
 			{
-				useFileBytes = true;
-			}
-			else if (fileBytes == null)
-			{
+				if (filename == null)
+				{
+					return result;
+				}
 				useFileBytes = false;
 			}
 			else
 			{
-				return result;
+				useFileBytes = true;
 			}
 
 			try
