@@ -10,7 +10,7 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>NtfsReader</RootNamespace>
     <AssemblyName>NtfsReader</AssemblyName>
-    <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.6.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <StartupObject>
     </StartupObject>
@@ -45,12 +45,12 @@
     <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="DeviceIOControlLib, Version=0.1.5.0, Culture=neutral, PublicKeyToken=194e86a1dcd77098, processorArchitecture=MSIL">
-      <HintPath>..\packages\DeviceIOControlLib.0.1.5\lib\net40\DeviceIOControlLib.dll</HintPath>
+    <Reference Include="DeviceIOControlLib, Version=0.1.6.0, Culture=neutral, PublicKeyToken=194e86a1dcd77098, processorArchitecture=MSIL">
+      <HintPath>..\packages\DeviceIOControlLib.0.1.6\lib\net40\DeviceIOControlLib.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.CSharp" />
-    <Reference Include="RawDiskLib, Version=0.2.0.0, Culture=neutral, PublicKeyToken=1e91a7ce501218a4, processorArchitecture=MSIL">
-      <HintPath>..\packages\RawDiskLib.0.2.0\lib\net40\RawDiskLib.dll</HintPath>
+    <Reference Include="RawDiskLib, Version=0.2.1.0, Culture=neutral, PublicKeyToken=1e91a7ce501218a4, processorArchitecture=MSIL">
+      <HintPath>..\packages\RawDiskLib.0.2.1\lib\net40\RawDiskLib.dll</HintPath>
     </Reference>
     <Reference Include="System" />
   </ItemGroup>
