@@ -13,7 +13,8 @@ namespace FilePropertiesDataObject
 		AlwaysRun,
 		MimeType,
 		FileExtension,
-		IsPeFile
+		IsPeFile,
+		ElseNoMatch
 	}
 
 	[DataContract]
@@ -26,18 +27,15 @@ namespace FilePropertiesDataObject
 
 		[DataMember]
 		public List<string> OnMatchRules { get; private set; }
-		[DataMember]
-		public List<string> NoMatchRules { get; private set; }
 
 		public YaraFilter()
 		{ }
 
-		public YaraFilter(YaraFilterType filterType, string filterValue, List<string> onMatchRules, List<string> noMatchRules)
+		public YaraFilter(YaraFilterType filterType, string filterValue, List<string> onMatchRules)
 		{
 			FilterType = filterType;
 			FilterValue = filterValue;
 			OnMatchRules = onMatchRules;
-			NoMatchRules = noMatchRules;
 		}
 
 		public List<string> ProcessRule(FileProperties fileProperties)
@@ -48,7 +46,7 @@ namespace FilePropertiesDataObject
 			}
 			else
 			{
-				return NoMatchRules;
+				return new List<string>();
 			}
 		}
 
@@ -69,6 +67,10 @@ namespace FilePropertiesDataObject
 			else if (FilterType == YaraFilterType.MimeType)
 			{
 				return string.Equals(FilterValue, fileProperties.MimeType, StringComparison.InvariantCultureIgnoreCase);
+			}
+			else if (FilterType == YaraFilterType.ElseNoMatch)
+			{
+				return false;
 			}
 			else
 			{
@@ -95,13 +97,6 @@ namespace FilePropertiesDataObject
 				return false;
 			}
 
-			HashSet<string> noMatchHashSet = new HashSet<string>(NoMatchRules);
-			noMatchHashSet.SymmetricExceptWith(other.NoMatchRules);
-			if (noMatchHashSet.Any())
-			{
-				return false;
-			}
-
 			return true;
 		}
 
@@ -109,7 +104,7 @@ namespace FilePropertiesDataObject
 
 		public override string ToString()
 		{
-			return $"{Enum.GetName(typeof(YaraFilterType), FilterType)}:{FilterValue}[{{{string.Join(JoinString, OnMatchRules.Select(s => Path.GetFileName(s)))}}},{{{string.Join(JoinString, NoMatchRules.Select(s => Path.GetFileName(s)))}}}]";
+			return $"{Enum.GetName(typeof(YaraFilterType), FilterType)}:{FilterValue}[{{{string.Join(JoinString, OnMatchRules.Select(s => Path.GetFileName(s)))}}}]";
 		}
 	}
 }

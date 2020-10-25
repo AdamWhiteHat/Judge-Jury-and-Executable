@@ -21,6 +21,17 @@ namespace FilePropertiesBaselineGUI
 		private Toggle ProcessingToggle = null;
 		private DateTime enumerationStart;
 
+		private int mainformWidth_Previous = 0;
+		private int mainformMinimumHeight_Collapsed = 0;
+		private int mainformMinimumHeight_Expanded = 0;
+		private int mainformHeight_Collapsed = 0;
+		private int mainformHeight_Expanded = 0;
+		private int yaraPanelHeight_Expanded = 0;
+		private int yaraPanelHeightDifference = 0;
+
+		private static int yaraPanelHeight_Collapsed = 10;
+		private static TextBox OutputTextBox;
+
 		public MainForm()
 		{
 			InitializeComponent();
@@ -30,7 +41,18 @@ namespace FilePropertiesBaselineGUI
 			SQLHelper.LogExceptionAction = Log.ExceptionMessage;
 			ProcessingToggle = new Toggle(ActivationBehavior, DeactivationBehavior);
 
-			panelYara.Enabled = checkBoxYaraRules.Checked;
+			yaraPanelHeight_Expanded = panelYaraParameters.Height;
+			yaraPanelHeightDifference = yaraPanelHeight_Expanded - yaraPanelHeight_Collapsed;
+
+			mainformHeight_Expanded = this.Height;
+			mainformHeight_Collapsed = this.MinimumSize.Height;
+
+			mainformMinimumHeight_Collapsed = this.MinimumSize.Height;
+			mainformMinimumHeight_Expanded = this.MinimumSize.Height + yaraPanelHeightDifference;
+
+			mainformWidth_Previous = this.Width;
+
+			panelYaraParameters.Visible = checkBoxYaraRules.Checked;
 			radioButtonYara_AlwaysRun.Checked = true;
 			//listBoxYaraFilters.DisplayMember = "";
 			//listBoxYaraFilters.ValueMember = "";
@@ -57,7 +79,18 @@ namespace FilePropertiesBaselineGUI
 			}
 		}
 
-		private static TextBox OutputTextBox;
+		private void MainForm_Shown(object sender, EventArgs e)
+		{
+			checkBoxYaraRules.CheckState = CheckState.Unchecked;
+		}
+
+		private void MainForm_FormClosing(object sender, FormClosingEventArgs e)
+		{
+			if (ProcessingToggle.IsActive)
+			{
+				ProcessingToggle.SetState(false);
+			}
+		}
 
 		public static void LogOutput(string message)
 		{
@@ -83,13 +116,7 @@ namespace FilePropertiesBaselineGUI
 			}
 		}
 
-		private void MainForm_FormClosing(object sender, FormClosingEventArgs e)
-		{
-			if (ProcessingToggle.IsActive)
-			{
-				ProcessingToggle.SetState(false);
-			}
-		}
+		#region Search/Scan
 
 		private void btnBrowse_Click(object sender, EventArgs e)
 		{
@@ -98,28 +125,6 @@ namespace FilePropertiesBaselineGUI
 			if (Directory.Exists(selectedFolder))
 			{
 				tbPath.Text = selectedFolder;
-			}
-		}
-
-		private void textbox_KeyDown(object sender, KeyEventArgs e)
-		{
-			if (e.KeyCode == Keys.Enter)
-			{
-				if (!ProcessingToggle.IsActive)
-				{
-					BeginScanning();
-				}
-			}
-		}
-
-		private void tbOutput_KeyUp(object sender, KeyEventArgs e)
-		{
-			if (e.Control)
-			{
-				if (e.KeyCode == Keys.A)
-				{
-					tbOutput.SelectAll();
-				}
 			}
 		}
 
@@ -216,6 +221,39 @@ namespace FilePropertiesBaselineGUI
 			EnableControls();
 		}
 
+		#endregion
+
+		#region Misc Control Event Handlers
+
+		private void textbox_KeyDown(object sender, KeyEventArgs e)
+		{
+			if (e.KeyCode == Keys.Enter)
+			{
+				if (!ProcessingToggle.IsActive)
+				{
+					BeginScanning();
+				}
+			}
+		}
+
+		private void tbOutput_KeyUp(object sender, KeyEventArgs e)
+		{
+			if (e.Control)
+			{
+				if (e.KeyCode == Keys.A)
+				{
+					tbOutput.SelectAll();
+				}
+			}
+		}
+
+		private void linkGitHub_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
+		{
+			Process.Start(linkGitHub.Text);
+		}
+
+		#endregion
+
 		#region Is Processing Toggle Members
 
 		private void ActivationBehavior()
@@ -226,7 +264,7 @@ namespace FilePropertiesBaselineGUI
 			}
 			else
 			{
-				panel1.Enabled = false;
+				panelParameters.Enabled = false;
 				btnSearch.Text = "Cancel";
 
 				cancelTokenSource = new CancellationTokenSource();
@@ -248,7 +286,7 @@ namespace FilePropertiesBaselineGUI
 			}
 			else
 			{
-				panel1.Enabled = true;
+				panelParameters.Enabled = true;
 				btnSearch.Text = "Search";
 				btnSearch.Enabled = true;
 			}
@@ -256,24 +294,110 @@ namespace FilePropertiesBaselineGUI
 
 		#endregion
 
-		#region Yara Shit
+		#region Yara Rules Controls
 
 		private List<string> yaraMatchFiles = new List<string>();
-		private List<string> yaraNoMatchFiles = new List<string>();
 		private List<YaraFilter> currentYaraFilters = new List<YaraFilter>();
-
 		private static string AddYaraRuleErrorCaption = "Error adding yara filter";
+
+		#region Show/Hide/Resize
+
+		private void MainForm_Resize(object sender, EventArgs e)
+		{
+			ResizePanelWidths();
+		}
+
+		private void MainForm_ResizeEnd(object sender, EventArgs e)
+		{
+			ResizePanelWidths();
+		}
+
+		private void ResizePanelWidths()
+		{
+			int formWidth = this.Width;
+			int newPanelWidths = this.ClientRectangle.Width;
+			if (formWidth != mainformWidth_Previous)
+			{
+				mainformWidth_Previous = formWidth;
+				tableLayoutPanel1.Width = newPanelWidths;
+				panelTop.Width = newPanelWidths;
+			}
+
+			if (flowLayoutPanelTop.Width != newPanelWidths)
+			{
+				flowLayoutPanelTop.Width = newPanelWidths;
+				panelParameters.Width = newPanelWidths - 2;
+				panelYaraParameters.Width = newPanelWidths - 2;
+			}
+		}
 
 		private void checkBoxYaraRules_CheckedChanged(object sender, EventArgs e)
 		{
-			panelYara.Enabled = checkBoxYaraRules.Checked;
-
-			if (!panelYara.Enabled)
+			if (!checkBoxYaraRules.Checked)
 			{
-				currentYaraFilters.Clear();
-				listBoxYaraFilters.Items.Clear();
+				// Collapse               
+				this.MinimumSize = new System.Drawing.Size(this.MinimumSize.Width, mainformMinimumHeight_Collapsed);
+				panelYaraParameters.Height = yaraPanelHeight_Collapsed;
+				this.Height = mainformHeight_Collapsed;
+				ClearAllYaraSettings();
+			}
+			else
+			{
+				// Expand                 
+				this.MinimumSize = new System.Drawing.Size(this.MinimumSize.Width, mainformMinimumHeight_Expanded);
+				panelYaraParameters.Height = yaraPanelHeight_Expanded;
+				this.Height = mainformHeight_Expanded;
+			}
+
+			panelYaraParameters.Visible = checkBoxYaraRules.Checked;
+		}
+
+		private void radioButtonYara_HideFilterValue_CheckedChanged(object sender, EventArgs e)
+		{
+			RadioButton control = (RadioButton)sender;
+			if (control.Checked)
+			{
+				panelYaraFilterValue.Visible = false;
 			}
 		}
+
+		private void radioButtonYara_ShowFilterValue_CheckedChanged(object sender, EventArgs e)
+		{
+			RadioButton control = (RadioButton)sender;
+			if (control.Checked)
+			{
+				panelYaraFilterValue.Visible = true;
+			}
+		}
+
+		private void UpdateYaraFilterListbox()
+		{
+			listBoxYaraFilters.SuspendLayout();
+			listBoxYaraFilters.Items.Clear();
+
+			foreach (YaraFilter filter in currentYaraFilters)
+			{
+				listBoxYaraFilters.Items.Add(filter.ToString());
+			}
+
+			listBoxYaraFilters.ResumeLayout();
+		}
+
+		private void ClearAllYaraSettings()
+		{
+			tbYaraRuleMatchFiles.Text = "";
+			tbYaraFilterValue.Text = "";
+
+			currentYaraFilters.Clear();
+
+			listBoxYaraFilters.SuspendLayout();
+			listBoxYaraFilters.Items.Clear();
+			listBoxYaraFilters.ResumeLayout();
+		}
+
+		#endregion
+
+		#region Add/Remove Filters
 
 		private void btnBrowseYaraMatch_Click(object sender, EventArgs e)
 		{
@@ -288,22 +412,6 @@ namespace FilePropertiesBaselineGUI
 			{
 				yaraMatchFiles = new List<string>();
 				tbYaraRuleMatchFiles.Text = "";
-			}
-		}
-
-		private void btnBrowseYaraNoMatch_Click(object sender, EventArgs e)
-		{
-			string[] selectedFiles = DialogHelper.BrowseForFilesDialog();
-
-			if (selectedFiles.Any())
-			{
-				yaraNoMatchFiles = selectedFiles.ToList();
-				tbYaraRuleNoMatchFiles.Text = string.Join(", ", yaraNoMatchFiles.Select(s => Path.GetFileName(s)));
-			}
-			else
-			{
-				yaraNoMatchFiles = new List<string>();
-				tbYaraRuleNoMatchFiles.Text = "";
 			}
 		}
 
@@ -346,8 +454,12 @@ namespace FilePropertiesBaselineGUI
 				}
 				filterValue = tbYaraFilterValue.Text;
 			}
+			else if (radioButtonYara_ElseNoMatch.Checked)
+			{
+				filterType = YaraFilterType.ElseNoMatch;
+			}
 
-			YaraFilter yaraFilter = new YaraFilter(filterType, filterValue, yaraMatchFiles, yaraNoMatchFiles);
+			YaraFilter yaraFilter = new YaraFilter(filterType, filterValue, yaraMatchFiles);
 
 			if (currentYaraFilters.Contains(yaraFilter))
 			{
@@ -383,19 +495,9 @@ namespace FilePropertiesBaselineGUI
 			}
 		}
 
-		private void UpdateYaraFilterListbox()
-		{
-			listBoxYaraFilters.SuspendLayout();
+		#endregion
 
-			listBoxYaraFilters.Items.Clear();
-
-			foreach (YaraFilter filter in currentYaraFilters)
-			{
-				listBoxYaraFilters.Items.Add(filter.ToString());
-			}
-
-			listBoxYaraFilters.ResumeLayout();
-		}
+		#region Load/Save Yara Rules Filter Configuration
 
 		private void btnYaraSave_Click(object sender, EventArgs e)
 		{
@@ -417,6 +519,8 @@ namespace FilePropertiesBaselineGUI
 				UpdateYaraFilterListbox();
 			}
 		}
+
+		#endregion
 
 		#endregion
 

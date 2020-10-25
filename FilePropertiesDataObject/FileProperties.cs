@@ -186,7 +186,7 @@ namespace FilePropertiesDataObject
 
 			if (hasFileReadPermissions)
 			{
-				string yaraIndexFilename = PopulateYaraInfo(parameters.YaraParameters, false);
+				string yaraIndexFilename = PopulateYaraInfo(parameters.YaraParameters);
 
 				if (!string.IsNullOrWhiteSpace(yaraIndexFilename))
 				{
@@ -263,7 +263,7 @@ namespace FilePropertiesDataObject
 
 			if (hasFileReadPermissions)
 			{
-				string yaraIndexFilename = PopulateYaraInfo(parameters.YaraParameters, true);
+				string yaraIndexFilename = PopulateYaraInfo(parameters.YaraParameters);
 
 				if (!string.IsNullOrWhiteSpace(yaraIndexFilename))
 				{
@@ -285,7 +285,7 @@ namespace FilePropertiesDataObject
 			this.IsTrusted = result;
 		}
 
-		private string PopulateYaraInfo(List<YaraFilter> yaraFilters, bool fileBytes)
+		private string PopulateYaraInfo(List<YaraFilter> yaraFilters)
 		{
 			List<string> distinctRulesToRun =
 				yaraFilters
@@ -293,6 +293,20 @@ namespace FilePropertiesDataObject
 				.Distinct()
 				.OrderBy(s => s)
 				.ToList();
+
+			if (!distinctRulesToRun.Any())
+			{
+				distinctRulesToRun =
+					yaraFilters
+						.Where(yf => yf.FilterType == YaraFilterType.ElseNoMatch)
+						.SelectMany(yf => yf.OnMatchRules)
+						.ToList();
+			}
+
+			if (!distinctRulesToRun.Any())
+			{
+				return string.Empty;
+			}
 
 			string yaraIndexContents = YaraHelper.MakeYaraIndexFile(distinctRulesToRun);
 
