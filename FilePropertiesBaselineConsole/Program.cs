@@ -29,7 +29,6 @@ namespace FilePropertiesBaselineConsole
 			ReportOutput("-p:C:\\Windows           -  Search [p]ath");
 			ReportOutput("-m:*.exe                 -  Search [m]ask");
 			ReportOutput("-e                       -  Enable calulate [e]ntropy");
-			ReportOutput("-v                       -  Enable online [v]alidation");
 			ReportOutput("-y:C:\\YaraConfig.json   -  [Y]ara configuration file");
 		}
 
@@ -64,10 +63,9 @@ namespace FilePropertiesBaselineConsole
 			string searchPath = "";
 			string searchMask = "*.*";
 			bool calcEntropy = false;
-			bool onlineValidation = false;
 			bool yaraScan = false;
 			string yaraConfigFile = "";
-            YaraScanConfiguration yaraConfiguration = new YaraScanConfiguration();
+			YaraScanConfiguration yaraConfiguration = new YaraScanConfiguration();
 
 			foreach (Tuple<string, string> flagTuple in flags)
 			{
@@ -78,9 +76,6 @@ namespace FilePropertiesBaselineConsole
 				{
 					case "e":
 						calcEntropy = true;
-						break;
-					case "v":
-						onlineValidation = true;
 						break;
 					case "p":
 						searchPath = parameter;
@@ -100,7 +95,6 @@ namespace FilePropertiesBaselineConsole
 			ReportOutput($"   Search [P]ath:       \"{searchPath}\"");
 			ReportOutput($"   Search [M]ask:       {searchMask}");
 			ReportOutput($"   Calulate [E]ntropy:  {calcEntropy}");
-			ReportOutput($"   Online [V]alidation: {onlineValidation}");
 			ReportOutput($"   [Y]ara configuration file: \"{yaraConfigFile}\"");
 			ReportOutput();
 
@@ -114,7 +108,7 @@ namespace FilePropertiesBaselineConsole
 				try
 				{
 					string loadJson = File.ReadAllText(yaraConfigFile);
-					yaraConfiguration = JsonConvert.DeserializeObject< YaraScanConfiguration> (loadJson);
+					yaraConfiguration = JsonConvert.DeserializeObject<YaraScanConfiguration>(loadJson);
 				}
 				catch
 				{
@@ -130,7 +124,6 @@ namespace FilePropertiesBaselineConsole
 						searchPath,
 						searchMask,
 						calcEntropy,
-						onlineValidation,
 						yaraConfiguration,
 						ReportOutput,
 						Log.ToAll,
