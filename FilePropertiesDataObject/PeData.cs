@@ -46,24 +46,41 @@ namespace FilePropertiesDataObject
 			PeDataObject result = null;
 
 			bool useFileBytes;
-			if (fileBytes == null)
+			if (filename == null)
 			{
-				if (filename == null)
+				if (fileBytes == null || fileBytes.Length == 0)
 				{
 					return result;
 				}
-				useFileBytes = false;
+				useFileBytes = true;
 			}
 			else
 			{
-				useFileBytes = true;
+				useFileBytes = false;
 			}
 
 			try
 			{
-				if (fileBytes.Length > 0)
+				bool peParseSuccessfully = false;
+
+				PeFile peFile = null;
+				if (useFileBytes)
 				{
-					PeFile peFile = useFileBytes ? new PeFile(fileBytes) : new PeFile(filename);
+					if (PeFile.TryParse(fileBytes, out peFile))
+					{
+						peParseSuccessfully = true;
+					}
+				}
+				else
+				{
+					if (PeFile.TryParse(filename, out peFile))
+					{
+						peParseSuccessfully = true;
+					}
+				}
+
+				if (peParseSuccessfully)
+				{
 					result = new PeDataObject(peFile);
 				}
 			}
