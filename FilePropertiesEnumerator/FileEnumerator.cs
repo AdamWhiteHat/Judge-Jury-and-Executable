@@ -16,7 +16,11 @@ namespace FilePropertiesEnumerator
 
 	public class FileEnumerator
 	{
-		private static string[] IgnoreTheseFiles = new string[] { "swapfile.sys", "pagefile.sys", "hiberfil.sys" };
+		private static string[] IgnoreTheseFiles = new string[]
+		{
+			"swapfile.sys", "hiberfil.sys", "pagefile.sys",
+			"$Volume", "$Secure", "$BadClus", "$AttrDef", "$MFTMirr", "$Boot", "$UpCase", "$Bitmap", "$LogFile", "$MFT"
+		};
 
 		private static FailSuccessCount fileEnumCount = null;
 		private static FailSuccessCount databaseInsertCount = null;
@@ -124,12 +128,7 @@ namespace FilePropertiesEnumerator
 		{
 			string filename = Path.GetFileName(fullName);
 
-			/*
-			if (filename.FirstOrDefault() == '$')
-			{
-				return false;
-			}
-			*/
+			/* if (filename.FirstOrDefault() == '$') { return false; } */
 
 			if (IgnoreTheseFiles.Contains(filename))
 			{
