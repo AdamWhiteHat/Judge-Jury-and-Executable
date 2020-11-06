@@ -16,15 +16,14 @@ namespace FilePropertiesEnumerator
 
 	public class FileEnumerator
 	{
-		private static string[] IgnoreTheseFiles = new string[]
-		{
-			"swapfile.sys", "hiberfil.sys", "pagefile.sys",
-			"$Volume", "$Secure", "$BadClus", "$AttrDef", "$MFTMirr", "$Boot", "$UpCase", "$Bitmap", "$LogFile", "$MFT"
-		};
+		private static string[] IgnoreTheseRootFiles = Properties.Settings.Default.IgnoreTheseRootFiles.Cast<string>().ToArray();
 
-		private static string[] IgnoreTheseDirectories = new string[]
+		private static string[] IgnoreTheseRootDirectories = Properties.Settings.Default.IgnoreTheseRootDirectories.Cast<string>().ToArray();
+
+		private static char[] DirectorySeperatorChars = new char[]
 		{
-			"$Extend"
+			Path.DirectorySeparatorChar,
+			Path.AltDirectorySeparatorChar
 		};
 
 		private static FailSuccessCount fileEnumCount = null;
@@ -132,17 +131,29 @@ namespace FilePropertiesEnumerator
 		private static bool FileMatchesPattern(string fullName, string[] searchPatterns)
 		{
 			string filename = Path.GetFileName(fullName);
+			string rootDirectory = Path.GetDirectoryName(fullName).Substring(3);
+
+			int seperatorIndex = rootDirectory.IndexOfAny(DirectorySeperatorChars);
+			if (seperatorIndex != -1)
+			{
+				rootDirectory = rootDirectory.Substring(0, seperatorIndex);
+			}
 
 			/* if (filename.FirstOrDefault() == '$') { return false; } */
 
-			if (IgnoreTheseFiles.Contains(filename))
+			if (string.IsNullOrWhiteSpace(rootDirectory))
 			{
-				return false;
+				if (IgnoreTheseRootFiles.Contains(filename))
+				{
+					return false;
+				}
 			}
-
-			if (IgnoreTheseDirectories.Any(dir => fullName.Contains(dir)))
+			else
 			{
-				return false;
+				if (IgnoreTheseRootDirectories.Any(dir => rootDirectory.Equals(dir)))
+				{
+					return false;
+				}
 			}
 
 			if (searchPatterns.Contains("*"))

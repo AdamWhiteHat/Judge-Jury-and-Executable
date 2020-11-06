@@ -62,6 +62,7 @@ namespace FilePropertiesBaselineGUI
 			{
 				Log.ToAll("ERROR: Connection string not set! Please set the SQL connection string in .config file. Browse button disabled.");
 				btnBrowse.Enabled = false;
+				btnSearch.Enabled = false;
 			}
 			else
 			{

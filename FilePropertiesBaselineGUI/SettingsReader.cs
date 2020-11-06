@@ -1,19 +1,18 @@
 ﻿using System;
 using System.Linq;
 using System.Configuration;
-using System.Collections.Generic;
 
 namespace FilePropertiesBaselineGUI
 {
 	public static class SettingsReader
 	{
-		public static T GetSettingValue<T>(string SettingName)
+		public static T GetSettingValue<T>(string settingName)
 		{
 			try
 			{
-				if (SettingExists(SettingName))
+				if (SettingExists(settingName))
 				{
-					T result = (T)Convert.ChangeType(ConfigurationManager.AppSettings[SettingName], typeof(T));
+					T result = (T)Convert.ChangeType(ConfigurationManager.AppSettings[settingName], typeof(T));
 					if (result != null)
 					{
 						return result;
@@ -28,19 +27,19 @@ namespace FilePropertiesBaselineGUI
 			return default(T);
 		}
 
-		public static bool SettingExists(string SettingName)
+		public static bool SettingExists(string settingName)
 		{
 			try
 			{
-				if (string.IsNullOrWhiteSpace(SettingName))
+				if (string.IsNullOrWhiteSpace(settingName))
 				{
 					return false;
 				}
-				else if (!ConfigurationManager.AppSettings.AllKeys.Contains(SettingName))
+				else if (!ConfigurationManager.AppSettings.AllKeys.Contains(settingName))
 				{
 					return false;
 				}
-				else if (string.IsNullOrWhiteSpace(ConfigurationManager.AppSettings[SettingName]))
+				else if (string.IsNullOrWhiteSpace(ConfigurationManager.AppSettings[settingName]))
 				{
 					return false;
 				}

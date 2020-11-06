@@ -1,0 +1,30 @@
+﻿<?xml version='1.0' encoding='utf-8'?>
+<SettingsFile xmlns="http://schemas.microsoft.com/VisualStudio/2004/01/settings" CurrentProfile="(Default)" GeneratedClassNamespace="FilePropertiesEnumerator.Properties" GeneratedClassName="Settings">
+  <Profiles />
+  <Settings>
+    <Setting Name="IgnoreTheseRootFiles" Type="System.Collections.Specialized.StringCollection" Scope="Application">
+      <Value Profile="(Default)">&lt;?xml version="1.0" encoding="utf-16"?&gt;
+&lt;ArrayOfString xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema"&gt;
+  &lt;string&gt;swapfile.sys&lt;/string&gt;
+  &lt;string&gt;hiberfil.sys&lt;/string&gt;
+  &lt;string&gt;pagefile.sys&lt;/string&gt;
+  &lt;string&gt;$Volume&lt;/string&gt;
+  &lt;string&gt;$Secure&lt;/string&gt;
+  &lt;string&gt;$BadClus&lt;/string&gt;
+  &lt;string&gt;$AttrDef&lt;/string&gt;
+  &lt;string&gt;$MFTMirr&lt;/string&gt;
+  &lt;string&gt;$Boot&lt;/string&gt;
+  &lt;string&gt;$UpCase&lt;/string&gt;
+  &lt;string&gt;$Bitmap&lt;/string&gt;
+  &lt;string&gt;$LogFile&lt;/string&gt;
+  &lt;string&gt;$MFT&lt;/string&gt;
+&lt;/ArrayOfString&gt;</Value>
+    </Setting>
+    <Setting Name="IgnoreTheseRootDirectories" Type="System.Collections.Specialized.StringCollection" Scope="Application">
+      <Value Profile="(Default)">&lt;?xml version="1.0" encoding="utf-16"?&gt;
+&lt;ArrayOfString xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema"&gt;
+  &lt;string&gt;$Extend&lt;/string&gt;
+&lt;/ArrayOfString&gt;</Value>
+    </Setting>
+  </Settings>
+</SettingsFile>
