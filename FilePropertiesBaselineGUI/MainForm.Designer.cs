@@ -50,9 +50,9 @@
 			this.panelYaraMatchRules = new System.Windows.Forms.Panel();
 			this.tbYaraRuleMatchFiles = new System.Windows.Forms.TextBox();
 			this.btnBrowseYaraMatch = new System.Windows.Forms.Button();
-			this.label2 = new System.Windows.Forms.Label();
+			this.labelYaraRulesToRun = new System.Windows.Forms.Label();
 			this.panelYaraFilterValue = new System.Windows.Forms.Panel();
-			this.label5 = new System.Windows.Forms.Label();
+			this.labelYaraFilterValue = new System.Windows.Forms.Label();
 			this.tbYaraFilterValue = new System.Windows.Forms.TextBox();
 			this.radioButtonYara_AlwaysRun = new System.Windows.Forms.RadioButton();
 			this.radioButtonYara_IsPeFile = new System.Windows.Forms.RadioButton();
@@ -184,9 +184,9 @@
 			this.checkBoxYaraRules.CheckState = System.Windows.Forms.CheckState.Checked;
 			this.checkBoxYaraRules.Location = new System.Drawing.Point(3, 84);
 			this.checkBoxYaraRules.Name = "checkBoxYaraRules";
-			this.checkBoxYaraRules.Size = new System.Drawing.Size(101, 17);
+			this.checkBoxYaraRules.Size = new System.Drawing.Size(108, 17);
 			this.checkBoxYaraRules.TabIndex = 10;
-			this.checkBoxYaraRules.Text = "Run Yara Rules";
+			this.checkBoxYaraRules.Text = "Run YARA Rules";
 			this.checkBoxYaraRules.UseVisualStyleBackColor = true;
 			this.checkBoxYaraRules.CheckedChanged += new System.EventHandler(this.checkBoxYaraRules_CheckedChanged);
 			// 
@@ -201,7 +201,7 @@
 			this.panelYaraParameters.Controls.Add(this.panelYara);
 			this.panelYaraParameters.Location = new System.Drawing.Point(1, 106);
 			this.panelYaraParameters.Margin = new System.Windows.Forms.Padding(1);
-			this.panelYaraParameters.MinimumSize = new System.Drawing.Size(757, 0);
+			this.panelYaraParameters.MinimumSize = new System.Drawing.Size(757, 2);
 			this.panelYaraParameters.Name = "panelYaraParameters";
 			this.panelYaraParameters.Size = new System.Drawing.Size(757, 152);
 			this.panelYaraParameters.TabIndex = 9;
@@ -267,6 +267,7 @@
 			this.listBoxYaraFilters.FormattingEnabled = true;
 			this.listBoxYaraFilters.Location = new System.Drawing.Point(2, 2);
 			this.listBoxYaraFilters.Name = "listBoxYaraFilters";
+			this.listBoxYaraFilters.SelectionMode = System.Windows.Forms.SelectionMode.MultiExtended;
 			this.listBoxYaraFilters.Size = new System.Drawing.Size(131, 95);
 			this.listBoxYaraFilters.TabIndex = 0;
 			this.listBoxYaraFilters.KeyUp += new System.Windows.Forms.KeyEventHandler(this.listBoxYaraFilters_KeyUp);
@@ -303,7 +304,7 @@
 			// 
 			this.panelYaraMatchRules.Controls.Add(this.tbYaraRuleMatchFiles);
 			this.panelYaraMatchRules.Controls.Add(this.btnBrowseYaraMatch);
-			this.panelYaraMatchRules.Controls.Add(this.label2);
+			this.panelYaraMatchRules.Controls.Add(this.labelYaraRulesToRun);
 			this.panelYaraMatchRules.Location = new System.Drawing.Point(124, 75);
 			this.panelYaraMatchRules.Name = "panelYaraMatchRules";
 			this.panelYaraMatchRules.Size = new System.Drawing.Size(384, 45);
@@ -329,34 +330,34 @@
 			this.btnBrowseYaraMatch.UseVisualStyleBackColor = true;
 			this.btnBrowseYaraMatch.Click += new System.EventHandler(this.btnBrowseYaraMatch_Click);
 			// 
-			// label2
+			// labelYaraRulesToRun
 			// 
-			this.label2.AutoSize = true;
-			this.label2.Location = new System.Drawing.Point(4, 5);
-			this.label2.Margin = new System.Windows.Forms.Padding(3);
-			this.label2.Name = "label2";
-			this.label2.Size = new System.Drawing.Size(94, 13);
-			this.label2.TabIndex = 23;
-			this.label2.Text = "YARA rules to run:";
+			this.labelYaraRulesToRun.AutoSize = true;
+			this.labelYaraRulesToRun.Location = new System.Drawing.Point(4, 5);
+			this.labelYaraRulesToRun.Margin = new System.Windows.Forms.Padding(3);
+			this.labelYaraRulesToRun.Name = "labelYaraRulesToRun";
+			this.labelYaraRulesToRun.Size = new System.Drawing.Size(94, 13);
+			this.labelYaraRulesToRun.TabIndex = 23;
+			this.labelYaraRulesToRun.Text = "YARA rules to run:";
 			// 
 			// panelYaraFilterValue
 			// 
-			this.panelYaraFilterValue.Controls.Add(this.label5);
+			this.panelYaraFilterValue.Controls.Add(this.labelYaraFilterValue);
 			this.panelYaraFilterValue.Controls.Add(this.tbYaraFilterValue);
 			this.panelYaraFilterValue.Location = new System.Drawing.Point(124, 5);
 			this.panelYaraFilterValue.Name = "panelYaraFilterValue";
 			this.panelYaraFilterValue.Size = new System.Drawing.Size(384, 44);
 			this.panelYaraFilterValue.TabIndex = 25;
 			// 
-			// label5
+			// labelYaraFilterValue
 			// 
-			this.label5.AutoSize = true;
-			this.label5.Location = new System.Drawing.Point(3, 5);
-			this.label5.Margin = new System.Windows.Forms.Padding(3);
-			this.label5.Name = "label5";
-			this.label5.Size = new System.Drawing.Size(83, 13);
-			this.label5.TabIndex = 18;
-			this.label5.Text = "Yara filter value:";
+			this.labelYaraFilterValue.AutoSize = true;
+			this.labelYaraFilterValue.Location = new System.Drawing.Point(3, 5);
+			this.labelYaraFilterValue.Margin = new System.Windows.Forms.Padding(3);
+			this.labelYaraFilterValue.Name = "labelYaraFilterValue";
+			this.labelYaraFilterValue.Size = new System.Drawing.Size(90, 13);
+			this.labelYaraFilterValue.TabIndex = 18;
+			this.labelYaraFilterValue.Text = "YARA filter value:";
 			// 
 			// tbYaraFilterValue
 			// 
@@ -529,11 +530,11 @@
 		private System.Windows.Forms.RadioButton radioButtonYara_IsPeFile;
 		private System.Windows.Forms.RadioButton radioButtonYara_AlwaysRun;
 		private System.Windows.Forms.TextBox tbYaraFilterValue;
-		private System.Windows.Forms.Label label5;
+		private System.Windows.Forms.Label labelYaraFilterValue;
 		private System.Windows.Forms.Button btnRemoveYaraFilter;
 		private System.Windows.Forms.Button btnYaraSave;
 		private System.Windows.Forms.Button btnYaraLoad;
-		private System.Windows.Forms.Label label2;
+		private System.Windows.Forms.Label labelYaraRulesToRun;
 		private System.Windows.Forms.FlowLayoutPanel flowLayoutPanelTop;
 		private System.Windows.Forms.Panel panelBottom;
 		private System.Windows.Forms.TableLayoutPanel tableLayoutPanel1;

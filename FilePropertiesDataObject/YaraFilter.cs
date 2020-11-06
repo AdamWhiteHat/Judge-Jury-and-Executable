@@ -104,7 +104,27 @@ namespace FilePropertiesDataObject
 
 		public override string ToString()
 		{
-			return $"{Enum.GetName(typeof(YaraFilterType), FilterType)}:{FilterValue}[{{{string.Join(JoinString, OnMatchRules.Select(s => Path.GetFileName(s)))}}}]";
+			string onMatchRules = $"{{ {string.Join(JoinString, OnMatchRules.Select(s => Path.GetFileName(s)))} }}";
+			if (FilterType == YaraFilterType.ElseNoMatch)
+			{
+				return "ELSE => " + onMatchRules;
+			}
+			else if (FilterType == YaraFilterType.AlwaysRun)
+			{
+				return "IF(true) => " + onMatchRules;
+			}
+			else if (FilterType == YaraFilterType.IsPeFile)
+			{
+				return "IF(PE) => " + onMatchRules;
+			}
+			else if (FilterType == YaraFilterType.FileExtension)
+			{
+				return $"IF(*{FilterValue}) => {onMatchRules}";
+			}
+			else // if (FilterType == YaraFilterType.MimeType)
+			{
+				return $"IF({FilterValue}) => {onMatchRules}";
+			}
 		}
 	}
 }

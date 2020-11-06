@@ -298,7 +298,7 @@ namespace FilePropertiesBaselineGUI
 
 		private List<string> yaraMatchFiles = new List<string>();
 		private List<YaraFilter> currentYaraFilters = new List<YaraFilter>();
-		private static string AddYaraRuleErrorCaption = "Error adding yara filter";
+		private static string AddYaraRuleErrorCaption = "Error adding YARA filter";
 
 		#region Show/Hide/Resize
 
@@ -419,7 +419,7 @@ namespace FilePropertiesBaselineGUI
 		{
 			if (!yaraMatchFiles.Any())
 			{
-				MessageBox.Show("Must have at least one 'IF rule match files' selected.", AddYaraRuleErrorCaption, MessageBoxButtons.OK, MessageBoxIcon.Error);
+				MessageBox.Show($"Must have at least one file selected under \"{labelYaraRulesToRun.Text}\" selected.\n\nFilter not added.", AddYaraRuleErrorCaption, MessageBoxButtons.OK, MessageBoxIcon.Error);
 				return;
 			}
 
@@ -439,20 +439,70 @@ namespace FilePropertiesBaselineGUI
 				filterType = YaraFilterType.FileExtension;
 				if (string.IsNullOrWhiteSpace(tbYaraFilterValue.Text))
 				{
-					MessageBox.Show("'Yara filter value' cannot be empty when 'By Extention' is selected.", AddYaraRuleErrorCaption, MessageBoxButtons.OK, MessageBoxIcon.Error);
+					MessageBox.Show($"\"{labelYaraFilterValue.Text.Replace(":", "")}\" cannot be empty when \"{radioButtonYara_Extention.Text.Replace(":", "")}\" is selected.\n\nFilter not added.", AddYaraRuleErrorCaption, MessageBoxButtons.OK, MessageBoxIcon.Error);
 					return;
 				}
+
 				filterValue = tbYaraFilterValue.Text;
+
+				if (filterValue.Any(c => char.IsWhiteSpace(c)))
+				{
+					MessageBox.Show("No whitespace is allowed in a file extension.\n\nFilter not added.", AddYaraRuleErrorCaption, MessageBoxButtons.OK, MessageBoxIcon.Error);
+					return;
+				}
+
+				if (!filterValue.Contains('.'))
+				{
+					if (filterValue.Contains('/'))
+					{
+						if (MessageBox.Show("You are attempting to add a file extension filter, yet the YARA filter value looks like a MIME type.\n\nDo you wish to add this as a MIME type filter instead?", AddYaraRuleErrorCaption, MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.No)
+						{
+							return;
+						}
+
+						filterType = YaraFilterType.MimeType;
+					}
+					else
+					{
+						MessageBox.Show($"You are attempting to add a FILE EXTENSION filter, yet the YARA filter value does not contain the required character '.'.\n\nFilter not added.", AddYaraRuleErrorCaption, MessageBoxButtons.OK, MessageBoxIcon.Error);
+						return;
+					}
+				}
 			}
 			else if (radioButtonYara_MimeType.Checked)
 			{
 				filterType = YaraFilterType.MimeType;
 				if (string.IsNullOrWhiteSpace(tbYaraFilterValue.Text))
 				{
-					MessageBox.Show("'Yara filter value' cannot be empty when 'By MIME Type' is selected.", AddYaraRuleErrorCaption, MessageBoxButtons.OK, MessageBoxIcon.Error);
+					MessageBox.Show($"\"{labelYaraFilterValue.Text.Replace(":", "")}\" cannot be empty when \"{radioButtonYara_MimeType.Text.Replace(":", "")}\" is selected.\n\nFilter not added.", AddYaraRuleErrorCaption, MessageBoxButtons.OK, MessageBoxIcon.Error);
 					return;
 				}
+
 				filterValue = tbYaraFilterValue.Text;
+
+				if (filterValue.Any(c => char.IsWhiteSpace(c)))
+				{
+					MessageBox.Show("No whitespace is allowed in a MIME type.\n\nFilter not added.", AddYaraRuleErrorCaption, MessageBoxButtons.OK, MessageBoxIcon.Error);
+					return;
+				}
+
+				if (!filterValue.Contains('/'))
+				{
+					if (filterValue.Contains('.'))
+					{
+						if (MessageBox.Show("You are attempting to add a MIME type filter, yet the YARA filter value looks like a file extension.\n\nDo you wish to add this as a file extension filter type instead?", AddYaraRuleErrorCaption, MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.No)
+						{
+							return;
+						}
+
+						filterType = YaraFilterType.FileExtension;
+					}
+					else
+					{
+						MessageBox.Show($"You are attempting to add a MIME type filter, yet the YARA filter value does not contain the required character '/'.\n\nFilter not added.", AddYaraRuleErrorCaption, MessageBoxButtons.OK, MessageBoxIcon.Error);
+						return;
+					}
+				}
 			}
 			else if (radioButtonYara_ElseNoMatch.Checked)
 			{
@@ -463,7 +513,7 @@ namespace FilePropertiesBaselineGUI
 
 			if (currentYaraFilters.Contains(yaraFilter))
 			{
-				MessageBox.Show("Yara filter already exists. Duplicate filter not added.", AddYaraRuleErrorCaption, MessageBoxButtons.OK, MessageBoxIcon.Error);
+				MessageBox.Show("YARA filter already exists.\n\nDuplicate filter not added.", AddYaraRuleErrorCaption, MessageBoxButtons.OK, MessageBoxIcon.Error);
 				return;
 			}
 
@@ -487,12 +537,20 @@ namespace FilePropertiesBaselineGUI
 
 		private void listBoxYaraFilters_RemoveSelected()
 		{
-			if (listBoxYaraFilters.SelectedIndex != -1)
+			var selectedIndices = listBoxYaraFilters.SelectedIndices.Cast<int>().ToList();
+
+			List<YaraFilter> toRemove = new List<YaraFilter>();
+			foreach (int index in selectedIndices)
 			{
-				var filter = currentYaraFilters.Where(yf => yf.ToString() == listBoxYaraFilters.SelectedItem.ToString()).Single();
-				currentYaraFilters.Remove(filter);
-				UpdateYaraFilterListbox();
+				toRemove.Add(currentYaraFilters[index]);
 			}
+
+			foreach (YaraFilter filter in toRemove)
+			{
+				currentYaraFilters.Remove(filter);
+			}
+
+			UpdateYaraFilterListbox();
 		}
 
 		#endregion
