@@ -22,6 +22,11 @@ namespace FilePropertiesEnumerator
 			"$Volume", "$Secure", "$BadClus", "$AttrDef", "$MFTMirr", "$Boot", "$UpCase", "$Bitmap", "$LogFile", "$MFT"
 		};
 
+		private static string[] IgnoreTheseDirectories = new string[]
+		{
+			"$Extend"
+		};
+
 		private static FailSuccessCount fileEnumCount = null;
 		private static FailSuccessCount databaseInsertCount = null;
 
@@ -131,6 +136,11 @@ namespace FilePropertiesEnumerator
 			/* if (filename.FirstOrDefault() == '$') { return false; } */
 
 			if (IgnoreTheseFiles.Contains(filename))
+			{
+				return false;
+			}
+
+			if (IgnoreTheseDirectories.Any(dir => fullName.Contains(dir)))
 			{
 				return false;
 			}
