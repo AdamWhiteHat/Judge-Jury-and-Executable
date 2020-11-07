@@ -28,6 +28,7 @@
 		/// </summary>
 		private void InitializeComponent()
 		{
+			System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(MainForm));
 			this.btnBrowse = new System.Windows.Forms.Button();
 			this.tbPath = new System.Windows.Forms.TextBox();
 			this.tbOutput = new System.Windows.Forms.TextBox();
@@ -479,6 +480,7 @@
 			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
 			this.ClientSize = new System.Drawing.Size(759, 369);
 			this.Controls.Add(this.tableLayoutPanel1);
+			this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
 			this.MinimumSize = new System.Drawing.Size(775, 300);
 			this.Name = "MainForm";
 			this.Text = "Judge, Jury, and Executable";
