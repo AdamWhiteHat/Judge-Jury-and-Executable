@@ -300,6 +300,7 @@ namespace FilePropertiesDataObject
 					yaraFilters
 						.Where(yf => yf.FilterType == YaraFilterType.ElseNoMatch)
 						.SelectMany(yf => yf.OnMatchRules)
+						.Distinct()
 						.ToList();
 			}
 
