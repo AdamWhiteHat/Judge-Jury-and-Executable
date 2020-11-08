@@ -485,7 +485,6 @@
 			this.Name = "MainForm";
 			this.Text = "Judge, Jury, and Executable";
 			this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.MainForm_FormClosing);
-			this.Shown += new System.EventHandler(this.MainForm_Shown);
 			this.ResizeEnd += new System.EventHandler(this.MainForm_ResizeEnd);
 			this.Resize += new System.EventHandler(this.MainForm_Resize);
 			this.panelParameters.ResumeLayout(false);

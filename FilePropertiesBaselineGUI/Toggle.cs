@@ -1,49 +1,73 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Collections.Generic;
 
 namespace FilePropertiesBaselineGUI
 {
-    public class Toggle
-    {
-        public bool IsActive { get; private set; }
+	public enum ToggleState
+	{
+		Ready,
+		Active,
+		Inactive
+	}
 
-        private Action ActivationBehavior = null;
-        private Action DeactivationBehavior = null;
+	public class Toggle
+	{
+		public ToggleState CurrentState { get; private set; } = ToggleState.Inactive;
 
-        public Toggle(Action activationBehavior, Action deactivationBehavior)
-        {
-            if (activationBehavior == null) throw new ArgumentNullException(nameof(activationBehavior));
-            if (deactivationBehavior == null) throw new ArgumentNullException(nameof(deactivationBehavior));
+		private Action ActivationBehavior = null;
+		private Action DeactivationBehavior = null;
+		private Action ResetBehavior = null;
 
-            IsActive = false;
-            ActivationBehavior = activationBehavior;
-            DeactivationBehavior = deactivationBehavior;
-        }
+		public Toggle(Action activationBehavior, Action deactivationBehavior, Action resetBehavior)
+		{
+			if (activationBehavior == null) throw new ArgumentNullException(nameof(activationBehavior));
+			if (deactivationBehavior == null) throw new ArgumentNullException(nameof(deactivationBehavior));
 
-        public void SetState(bool value)
-        {
-            bool previousState = IsActive;
-            IsActive = value;
+			ActivationBehavior = activationBehavior;
+			DeactivationBehavior = deactivationBehavior;
+			ResetBehavior = resetBehavior;
 
-            if (previousState != value)
-            {
-                OnToggle();
-            }
-        }
+			CurrentState = ToggleState.Ready;
+		}
 
-        private void OnToggle()
-        {
-            if (IsActive)
-            {
-                ActivationBehavior.Invoke();
-            }
-            else
-            {
-                DeactivationBehavior.Invoke();
-            }
-        }
-    }
+		public void SetState(ToggleState to)
+		{
+			if (CurrentState == ToggleState.Ready)
+			{
+				if (to == ToggleState.Active)
+				{
+					CurrentState = ToggleState.Active;
+					ActivationBehavior();
+				}
+			}
+			else if (CurrentState == ToggleState.Active)
+			{
+				if (to == ToggleState.Inactive)
+				{
+					CurrentState = ToggleState.Inactive;
+					DeactivationBehavior();
+				}
+				else if (to == ToggleState.Ready)
+				{
+					CurrentState = ToggleState.Ready;
+					ResetBehavior();
+				}
+			}
+			else if (CurrentState == ToggleState.Inactive)
+			{
+				if (to == ToggleState.Ready)
+				{
+					CurrentState = ToggleState.Ready;
+					ResetBehavior();
+				}
+			}
+			else
+			{
+				throw new Exception($"Unhandled {nameof(ToggleState)}: {Enum.GetName(typeof(ToggleState), CurrentState)}");
+			}
+		}
+	}
 }
