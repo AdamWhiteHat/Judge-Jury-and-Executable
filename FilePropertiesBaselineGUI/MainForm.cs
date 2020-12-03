@@ -366,6 +366,7 @@ namespace FilePropertiesBaselineGUI
 				flowLayoutPanelTop.Width = newPanelWidths;
 				panelParameters.Width = newPanelWidths - 2;
 				panelYaraParameters.Width = newPanelWidths - 2;
+				panelSearchButton.Width = newPanelWidths - 2;
 			}
 		}
 
