@@ -37,7 +37,6 @@
 			this.label1 = new System.Windows.Forms.Label();
 			this.btnSearch = new System.Windows.Forms.Button();
 			this.panelParameters = new System.Windows.Forms.Panel();
-			this.linkGitHub = new System.Windows.Forms.LinkLabel();
 			this.checkBoxYaraRules = new System.Windows.Forms.CheckBox();
 			this.panelYaraParameters = new System.Windows.Forms.Panel();
 			this.btnYaraLoad = new System.Windows.Forms.Button();
@@ -60,9 +59,11 @@
 			this.radioButtonYara_Extention = new System.Windows.Forms.RadioButton();
 			this.radioButtonYara_MimeType = new System.Windows.Forms.RadioButton();
 			this.flowLayoutPanelTop = new System.Windows.Forms.FlowLayoutPanel();
+			this.panelSearchButton = new System.Windows.Forms.Panel();
 			this.panelBottom = new System.Windows.Forms.Panel();
 			this.tableLayoutPanel1 = new System.Windows.Forms.TableLayoutPanel();
 			this.panelTop = new System.Windows.Forms.Panel();
+			this.linkGitHub = new System.Windows.Forms.LinkLabel();
 			this.panelParameters.SuspendLayout();
 			this.panelYaraParameters.SuspendLayout();
 			this.panelListBox.SuspendLayout();
@@ -70,6 +71,7 @@
 			this.panelYaraMatchRules.SuspendLayout();
 			this.panelYaraFilterValue.SuspendLayout();
 			this.flowLayoutPanelTop.SuspendLayout();
+			this.panelSearchButton.SuspendLayout();
 			this.panelBottom.SuspendLayout();
 			this.tableLayoutPanel1.SuspendLayout();
 			this.panelTop.SuspendLayout();
@@ -102,11 +104,11 @@
 			this.tbOutput.Dock = System.Windows.Forms.DockStyle.Fill;
 			this.tbOutput.Location = new System.Drawing.Point(0, 0);
 			this.tbOutput.Margin = new System.Windows.Forms.Padding(1);
-			this.tbOutput.MinimumSize = new System.Drawing.Size(759, 60);
+			this.tbOutput.MinimumSize = new System.Drawing.Size(759, 32);
 			this.tbOutput.Multiline = true;
 			this.tbOutput.Name = "tbOutput";
 			this.tbOutput.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
-			this.tbOutput.Size = new System.Drawing.Size(759, 77);
+			this.tbOutput.Size = new System.Drawing.Size(760, 103);
 			this.tbOutput.TabIndex = 2;
 			this.tbOutput.KeyUp += new System.Windows.Forms.KeyEventHandler(this.tbOutput_KeyUp);
 			// 
@@ -142,7 +144,8 @@
 			// 
 			// btnSearch
 			// 
-			this.btnSearch.Location = new System.Drawing.Point(3, 262);
+			this.btnSearch.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+			this.btnSearch.Location = new System.Drawing.Point(0, 9);
 			this.btnSearch.Name = "btnSearch";
 			this.btnSearch.Size = new System.Drawing.Size(198, 27);
 			this.btnSearch.TabIndex = 7;
@@ -152,31 +155,18 @@
 			// 
 			// panelParameters
 			// 
-			this.panelParameters.Controls.Add(this.linkGitHub);
 			this.panelParameters.Controls.Add(this.checkBoxYaraRules);
 			this.panelParameters.Controls.Add(this.btnBrowse);
 			this.panelParameters.Controls.Add(this.tbPath);
 			this.panelParameters.Controls.Add(this.label1);
 			this.panelParameters.Controls.Add(this.tbSearchPatterns);
 			this.panelParameters.Controls.Add(this.checkboxCalculateEntropy);
-			this.panelParameters.Location = new System.Drawing.Point(1, 1);
-			this.panelParameters.Margin = new System.Windows.Forms.Padding(1);
+			this.panelParameters.Location = new System.Drawing.Point(1, 3);
+			this.panelParameters.Margin = new System.Windows.Forms.Padding(1, 3, 1, 3);
 			this.panelParameters.MinimumSize = new System.Drawing.Size(757, 103);
 			this.panelParameters.Name = "panelParameters";
 			this.panelParameters.Size = new System.Drawing.Size(757, 103);
 			this.panelParameters.TabIndex = 8;
-			// 
-			// linkGitHub
-			// 
-			this.linkGitHub.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-			this.linkGitHub.AutoSize = true;
-			this.linkGitHub.Location = new System.Drawing.Point(448, 85);
-			this.linkGitHub.Name = "linkGitHub";
-			this.linkGitHub.Size = new System.Drawing.Size(305, 13);
-			this.linkGitHub.TabIndex = 11;
-			this.linkGitHub.TabStop = true;
-			this.linkGitHub.Text = "https://github.com/AdamWhiteHat/Judge-Jury-and-Executable";
-			this.linkGitHub.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.linkGitHub_LinkClicked);
 			// 
 			// checkBoxYaraRules
 			// 
@@ -200,11 +190,11 @@
 			this.panelYaraParameters.Controls.Add(this.btnAddYaraFilter);
 			this.panelYaraParameters.Controls.Add(this.panelListBox);
 			this.panelYaraParameters.Controls.Add(this.panelYara);
-			this.panelYaraParameters.Location = new System.Drawing.Point(1, 106);
+			this.panelYaraParameters.Location = new System.Drawing.Point(1, 110);
 			this.panelYaraParameters.Margin = new System.Windows.Forms.Padding(1);
 			this.panelYaraParameters.MinimumSize = new System.Drawing.Size(757, 2);
 			this.panelYaraParameters.Name = "panelYaraParameters";
-			this.panelYaraParameters.Size = new System.Drawing.Size(757, 152);
+			this.panelYaraParameters.Size = new System.Drawing.Size(757, 154);
 			this.panelYaraParameters.TabIndex = 9;
 			// 
 			// btnYaraLoad
@@ -423,25 +413,38 @@
 			this.flowLayoutPanelTop.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
 			this.flowLayoutPanelTop.Controls.Add(this.panelParameters);
 			this.flowLayoutPanelTop.Controls.Add(this.panelYaraParameters);
-			this.flowLayoutPanelTop.Controls.Add(this.btnSearch);
+			this.flowLayoutPanelTop.Controls.Add(this.panelSearchButton);
 			this.flowLayoutPanelTop.FlowDirection = System.Windows.Forms.FlowDirection.TopDown;
 			this.flowLayoutPanelTop.Location = new System.Drawing.Point(0, 0);
 			this.flowLayoutPanelTop.Margin = new System.Windows.Forms.Padding(0);
 			this.flowLayoutPanelTop.MinimumSize = new System.Drawing.Size(759, 150);
 			this.flowLayoutPanelTop.Name = "flowLayoutPanelTop";
-			this.flowLayoutPanelTop.Size = new System.Drawing.Size(759, 292);
+			this.flowLayoutPanelTop.Size = new System.Drawing.Size(760, 303);
 			this.flowLayoutPanelTop.TabIndex = 9;
 			this.flowLayoutPanelTop.Resize += new System.EventHandler(this.MainForm_Resize);
+			// 
+			// panelSearchButton
+			// 
+			this.panelSearchButton.AutoSize = true;
+			this.panelSearchButton.BackColor = System.Drawing.SystemColors.Control;
+			this.panelSearchButton.Controls.Add(this.linkGitHub);
+			this.panelSearchButton.Controls.Add(this.btnSearch);
+			this.panelSearchButton.Location = new System.Drawing.Point(1, 266);
+			this.panelSearchButton.Margin = new System.Windows.Forms.Padding(1);
+			this.panelSearchButton.MinimumSize = new System.Drawing.Size(757, 27);
+			this.panelSearchButton.Name = "panelSearchButton";
+			this.panelSearchButton.Size = new System.Drawing.Size(758, 36);
+			this.panelSearchButton.TabIndex = 10;
 			// 
 			// panelBottom
 			// 
 			this.panelBottom.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
 			this.panelBottom.Controls.Add(this.tbOutput);
 			this.panelBottom.Dock = System.Windows.Forms.DockStyle.Fill;
-			this.panelBottom.Location = new System.Drawing.Point(0, 292);
+			this.panelBottom.Location = new System.Drawing.Point(0, 303);
 			this.panelBottom.Margin = new System.Windows.Forms.Padding(0);
 			this.panelBottom.Name = "panelBottom";
-			this.panelBottom.Size = new System.Drawing.Size(759, 77);
+			this.panelBottom.Size = new System.Drawing.Size(760, 103);
 			this.panelBottom.TabIndex = 10;
 			// 
 			// tableLayoutPanel1
@@ -459,7 +462,7 @@
 			this.tableLayoutPanel1.RowCount = 2;
 			this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle());
 			this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100F));
-			this.tableLayoutPanel1.Size = new System.Drawing.Size(759, 369);
+			this.tableLayoutPanel1.Size = new System.Drawing.Size(759, 406);
 			this.tableLayoutPanel1.TabIndex = 10;
 			// 
 			// panelTop
@@ -471,14 +474,26 @@
 			this.panelTop.Location = new System.Drawing.Point(0, 0);
 			this.panelTop.Margin = new System.Windows.Forms.Padding(0);
 			this.panelTop.Name = "panelTop";
-			this.panelTop.Size = new System.Drawing.Size(759, 292);
+			this.panelTop.Size = new System.Drawing.Size(760, 303);
 			this.panelTop.TabIndex = 11;
+			// 
+			// linkGitHub
+			// 
+			this.linkGitHub.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
+			this.linkGitHub.AutoSize = true;
+			this.linkGitHub.Location = new System.Drawing.Point(450, 20);
+			this.linkGitHub.Name = "linkGitHub";
+			this.linkGitHub.Size = new System.Drawing.Size(305, 13);
+			this.linkGitHub.TabIndex = 11;
+			this.linkGitHub.TabStop = true;
+			this.linkGitHub.Text = "https://github.com/AdamWhiteHat/Judge-Jury-and-Executable";
+			this.linkGitHub.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.linkGitHub_LinkClicked);
 			// 
 			// MainForm
 			// 
 			this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
 			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-			this.ClientSize = new System.Drawing.Size(759, 369);
+			this.ClientSize = new System.Drawing.Size(759, 406);
 			this.Controls.Add(this.tableLayoutPanel1);
 			this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
 			this.MinimumSize = new System.Drawing.Size(775, 300);
@@ -498,6 +513,9 @@
 			this.panelYaraFilterValue.ResumeLayout(false);
 			this.panelYaraFilterValue.PerformLayout();
 			this.flowLayoutPanelTop.ResumeLayout(false);
+			this.flowLayoutPanelTop.PerformLayout();
+			this.panelSearchButton.ResumeLayout(false);
+			this.panelSearchButton.PerformLayout();
 			this.panelBottom.ResumeLayout(false);
 			this.panelBottom.PerformLayout();
 			this.tableLayoutPanel1.ResumeLayout(false);
@@ -543,6 +561,7 @@
 		private System.Windows.Forms.Panel panelYaraFilterValue;
 		private System.Windows.Forms.Panel panelYaraMatchRules;
 		private System.Windows.Forms.RadioButton radioButtonYara_ElseNoMatch;
+		private System.Windows.Forms.Panel panelSearchButton;
 		private System.Windows.Forms.LinkLabel linkGitHub;
 	}
 }

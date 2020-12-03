@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 using System.Collections.Generic;
 
 using Logging;
-using DataAccessLayer;
+using SqlDataAccessLayer;
 using FilePropertiesEnumerator;
 using FilePropertiesDataObject;
 using FilePropertiesDataObject.Parameters;
@@ -40,10 +40,6 @@ namespace FilePropertiesBaselineConsole
 				ReportOutput("ERROR: Connection string not set! Please set the SQL connection string in .config file.");
 				ReportOutput("Aborting...");
 				return;
-			}
-			else
-			{
-				FilePropertiesAccessLayer.SetConnectionString(connectionString);
 			}
 
 			if (args.Length == 0)
@@ -117,6 +113,8 @@ namespace FilePropertiesBaselineConsole
 				}
 			}
 
+			SqlDataPersistenceLayer sqlDataPersistenceLayer = new SqlDataPersistenceLayer(connectionString);
+
 			FileEnumeratorParameters parameters =
 					new FileEnumeratorParameters(
 						CancellationToken.None,
@@ -125,6 +123,7 @@ namespace FilePropertiesBaselineConsole
 						searchMask,
 						calcEntropy,
 						yaraFilters,
+						sqlDataPersistenceLayer,
 						ReportOutput,
 						Log.ToAll,
 						ReportResults,

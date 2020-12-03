@@ -3,8 +3,6 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.29709.97
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DataAccessLayer", "DataAccessLayer\DataAccessLayer.csproj", "{0332F67B-9B78-49EA-AA16-E01C20C49744}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FilePropertiesDataObject", "FilePropertiesDataObject\FilePropertiesDataObject.csproj", "{F51A9FD6-C73D-4D41-9665-D2C181CEA82F}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FilePropertiesEnumerator", "FilePropertiesEnumerator\FilePropertiesEnumerator.csproj", "{029CE37F-CDBE-46BD-9AEF-1212F0C99E90}"
@@ -17,16 +15,16 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NtfsReader", "NtfsReader\Nt
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Logging", "Logging\Logging.csproj", "{24EF744B-578F-4A0E-8A56-5828CA072137}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "DataAccessLayers", "DataAccessLayers", "{D105FB82-B5BD-4F23-978A-A8F9B52F2B90}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SqlDataAccessLayer", "DataAccessLayers\SqlDataAccessLayer\SqlDataAccessLayer.csproj", "{0332F67B-9B78-49EA-AA16-E01C20C49744}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{0332F67B-9B78-49EA-AA16-E01C20C49744}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{0332F67B-9B78-49EA-AA16-E01C20C49744}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{0332F67B-9B78-49EA-AA16-E01C20C49744}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{0332F67B-9B78-49EA-AA16-E01C20C49744}.Release|Any CPU.Build.0 = Release|Any CPU
 		{F51A9FD6-C73D-4D41-9665-D2C181CEA82F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{F51A9FD6-C73D-4D41-9665-D2C181CEA82F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F51A9FD6-C73D-4D41-9665-D2C181CEA82F}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -51,9 +49,16 @@ Global
 		{24EF744B-578F-4A0E-8A56-5828CA072137}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{24EF744B-578F-4A0E-8A56-5828CA072137}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{24EF744B-578F-4A0E-8A56-5828CA072137}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0332F67B-9B78-49EA-AA16-E01C20C49744}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0332F67B-9B78-49EA-AA16-E01C20C49744}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0332F67B-9B78-49EA-AA16-E01C20C49744}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0332F67B-9B78-49EA-AA16-E01C20C49744}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{0332F67B-9B78-49EA-AA16-E01C20C49744} = {D105FB82-B5BD-4F23-978A-A8F9B52F2B90}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {C9A3E309-495F-4468-8B3D-CA1757B3D269}

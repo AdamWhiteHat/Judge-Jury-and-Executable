@@ -5,7 +5,7 @@ using System.Threading;
 using System.Collections;
 using System.Windows.Forms;
 using System.Collections.Generic;
-using DataAccessLayer;
+using SqlDataAccessLayer;
 using FilePropertiesEnumerator;
 using FilePropertiesDataObject;
 using FilePropertiesDataObject.Parameters;
@@ -54,10 +54,6 @@ namespace FilePropertiesBaselineGUI
 				Log.ToAll("ERROR: Connection string not set! Please set the SQL connection string in .config file. Browse button disabled.");
 				btnBrowse.Enabled = false;
 				btnSearch.Enabled = false;
-			}
-			else
-			{
-				FilePropertiesAccessLayer.SetConnectionString(connectionString);
 			}
 
 			if (!string.IsNullOrWhiteSpace(Settings.GUI_DefaultFolder))
@@ -131,16 +127,31 @@ namespace FilePropertiesBaselineGUI
 					yaraParameters = currentYaraFilters.ToList();
 				}
 
+				string connectionString = Settings.Database_ConnectionString;
+				if (string.IsNullOrWhiteSpace(connectionString) || connectionString == "SetMe")
+				{
+					MessageBox.Show("No SQL connection string supplied.", "Error");
+					return;
+				}
+
+				SqlDataPersistenceLayer sqlDataPersistenceLayer = new SqlDataPersistenceLayer(connectionString);
+
 				FileEnumeratorParameters parameters =
-					new FileEnumeratorParameters(cancelToken, Settings.FileEnumeration_DisableWorkerThread, selectedFolder, searchPatterns, calculateEntropy, yaraParameters,
-													Log.ToUI, Log.ToFile, ReportNumbers, Log.ExceptionMessage);
+					new FileEnumeratorParameters(cancelToken,
+												Settings.FileEnumeration_DisableWorkerThread,
+												selectedFolder,
+												searchPatterns,
+												calculateEntropy,
+												yaraParameters,
+												sqlDataPersistenceLayer,
+												Log.ToUI, Log.ToFile, ReportNumbers, Log.ExceptionMessage);
 
 				enumerationStart = DateTime.Now;
 
 				bool didThrow = false;
 				try
 				{
-					ThrowIfParametersInvalid(parameters);
+					parameters.ThrowIfAnyParametersInvalid();
 				}
 				catch (Exception ex)
 				{
@@ -160,19 +171,6 @@ namespace FilePropertiesBaselineGUI
 					FileEnumerator.LaunchFileEnumerator(parameters);
 				}
 			}
-		}
-
-		private static void ThrowIfParametersInvalid(FileEnumeratorParameters parameters)
-		{
-			if (parameters == null) { throw new ArgumentNullException(nameof(parameters)); }
-			if (parameters.SearchPatterns == null) { throw new ArgumentNullException(nameof(parameters.SearchPatterns)); }
-			if (parameters.ReportExceptionFunction == null) { throw new ArgumentNullException(nameof(parameters.ReportExceptionFunction)); }
-			if (parameters.ReportOutputFunction == null) { throw new ArgumentNullException(nameof(parameters.ReportOutputFunction)); }
-			if (parameters.LogOutputFunction == null) { throw new ArgumentNullException(nameof(parameters.LogOutputFunction)); }
-			if (parameters.ReportResultsFunction == null) { throw new ArgumentNullException(nameof(parameters.ReportResultsFunction)); }
-			if (!Directory.Exists(parameters.SelectedFolder)) { throw new DirectoryNotFoundException(parameters.SelectedFolder); }
-			if (parameters.CancelToken == null) { throw new ArgumentNullException(nameof(parameters.CancelToken), "If you do not want to pass a CancellationToken, then pass 'CancellationToken.None'"); }
-			parameters.CancelToken.ThrowIfCancellationRequested();
 		}
 
 		private void MainForm_FormClosing(object sender, FormClosingEventArgs e)
@@ -621,6 +619,5 @@ namespace FilePropertiesBaselineGUI
 		#endregion
 
 		#endregion
-
 	}
 }

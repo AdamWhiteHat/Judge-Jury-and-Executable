@@ -5,17 +5,17 @@ using System.Collections;
 using System.Data.SqlClient;
 using System.Collections.Generic;
 
-namespace DataAccessLayer
+namespace SqlDataAccessLayer
 {
 	using FilePropertiesDataObject;
 	using FilePropertiesDataObject.Helpers;
 
-	public class FilePropertiesAccessLayer
+	public class SqlDataPersistenceLayer : IDataPersistenceLayer
 	{
 		private static string ConnectionString;
 		private static string TableName = "FileProperties";
 
-		public static void SetConnectionString(string connectionString)
+		public SqlDataPersistenceLayer(string connectionString)
 		{
 			if (!string.IsNullOrWhiteSpace(connectionString))
 			{
@@ -23,7 +23,7 @@ namespace DataAccessLayer
 			}
 		}
 
-		public static bool InsertFileProperties(FileProperties fileProperties)
+		public bool PersistFileProperties(FileProperties fileProperties)
 		{
 			SqlKey key = new SqlKey(fileProperties.MFTNumber, fileProperties.SequenceNumber, fileProperties.Sha256Hash);
 
@@ -93,14 +93,14 @@ namespace DataAccessLayer
 			return InsertIntoDB(fileProperties, key, sqlParameters);
 		}
 
-		public static string GetExistingYaraRules(SqlKey key)
+		private static string GetExistingYaraRules(SqlKey key)
 		{
 			string queryText = $"SELECT TOP 1 [YaraRulesMatched] FROM [{TableName}] {key.WhereClause} AND [YaraRulesMatched] IS NOT NULL";
 
 			return (string)ExecuteScalar(queryText, key.GetSqlParameters());
 		}
 
-		public static bool InsertIntoDB(FileProperties fileProperties, SqlKey key, List<SqlParameter> sqlParameters)
+		private static bool InsertIntoDB(FileProperties fileProperties, SqlKey key, List<SqlParameter> sqlParameters)
 		{
 			string updateText = string.Empty;
 
@@ -157,7 +157,7 @@ END
 			}
 			catch (Exception ex)
 			{
-				SQLHelper.LogException(nameof(InsertFileProperties), commandText, ex);
+				SQLHelper.LogException(nameof(PersistFileProperties), commandText, ex);
 			}
 
 			return false;
@@ -176,7 +176,7 @@ END
 			}
 			catch (Exception ex)
 			{
-				SQLHelper.LogException(nameof(InsertFileProperties), commandText, ex);
+				SQLHelper.LogException(nameof(PersistFileProperties), commandText, ex);
 			}
 
 			return null;

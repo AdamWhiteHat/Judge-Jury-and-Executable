@@ -5,7 +5,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Collections.Generic;
 
-using DataAccessLayer;
+using SqlDataAccessLayer;
 using FilePropertiesDataObject;
 using FilePropertiesDataObject.Parameters;
 using System.IO.Filesystem.Ntfs;
@@ -96,6 +96,8 @@ namespace FilePropertiesEnumerator
 					mftNodes = mftNodes.Where(node => node.FullName.ToUpperInvariant().Contains(selectedFolderUppercase));
 				}
 
+				IDataPersistenceLayer dataPersistenceLayer = parameters.DataPersistenceLayer;
+
 				foreach (INode node in mftNodes)
 				{
 					string message = $"MFT#: {node.MFTRecordNumber.ToString().PadRight(7)} Seq.#: {node.SequenceNumber.ToString().PadRight(4)} Path: {node.FullName}";
@@ -109,7 +111,7 @@ namespace FilePropertiesEnumerator
 					prop.PopulateFileProperties(parameters, parameters.SelectedFolder[0], node);
 
 					// INSERT file properties into _DATABASE_
-					bool insertResult = FilePropertiesAccessLayer.InsertFileProperties(prop);
+					bool insertResult = dataPersistenceLayer.PersistFileProperties(prop);
 					if (insertResult)
 					{
 						databaseInsertCount.IncrementSucceededCount();

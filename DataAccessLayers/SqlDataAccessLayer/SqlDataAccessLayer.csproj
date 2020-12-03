@@ -7,8 +7,8 @@
     <ProjectGuid>{0332F67B-9B78-49EA-AA16-E01C20C49744}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>DataAccessLayer</RootNamespace>
-    <AssemblyName>DataAccessLayer</AssemblyName>
+    <RootNamespace>SqlDataAccessLayer</RootNamespace>
+    <AssemblyName>SqlDataAccessLayer</AssemblyName>
     <TargetFrameworkVersion>v4.6.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <TargetFrameworkProfile />
@@ -43,14 +43,14 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="FilePropertiesAccessLayer.cs" />
+    <Compile Include="SqlDataPersistenceLayer.cs" />
     <Compile Include="ParameterHelper.cs" />
     <Compile Include="SqlHelper.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SqlKey.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\FilePropertiesDataObject\FilePropertiesDataObject.csproj">
+    <ProjectReference Include="..\..\FilePropertiesDataObject\FilePropertiesDataObject.csproj">
       <Project>{f51a9fd6-c73d-4d41-9665-d2c181cea82f}</Project>
       <Name>FilePropertiesDataObject</Name>
     </ProjectReference>

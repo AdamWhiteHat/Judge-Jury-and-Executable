@@ -22,19 +22,24 @@ namespace FilePropertiesDataObject.Parameters
 		public Action<List<FailSuccessCount>> ReportResultsFunction { get; set; }
 		public Action<string, string, Exception> ReportExceptionFunction { get; set; }
 
+		public IDataPersistenceLayer DataPersistenceLayer { get; set; }
+
 		public FileEnumeratorParameters(CancellationToken cancelToken, bool disableWorkerThread,
 										string selectedFolder, string searchPatterns,
 										bool calculateEntropy, List<YaraFilter> yaraParameters,
+										IDataPersistenceLayer dataPersistenceLayerClass,
 										Action<string> reportOutputFunction,
 										Action<string> logOutputFunction,
 										Action<List<FailSuccessCount>> reportResultsFunction,
-										Action<string, string, Exception> reportExceptionFunction)
+										Action<string, string, Exception> reportExceptionFunction
+										)
 		{
 			this.CancelToken = cancelToken;
 			this.DisableWorkerThread = disableWorkerThread;
 			this.SelectedFolder = selectedFolder;
 			this.CalculateEntropy = calculateEntropy;
 			this.YaraParameters = yaraParameters;
+			this.DataPersistenceLayer = dataPersistenceLayerClass;
 			this.ReportOutputFunction = reportOutputFunction;
 			this.LogOutputFunction = logOutputFunction;
 			this.ReportResultsFunction = reportResultsFunction;
@@ -54,6 +59,25 @@ namespace FilePropertiesDataObject.Parameters
 
 			return patterns;
 
+		}
+
+		public void ThrowIfAnyParametersInvalid()
+		{
+			ThrowIfAnyParametersInvalid(this);
+		}
+
+		public static void ThrowIfAnyParametersInvalid(FileEnumeratorParameters parameters)
+		{
+			if (parameters == null) { throw new ArgumentNullException(nameof(parameters)); }
+			if (parameters.DataPersistenceLayer == null) { throw new ArgumentException(nameof(DataPersistenceLayer)); }
+			if (parameters.SearchPatterns == null) { throw new ArgumentNullException(nameof(parameters.SearchPatterns)); }
+			if (parameters.ReportExceptionFunction == null) { throw new ArgumentNullException(nameof(parameters.ReportExceptionFunction)); }
+			if (parameters.ReportOutputFunction == null) { throw new ArgumentNullException(nameof(parameters.ReportOutputFunction)); }
+			if (parameters.LogOutputFunction == null) { throw new ArgumentNullException(nameof(parameters.LogOutputFunction)); }
+			if (parameters.ReportResultsFunction == null) { throw new ArgumentNullException(nameof(parameters.ReportResultsFunction)); }
+			if (!Directory.Exists(parameters.SelectedFolder)) { throw new DirectoryNotFoundException(parameters.SelectedFolder); }
+			if (parameters.CancelToken == null) { throw new ArgumentNullException(nameof(parameters.CancelToken), "If you do not want to pass a CancellationToken, then pass 'CancellationToken.None'"); }
+			parameters.CancelToken.ThrowIfCancellationRequested();
 		}
 	}
 }

@@ -74,6 +74,7 @@
     <Compile Include="Helpers\EntropyHelper.cs" />
     <Compile Include="FailSuccessCount.cs" />
     <Compile Include="Helpers\VerifyTrustHelper.cs" />
+    <Compile Include="IDataPersistenceLayer.cs" />
     <Compile Include="Parameters\FileEnumeratorParameters.cs" />
     <Compile Include="FileProperties.cs" />
     <Compile Include="YaraFilter.cs" />

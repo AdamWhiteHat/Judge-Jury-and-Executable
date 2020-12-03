@@ -5,11 +5,11 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("DataAccessLayer")]
+[assembly: AssemblyTitle("SqlDataAccessLayer")]
 [assembly: AssemblyDescription("A file system forensics analysis scanner and threat hunting tool.")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("https://github.com/AdamWhiteHat/Judge-Jury-and-Executable/")]
-[assembly: AssemblyProduct("DataAccessLayer")]
+[assembly: AssemblyProduct("SqlDataAccessLayer")]
 [assembly: AssemblyCopyright("GNU Affero General Public License v3.0. See more @ https://github.com/AdamWhiteHat/Judge-Jury-and-Executable/blob/master/LICENSE")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]

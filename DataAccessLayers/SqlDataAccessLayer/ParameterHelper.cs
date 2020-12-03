@@ -2,7 +2,7 @@
 using System.Data;
 using System.Data.SqlClient;
 
-namespace DataAccessLayer
+namespace SqlDataAccessLayer
 {
     public static class ParameterHelper
     {
