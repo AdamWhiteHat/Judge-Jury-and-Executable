@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace FilePropertiesDataObject
 {
-	public interface IDataPersistenceLayer
+	public interface IDataPersistenceLayer : IDisposable
 	{
 		bool PersistFileProperties(FileProperties fileProperties);
 	}

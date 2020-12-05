@@ -66,7 +66,6 @@ namespace SqlDataAccessLayer
 					sqlConnection.Open();
 					sqlCommand.Connection = sqlConnection;
 
-
 					// Returns how many rows affected. Should be 1.
 					int result = sqlCommand.ExecuteNonQuery();
 					if (result == 1)

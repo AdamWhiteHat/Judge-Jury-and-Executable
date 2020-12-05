@@ -70,6 +70,10 @@
       <Project>{0332f67b-9b78-49ea-aa16-e01c20c49744}</Project>
       <Name>SqlDataAccessLayer</Name>
     </ProjectReference>
+    <ProjectReference Include="..\DataAccessLayers\SqliteDataAccessLayer\SqliteDataAccessLayer.csproj">
+      <Project>{03c27ca9-b9e0-41de-8eb0-32f562485861}</Project>
+      <Name>SqliteDataAccessLayer</Name>
+    </ProjectReference>
     <ProjectReference Include="..\FilePropertiesDataObject\FilePropertiesDataObject.csproj">
       <Project>{f51a9fd6-c73d-4d41-9665-d2c181cea82f}</Project>
       <Name>FilePropertiesDataObject</Name>

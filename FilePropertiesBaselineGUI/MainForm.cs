@@ -5,7 +5,9 @@ using System.Threading;
 using System.Collections;
 using System.Windows.Forms;
 using System.Collections.Generic;
+
 using SqlDataAccessLayer;
+using SqliteDataAccessLayer;
 using FilePropertiesEnumerator;
 using FilePropertiesDataObject;
 using FilePropertiesDataObject.Parameters;
@@ -134,7 +136,10 @@ namespace FilePropertiesBaselineGUI
 					return;
 				}
 
-				SqlDataPersistenceLayer sqlDataPersistenceLayer = new SqlDataPersistenceLayer(connectionString);
+				IDataPersistenceLayer dataPersistenceLayer;
+
+				// TODO: Provide a way in the GUI to change this to a SqliteDataPersistenceLayer				
+				dataPersistenceLayer = new SqlDataPersistenceLayer(connectionString);
 
 				FileEnumeratorParameters parameters =
 					new FileEnumeratorParameters(cancelToken,
@@ -143,7 +148,7 @@ namespace FilePropertiesBaselineGUI
 												searchPatterns,
 												calculateEntropy,
 												yaraParameters,
-												sqlDataPersistenceLayer,
+												dataPersistenceLayer,
 												Log.ToUI, Log.ToFile, ReportNumbers, Log.ExceptionMessage);
 
 				enumerationStart = DateTime.Now;

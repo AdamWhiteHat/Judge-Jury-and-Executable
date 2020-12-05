@@ -123,6 +123,8 @@ namespace FilePropertiesEnumerator
 
 					parameters.CancelToken.ThrowIfCancellationRequested();
 				}
+
+				dataPersistenceLayer.Dispose();
 			}
 			catch (OperationCanceledException)
 			{ }

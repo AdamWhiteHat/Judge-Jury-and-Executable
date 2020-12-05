@@ -6,12 +6,14 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Collections.Generic;
 
+using Newtonsoft.Json;
+
 using Logging;
 using SqlDataAccessLayer;
+using SqliteDataAccessLayer;
 using FilePropertiesEnumerator;
 using FilePropertiesDataObject;
 using FilePropertiesDataObject.Parameters;
-using Newtonsoft.Json;
 
 namespace FilePropertiesBaselineConsole
 {
@@ -25,11 +27,25 @@ namespace FilePropertiesBaselineConsole
 
 		private static void DisplayUsageSyntax()
 		{
+			ReportOutput("Usage:");
 			ReportOutput();
-			ReportOutput("-p:C:\\Windows           -  Search [p]ath");
-			ReportOutput("-m:*.exe                 -  Search [m]ask");
-			ReportOutput("-e                       -  Enable calulate [e]ntropy");
-			ReportOutput("-y:C:\\YaraFilters.json  -  [Y]ara filters file");
+			ReportOutput("-p:C:\\Windows             -  Search [p]ath");
+			ReportOutput("-m:*.exe                  -  Search [m]ask");
+			ReportOutput("-e                        -  Enable calculate [e]ntropy");
+			ReportOutput("-y:\"C:\\Yara Filters.json\" -  [Y]ara filters file");
+			ReportOutput("-l                        -  Use Sq[l]ite database instead");
+			ReportOutput("                              (supply path to db file in");
+			ReportOutput("                               place of connection string)");
+			ReportOutput();
+			ReportOutput("RULES:");
+			ReportOutput(" - All arguments must start with a dash");
+			ReportOutput(" - For flags (the part before the ':'), letter casing is ignored");
+			ReportOutput(" - For paths and other arguments after the ':', casing is retained");
+			ReportOutput(" - Do not uses spaces between the dash, the flag and the colon");
+			ReportOutput(" - If your path (or other arguments following the ':') contain a space, you must surround it in quotes (see the yara filters example above))");
+			ReportOutput();
+			ReportOutput("Press any key to continue . . .");
+			Console.ReadKey(true);
 		}
 
 		private static void Main(string[] args)
@@ -38,6 +54,7 @@ namespace FilePropertiesBaselineConsole
 			if (string.IsNullOrWhiteSpace(connectionString) || connectionString == "SetMe")
 			{
 				ReportOutput("ERROR: Connection string not set! Please set the SQL connection string in .config file.");
+				ReportOutput();
 				ReportOutput("Aborting...");
 				return;
 			}
@@ -60,6 +77,7 @@ namespace FilePropertiesBaselineConsole
 			string searchMask = "*.*";
 			bool calcEntropy = false;
 			bool yaraScan = false;
+			bool sqliteDb = false;
 			string yaraFiltersFile = "";
 			List<YaraFilter> yaraFilters = new List<YaraFilter>();
 
@@ -83,22 +101,44 @@ namespace FilePropertiesBaselineConsole
 						yaraScan = true;
 						yaraFiltersFile = parameter;
 						break;
+					case "l":
+						sqliteDb = true;
+						break;
 				}
 			}
 
 			ReportOutput();
 			ReportOutput("Running with these parameters:");
 			ReportOutput($"   Search [P]ath:       \"{searchPath}\"");
-			ReportOutput($"   Search [M]ask:       {searchMask}");
-			ReportOutput($"   Calulate [E]ntropy:  {calcEntropy}");
-			ReportOutput($"   [Y]ara filters file: \"{yaraFiltersFile}\"");
+			ReportOutput($"   Search [M]ask:        {searchMask}");
+			ReportOutput($"   Calulate [E]ntropy:   {calcEntropy}");
+			if (yaraScan)
+			{
+				ReportOutput($"   [Y]ara filters file: \"{yaraFiltersFile}\"");
+			}
+			if (sqliteDb)
+			{
+				ReportOutput($"   Sq[l]ite DB          \"{connectionString}\"");
+			}
 			ReportOutput();
+
+			if (string.IsNullOrWhiteSpace(searchPath))
+			{
+				ReportOutput("No search path provided!");
+				ReportOutput("At a minimum, you must supply the -p flag with a path, e.g.:");
+				ReportOutput("-p:\"C:\\Program Files\\BanzaiBuddy\"");
+				ReportOutput();
+				ReportOutput("Aborting...");
+				return;
+			}
 
 			if (yaraScan)
 			{
 				if (!File.Exists(yaraFiltersFile))
 				{
 					ReportOutput($"The yara filters file path suppled does not exist: \"{yaraFiltersFile}\".");
+					ReportOutput();
+					ReportOutput("Aborting...");
 					return;
 				}
 				try
@@ -109,11 +149,22 @@ namespace FilePropertiesBaselineConsole
 				catch
 				{
 					ReportOutput("The yara filters file must be a JSON file.");
+					ReportOutput();
+					ReportOutput("Aborting...");
 					return;
 				}
 			}
 
-			SqlDataPersistenceLayer sqlDataPersistenceLayer = new SqlDataPersistenceLayer(connectionString);
+			IDataPersistenceLayer dataPersistenceLayer;
+
+			if (sqliteDb)
+			{
+				dataPersistenceLayer = new SqliteDataPersistenceLayer(connectionString);
+			}
+			else
+			{
+				dataPersistenceLayer = new SqlDataPersistenceLayer(connectionString);
+			}
 
 			FileEnumeratorParameters parameters =
 					new FileEnumeratorParameters(
@@ -123,7 +174,7 @@ namespace FilePropertiesBaselineConsole
 						searchMask,
 						calcEntropy,
 						yaraFilters,
-						sqlDataPersistenceLayer,
+						dataPersistenceLayer,
 						ReportOutput,
 						Log.ToAll,
 						ReportResults,
