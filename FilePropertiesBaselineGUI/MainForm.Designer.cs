@@ -60,10 +60,18 @@
 			this.radioButtonYara_MimeType = new System.Windows.Forms.RadioButton();
 			this.flowLayoutPanelTop = new System.Windows.Forms.FlowLayoutPanel();
 			this.panelSearchButton = new System.Windows.Forms.Panel();
+			this.panel1 = new System.Windows.Forms.Panel();
+			this.labelTextBoxDescription = new System.Windows.Forms.Label();
+			this.label2 = new System.Windows.Forms.Label();
+			this.btnPersistenceBrowse = new System.Windows.Forms.Button();
+			this.tbPersistenceParameter = new System.Windows.Forms.TextBox();
+			this.radioPersistenceCSV = new System.Windows.Forms.RadioButton();
+			this.radioPersistenceSqlite = new System.Windows.Forms.RadioButton();
+			this.radioPersistenceSqlServer = new System.Windows.Forms.RadioButton();
+			this.linkGitHub = new System.Windows.Forms.LinkLabel();
 			this.panelBottom = new System.Windows.Forms.Panel();
 			this.tableLayoutPanel1 = new System.Windows.Forms.TableLayoutPanel();
 			this.panelTop = new System.Windows.Forms.Panel();
-			this.linkGitHub = new System.Windows.Forms.LinkLabel();
 			this.panelParameters.SuspendLayout();
 			this.panelYaraParameters.SuspendLayout();
 			this.panelListBox.SuspendLayout();
@@ -72,6 +80,7 @@
 			this.panelYaraFilterValue.SuspendLayout();
 			this.flowLayoutPanelTop.SuspendLayout();
 			this.panelSearchButton.SuspendLayout();
+			this.panel1.SuspendLayout();
 			this.panelBottom.SuspendLayout();
 			this.tableLayoutPanel1.SuspendLayout();
 			this.panelTop.SuspendLayout();
@@ -108,12 +117,13 @@
 			this.tbOutput.Multiline = true;
 			this.tbOutput.Name = "tbOutput";
 			this.tbOutput.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
-			this.tbOutput.Size = new System.Drawing.Size(760, 103);
+			this.tbOutput.Size = new System.Drawing.Size(760, 125);
 			this.tbOutput.TabIndex = 2;
 			this.tbOutput.KeyUp += new System.Windows.Forms.KeyEventHandler(this.tbOutput_KeyUp);
 			// 
 			// checkboxCalculateEntropy
 			// 
+			this.checkboxCalculateEntropy.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
 			this.checkboxCalculateEntropy.AutoSize = true;
 			this.checkboxCalculateEntropy.Location = new System.Drawing.Point(3, 62);
 			this.checkboxCalculateEntropy.Name = "checkboxCalculateEntropy";
@@ -145,7 +155,7 @@
 			// btnSearch
 			// 
 			this.btnSearch.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-			this.btnSearch.Location = new System.Drawing.Point(0, 9);
+			this.btnSearch.Location = new System.Drawing.Point(3, 99);
 			this.btnSearch.Name = "btnSearch";
 			this.btnSearch.Size = new System.Drawing.Size(198, 27);
 			this.btnSearch.TabIndex = 7;
@@ -161,8 +171,8 @@
 			this.panelParameters.Controls.Add(this.label1);
 			this.panelParameters.Controls.Add(this.tbSearchPatterns);
 			this.panelParameters.Controls.Add(this.checkboxCalculateEntropy);
-			this.panelParameters.Location = new System.Drawing.Point(1, 3);
-			this.panelParameters.Margin = new System.Windows.Forms.Padding(1, 3, 1, 3);
+			this.panelParameters.Location = new System.Drawing.Point(1, 1);
+			this.panelParameters.Margin = new System.Windows.Forms.Padding(1);
 			this.panelParameters.MinimumSize = new System.Drawing.Size(757, 103);
 			this.panelParameters.Name = "panelParameters";
 			this.panelParameters.Size = new System.Drawing.Size(757, 103);
@@ -170,6 +180,7 @@
 			// 
 			// checkBoxYaraRules
 			// 
+			this.checkBoxYaraRules.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
 			this.checkBoxYaraRules.AutoSize = true;
 			this.checkBoxYaraRules.Checked = true;
 			this.checkBoxYaraRules.CheckState = System.Windows.Forms.CheckState.Checked;
@@ -190,7 +201,7 @@
 			this.panelYaraParameters.Controls.Add(this.btnAddYaraFilter);
 			this.panelYaraParameters.Controls.Add(this.panelListBox);
 			this.panelYaraParameters.Controls.Add(this.panelYara);
-			this.panelYaraParameters.Location = new System.Drawing.Point(1, 110);
+			this.panelYaraParameters.Location = new System.Drawing.Point(1, 106);
 			this.panelYaraParameters.Margin = new System.Windows.Forms.Padding(1);
 			this.panelYaraParameters.MinimumSize = new System.Drawing.Size(757, 2);
 			this.panelYaraParameters.Name = "panelYaraParameters";
@@ -419,7 +430,7 @@
 			this.flowLayoutPanelTop.Margin = new System.Windows.Forms.Padding(0);
 			this.flowLayoutPanelTop.MinimumSize = new System.Drawing.Size(759, 150);
 			this.flowLayoutPanelTop.Name = "flowLayoutPanelTop";
-			this.flowLayoutPanelTop.Size = new System.Drawing.Size(760, 303);
+			this.flowLayoutPanelTop.Size = new System.Drawing.Size(759, 391);
 			this.flowLayoutPanelTop.TabIndex = 9;
 			this.flowLayoutPanelTop.Resize += new System.EventHandler(this.MainForm_Resize);
 			// 
@@ -427,24 +438,128 @@
 			// 
 			this.panelSearchButton.AutoSize = true;
 			this.panelSearchButton.BackColor = System.Drawing.SystemColors.Control;
+			this.panelSearchButton.Controls.Add(this.panel1);
 			this.panelSearchButton.Controls.Add(this.linkGitHub);
 			this.panelSearchButton.Controls.Add(this.btnSearch);
-			this.panelSearchButton.Location = new System.Drawing.Point(1, 266);
-			this.panelSearchButton.Margin = new System.Windows.Forms.Padding(1);
+			this.panelSearchButton.Location = new System.Drawing.Point(0, 261);
+			this.panelSearchButton.Margin = new System.Windows.Forms.Padding(0);
 			this.panelSearchButton.MinimumSize = new System.Drawing.Size(757, 27);
 			this.panelSearchButton.Name = "panelSearchButton";
-			this.panelSearchButton.Size = new System.Drawing.Size(758, 36);
+			this.panelSearchButton.Size = new System.Drawing.Size(757, 130);
 			this.panelSearchButton.TabIndex = 10;
+			// 
+			// panel1
+			// 
+			this.panel1.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+			this.panel1.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+			this.panel1.Controls.Add(this.labelTextBoxDescription);
+			this.panel1.Controls.Add(this.label2);
+			this.panel1.Controls.Add(this.btnPersistenceBrowse);
+			this.panel1.Controls.Add(this.tbPersistenceParameter);
+			this.panel1.Controls.Add(this.radioPersistenceCSV);
+			this.panel1.Controls.Add(this.radioPersistenceSqlite);
+			this.panel1.Controls.Add(this.radioPersistenceSqlServer);
+			this.panel1.Location = new System.Drawing.Point(1, 0);
+			this.panel1.Margin = new System.Windows.Forms.Padding(0);
+			this.panel1.Name = "panel1";
+			this.panel1.Size = new System.Drawing.Size(756, 96);
+			this.panel1.TabIndex = 12;
+			// 
+			// labelTextBoxDescription
+			// 
+			this.labelTextBoxDescription.AutoSize = true;
+			this.labelTextBoxDescription.Location = new System.Drawing.Point(94, 11);
+			this.labelTextBoxDescription.Name = "labelTextBoxDescription";
+			this.labelTextBoxDescription.Size = new System.Drawing.Size(94, 13);
+			this.labelTextBoxDescription.TabIndex = 6;
+			this.labelTextBoxDescription.Text = "Connection String:";
+			// 
+			// label2
+			// 
+			this.label2.AutoSize = true;
+			this.label2.Location = new System.Drawing.Point(3, 7);
+			this.label2.Name = "label2";
+			this.label2.Size = new System.Drawing.Size(82, 13);
+			this.label2.TabIndex = 5;
+			this.label2.Text = "Save results as:";
+			// 
+			// btnPersistenceBrowse
+			// 
+			this.btnPersistenceBrowse.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+			this.btnPersistenceBrowse.Location = new System.Drawing.Point(658, 25);
+			this.btnPersistenceBrowse.Name = "btnPersistenceBrowse";
+			this.btnPersistenceBrowse.Size = new System.Drawing.Size(95, 23);
+			this.btnPersistenceBrowse.TabIndex = 4;
+			this.btnPersistenceBrowse.Text = "Browse...";
+			this.btnPersistenceBrowse.UseVisualStyleBackColor = true;
+			this.btnPersistenceBrowse.Click += new System.EventHandler(this.btnPersistenceBrowse_Click);
+			// 
+			// tbPersistenceParameter
+			// 
+			this.tbPersistenceParameter.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+			this.tbPersistenceParameter.Location = new System.Drawing.Point(111, 27);
+			this.tbPersistenceParameter.Multiline = true;
+			this.tbPersistenceParameter.Name = "tbPersistenceParameter";
+			this.tbPersistenceParameter.Size = new System.Drawing.Size(542, 38);
+			this.tbPersistenceParameter.TabIndex = 3;
+			// 
+			// radioPersistenceCSV
+			// 
+			this.radioPersistenceCSV.AutoSize = true;
+			this.radioPersistenceCSV.Location = new System.Drawing.Point(15, 26);
+			this.radioPersistenceCSV.Name = "radioPersistenceCSV";
+			this.radioPersistenceCSV.Size = new System.Drawing.Size(65, 17);
+			this.radioPersistenceCSV.TabIndex = 2;
+			this.radioPersistenceCSV.Text = "CSV File";
+			this.radioPersistenceCSV.UseVisualStyleBackColor = true;
+			this.radioPersistenceCSV.CheckedChanged += new System.EventHandler(this.radioPersistenceCSV_CheckedChanged);
+			// 
+			// radioPersistenceSqlite
+			// 
+			this.radioPersistenceSqlite.AutoSize = true;
+			this.radioPersistenceSqlite.Location = new System.Drawing.Point(15, 48);
+			this.radioPersistenceSqlite.Name = "radioPersistenceSqlite";
+			this.radioPersistenceSqlite.Size = new System.Drawing.Size(75, 17);
+			this.radioPersistenceSqlite.TabIndex = 1;
+			this.radioPersistenceSqlite.Text = "SQLite DB";
+			this.radioPersistenceSqlite.UseVisualStyleBackColor = true;
+			this.radioPersistenceSqlite.CheckedChanged += new System.EventHandler(this.radioPersistenceSqlite_CheckedChanged);
+			// 
+			// radioPersistenceSqlServer
+			// 
+			this.radioPersistenceSqlServer.AutoSize = true;
+			this.radioPersistenceSqlServer.Location = new System.Drawing.Point(15, 70);
+			this.radioPersistenceSqlServer.Name = "radioPersistenceSqlServer";
+			this.radioPersistenceSqlServer.Size = new System.Drawing.Size(98, 17);
+			this.radioPersistenceSqlServer.TabIndex = 0;
+			this.radioPersistenceSqlServer.Text = "SQL Server DB";
+			this.radioPersistenceSqlServer.UseVisualStyleBackColor = true;
+			this.radioPersistenceSqlServer.CheckedChanged += new System.EventHandler(this.radioPersistenceSqlServer_CheckedChanged);
+			// 
+			// linkGitHub
+			// 
+			this.linkGitHub.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
+			this.linkGitHub.AutoSize = true;
+			this.linkGitHub.Location = new System.Drawing.Point(450, 113);
+			this.linkGitHub.Name = "linkGitHub";
+			this.linkGitHub.Size = new System.Drawing.Size(305, 13);
+			this.linkGitHub.TabIndex = 11;
+			this.linkGitHub.TabStop = true;
+			this.linkGitHub.Text = "https://github.com/AdamWhiteHat/Judge-Jury-and-Executable";
+			this.linkGitHub.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.linkGitHub_LinkClicked);
 			// 
 			// panelBottom
 			// 
 			this.panelBottom.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
 			this.panelBottom.Controls.Add(this.tbOutput);
 			this.panelBottom.Dock = System.Windows.Forms.DockStyle.Fill;
-			this.panelBottom.Location = new System.Drawing.Point(0, 303);
+			this.panelBottom.Location = new System.Drawing.Point(0, 391);
 			this.panelBottom.Margin = new System.Windows.Forms.Padding(0);
 			this.panelBottom.Name = "panelBottom";
-			this.panelBottom.Size = new System.Drawing.Size(760, 103);
+			this.panelBottom.Size = new System.Drawing.Size(760, 125);
 			this.panelBottom.TabIndex = 10;
 			// 
 			// tableLayoutPanel1
@@ -462,7 +577,7 @@
 			this.tableLayoutPanel1.RowCount = 2;
 			this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle());
 			this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100F));
-			this.tableLayoutPanel1.Size = new System.Drawing.Size(759, 406);
+			this.tableLayoutPanel1.Size = new System.Drawing.Size(759, 516);
 			this.tableLayoutPanel1.TabIndex = 10;
 			// 
 			// panelTop
@@ -474,29 +589,17 @@
 			this.panelTop.Location = new System.Drawing.Point(0, 0);
 			this.panelTop.Margin = new System.Windows.Forms.Padding(0);
 			this.panelTop.Name = "panelTop";
-			this.panelTop.Size = new System.Drawing.Size(760, 303);
+			this.panelTop.Size = new System.Drawing.Size(760, 391);
 			this.panelTop.TabIndex = 11;
-			// 
-			// linkGitHub
-			// 
-			this.linkGitHub.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-			this.linkGitHub.AutoSize = true;
-			this.linkGitHub.Location = new System.Drawing.Point(450, 20);
-			this.linkGitHub.Name = "linkGitHub";
-			this.linkGitHub.Size = new System.Drawing.Size(305, 13);
-			this.linkGitHub.TabIndex = 11;
-			this.linkGitHub.TabStop = true;
-			this.linkGitHub.Text = "https://github.com/AdamWhiteHat/Judge-Jury-and-Executable";
-			this.linkGitHub.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.linkGitHub_LinkClicked);
 			// 
 			// MainForm
 			// 
 			this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
 			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-			this.ClientSize = new System.Drawing.Size(759, 406);
+			this.ClientSize = new System.Drawing.Size(759, 516);
 			this.Controls.Add(this.tableLayoutPanel1);
 			this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
-			this.MinimumSize = new System.Drawing.Size(775, 300);
+			this.MinimumSize = new System.Drawing.Size(775, 400);
 			this.Name = "MainForm";
 			this.Text = "Judge, Jury, and Executable";
 			this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.MainForm_FormClosing);
@@ -516,6 +619,8 @@
 			this.flowLayoutPanelTop.PerformLayout();
 			this.panelSearchButton.ResumeLayout(false);
 			this.panelSearchButton.PerformLayout();
+			this.panel1.ResumeLayout(false);
+			this.panel1.PerformLayout();
 			this.panelBottom.ResumeLayout(false);
 			this.panelBottom.PerformLayout();
 			this.tableLayoutPanel1.ResumeLayout(false);
@@ -563,6 +668,14 @@
 		private System.Windows.Forms.RadioButton radioButtonYara_ElseNoMatch;
 		private System.Windows.Forms.Panel panelSearchButton;
 		private System.Windows.Forms.LinkLabel linkGitHub;
+		private System.Windows.Forms.Panel panel1;
+		private System.Windows.Forms.Label labelTextBoxDescription;
+		private System.Windows.Forms.Label label2;
+		private System.Windows.Forms.Button btnPersistenceBrowse;
+		private System.Windows.Forms.TextBox tbPersistenceParameter;
+		private System.Windows.Forms.RadioButton radioPersistenceCSV;
+		private System.Windows.Forms.RadioButton radioPersistenceSqlite;
+		private System.Windows.Forms.RadioButton radioPersistenceSqlServer;
 	}
 }
 

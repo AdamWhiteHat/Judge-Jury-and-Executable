@@ -18,6 +18,7 @@ namespace CsvDataAccessLayer
 				throw new ArgumentException($"Argument {nameof(csvFilePath)} cannot be null, empty or whitespace.");
 			}
 			_csvFilePath = csvFilePath;
+			throw new NotImplementedException();
 		}
 
 		public bool PersistFileProperties(FileProperties fileProperties)

@@ -2,17 +2,18 @@
 using System.IO;
 using System.Linq;
 using System.Threading;
-using System.Collections;
+using System.Diagnostics;
 using System.Windows.Forms;
 using System.Collections.Generic;
 
+using Logging;
+using CsvDataAccessLayer;
 using SqlDataAccessLayer;
 using SqliteDataAccessLayer;
 using FilePropertiesEnumerator;
 using FilePropertiesDataObject;
 using FilePropertiesDataObject.Parameters;
-using System.Diagnostics;
-using Logging;
+using Microsoft.Data.ConnectionUI;
 
 namespace FilePropertiesBaselineGUI
 {
@@ -53,9 +54,15 @@ namespace FilePropertiesBaselineGUI
 			string connectionString = Settings.Database_ConnectionString;
 			if (string.IsNullOrWhiteSpace(connectionString) || connectionString == "SetMe")
 			{
-				Log.ToAll("ERROR: Connection string not set! Please set the SQL connection string in .config file. Browse button disabled.");
-				btnBrowse.Enabled = false;
-				btnSearch.Enabled = false;
+				//Log.ToAll("ERROR: Connection string not set! Please set the SQL connection //string in .config file. Browse button disabled.");
+				//btnBrowse.Enabled = false;
+				//btnSearch.Enabled = false;
+				radioPersistenceSqlite.Checked = true;
+			}
+			else
+			{
+				radioPersistenceSqlServer.Checked = true;
+				tbPersistenceParameter.Text = connectionString;
 			}
 
 			if (!string.IsNullOrWhiteSpace(Settings.GUI_DefaultFolder))
@@ -129,17 +136,19 @@ namespace FilePropertiesBaselineGUI
 					yaraParameters = currentYaraFilters.ToList();
 				}
 
-				string connectionString = Settings.Database_ConnectionString;
-				if (string.IsNullOrWhiteSpace(connectionString) || connectionString == "SetMe")
+				IDataPersistenceLayer dataPersistenceLayer = null;
+				if (radioPersistenceCSV.Checked)
 				{
-					MessageBox.Show("No SQL connection string supplied.", "Error");
-					return;
+					dataPersistenceLayer = new CsvDataPersistenceLayer(tbPersistenceParameter.Text);
 				}
-
-				IDataPersistenceLayer dataPersistenceLayer;
-
-				// TODO: Provide a way in the GUI to change this to a SqliteDataPersistenceLayer				
-				dataPersistenceLayer = new SqlDataPersistenceLayer(connectionString);
+				else if (radioPersistenceSqlite.Checked)
+				{
+					dataPersistenceLayer = new SqliteDataPersistenceLayer(tbPersistenceParameter.Text);
+				}
+				else if (radioPersistenceSqlServer.Checked)
+				{
+					dataPersistenceLayer = new SqlDataPersistenceLayer(tbPersistenceParameter.Text);
+				}
 
 				FileEnumeratorParameters parameters =
 					new FileEnumeratorParameters(cancelToken,
@@ -625,5 +634,54 @@ namespace FilePropertiesBaselineGUI
 		#endregion
 
 		#endregion
+
+		#region Data persistence settings
+
+		private void radioPersistenceCSV_CheckedChanged(object sender, EventArgs e)
+		{
+			labelTextBoxDescription.Text = "Path to CSV file:";
+			btnPersistenceBrowse.Text = "Browse...";
+			tbPersistenceParameter.Multiline = false;
+		}
+
+		private void radioPersistenceSqlite_CheckedChanged(object sender, EventArgs e)
+		{
+			labelTextBoxDescription.Text = "Path to DB file:";
+			btnPersistenceBrowse.Text = "Browse...";
+			tbPersistenceParameter.Multiline = false;
+		}
+
+		private void radioPersistenceSqlServer_CheckedChanged(object sender, EventArgs e)
+		{
+			labelTextBoxDescription.Text = "Connection string:";
+			btnPersistenceBrowse.Text = "Connect...";
+			tbPersistenceParameter.Multiline = true;
+		}
+
+		private void btnPersistenceBrowse_Click(object sender, EventArgs e)
+		{
+			if (radioPersistenceCSV.Checked || radioPersistenceSqlite.Checked)
+			{
+				string selectedFile = DialogHelper.BrowseForFileDialog(tbPersistenceParameter.Text);
+
+				if (!string.IsNullOrWhiteSpace(selectedFile))
+				{
+					tbPersistenceParameter.Text = selectedFile;
+				}
+			}
+			else if (radioPersistenceSqlServer.Checked)
+			{
+				DataConnectionDialog dataConnectionDialog = new DataConnectionDialog();
+				DataSource.AddStandardDataSources(dataConnectionDialog);
+
+				if (DataConnectionDialog.Show(dataConnectionDialog) == DialogResult.OK)
+				{
+					tbPersistenceParameter.Text = dataConnectionDialog.ConnectionString;
+				}
+			}
+		}
+
+		#endregion
+
 	}
 }
