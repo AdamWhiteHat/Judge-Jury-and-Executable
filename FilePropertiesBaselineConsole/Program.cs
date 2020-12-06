@@ -1,15 +1,15 @@
 ﻿using System;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
+using System.Reflection;
 using System.Collections.Generic;
 
 using Newtonsoft.Json;
 
 using Logging;
 using SqlDataAccessLayer;
+using CsvDataAccessLayer;
 using SqliteDataAccessLayer;
 using FilePropertiesEnumerator;
 using FilePropertiesDataObject;
@@ -19,10 +19,15 @@ namespace FilePropertiesBaselineConsole
 {
 	sealed class Program
 	{
+		private static string _thisExecutableFilename;
+
 		static Program()
 		{
 			Log.LogOutputAction = Console.WriteLine;
 			SQLHelper.LogExceptionAction = Log.ExceptionMessage;
+
+			Assembly thisAssembly = Assembly.GetEntryAssembly() ?? Assembly.GetExecutingAssembly();
+			_thisExecutableFilename = Path.GetFileName(thisAssembly.Location);
 		}
 
 		private static void DisplayUsageSyntax()
@@ -33,16 +38,17 @@ namespace FilePropertiesBaselineConsole
 			ReportOutput("-m:*.exe                  -  Search [m]ask");
 			ReportOutput("-e                        -  Enable calculate [e]ntropy");
 			ReportOutput("-y:\"C:\\Yara Filters.json\" -  [Y]ara filters file");
-			ReportOutput("-l                        -  Use Sq[l]ite database instead");
-			ReportOutput("                              (supply path to db file in");
-			ReportOutput("                               place of connection string)");
+			ReportOutput("-l:C:\\scan001.db          -  Output a Sq[l]ite database");
+			ReportOutput("-c:C:\\scan001.csv         -  Output a [C]SV file");
+			ReportOutput($"-s                        -  Output to [S]QL server (supply connection string in file: {_thisExecutableFilename}.config");
 			ReportOutput();
 			ReportOutput("RULES:");
-			ReportOutput(" - All arguments must start with a dash");
-			ReportOutput(" - For flags (the part before the ':'), letter casing is ignored");
-			ReportOutput(" - For paths and other arguments after the ':', casing is retained");
-			ReportOutput(" - Do not uses spaces between the dash, the flag and the colon");
-			ReportOutput(" - If your path (or other arguments following the ':') contain a space, you must surround it in quotes (see the yara filters example above))");
+			ReportOutput(" - All arguments must start with a dash.");
+			ReportOutput(" - For flags (the part before the ':'), letter casing is ignored.");
+			ReportOutput(" - For paths and other arguments after the ':', casing is retained.");
+			ReportOutput(" - Do not uses spaces between the dash, the flag and the colon.");
+			ReportOutput(" - If your path (or other arguments following the ':') contain a space, you must surround it in quotes (see the yara filters example above).");
+			ReportOutput(" - If no output parameter is suppled, it will default to a SQL server connection. In that case, a connection string MUST be suppled in this executable's config file.");
 			ReportOutput();
 			ReportOutput("Press any key to continue . . .");
 			Console.ReadKey(true);
@@ -50,15 +56,6 @@ namespace FilePropertiesBaselineConsole
 
 		private static void Main(string[] args)
 		{
-			string connectionString = Settings.Database_ConnectionString;
-			if (string.IsNullOrWhiteSpace(connectionString) || connectionString == "SetMe")
-			{
-				ReportOutput("ERROR: Connection string not set! Please set the SQL connection string in .config file.");
-				ReportOutput();
-				ReportOutput("Aborting...");
-				return;
-			}
-
 			if (args.Length == 0)
 			{
 				DisplayUsageSyntax();
@@ -75,9 +72,14 @@ namespace FilePropertiesBaselineConsole
 
 			string searchPath = "";
 			string searchMask = "*.*";
-			bool calcEntropy = false;
-			bool yaraScan = false;
-			bool sqliteDb = false;
+			bool isEntropyEnabled = false;
+			bool isYaraEnabled = false;
+			bool isSqlServerEnabled = false;
+			bool isSqliteEnabled = false;
+			bool isCsvEnabled = false;
+			string sqliteDbFile = "";
+			string csvFile = "";
+			string sqlConnectionString = (Settings.Database_ConnectionString == "SetMe") ? "" : Settings.Database_ConnectionString;
 			string yaraFiltersFile = "";
 			List<YaraFilter> yaraFilters = new List<YaraFilter>();
 
@@ -89,7 +91,7 @@ namespace FilePropertiesBaselineConsole
 				switch (flag)
 				{
 					case "e":
-						calcEntropy = true;
+						isEntropyEnabled = true;
 						break;
 					case "p":
 						searchPath = parameter;
@@ -98,11 +100,19 @@ namespace FilePropertiesBaselineConsole
 						searchMask = parameter;
 						break;
 					case "y":
-						yaraScan = true;
+						isYaraEnabled = true;
 						yaraFiltersFile = parameter;
 						break;
+					case "s":
+						isSqlServerEnabled = true;
+						break;
 					case "l":
-						sqliteDb = true;
+						isSqliteEnabled = true;
+						sqliteDbFile = string.IsNullOrWhiteSpace(parameter) ? sqlConnectionString : parameter;
+						break;
+					case "c":
+						isCsvEnabled = true;
+						csvFile = parameter;
 						break;
 				}
 			}
@@ -111,28 +121,38 @@ namespace FilePropertiesBaselineConsole
 			ReportOutput("Running with these parameters:");
 			ReportOutput($"   Search [P]ath:       \"{searchPath}\"");
 			ReportOutput($"   Search [M]ask:        {searchMask}");
-			ReportOutput($"   Calulate [E]ntropy:   {calcEntropy}");
-			if (yaraScan)
+			ReportOutput($"   Calulate [E]ntropy:   {isEntropyEnabled}");
+			if (isYaraEnabled)
 			{
 				ReportOutput($"   [Y]ara filters file: \"{yaraFiltersFile}\"");
 			}
-			if (sqliteDb)
+
+			if (isSqlServerEnabled)
 			{
-				ReportOutput($"   Sq[l]ite DB          \"{connectionString}\"");
+				ReportOutput($"   [S]QL connection: \"{sqlConnectionString}\"");
 			}
+			else if (isSqliteEnabled)
+			{
+				ReportOutput($"   Sq[l]ite DB: \"{sqliteDbFile}\"");
+			}
+			else if (isCsvEnabled)
+			{
+				ReportOutput($"   [C]SV file: \"{csvFile}\"");
+			}
+
 			ReportOutput();
 
 			if (string.IsNullOrWhiteSpace(searchPath))
 			{
 				ReportOutput("No search path provided!");
-				ReportOutput("At a minimum, you must supply the -p flag with a path, e.g.:");
+				ReportOutput("You must supply the -p flag with a path, e.g.:");
 				ReportOutput("-p:\"C:\\Program Files\\BanzaiBuddy\"");
 				ReportOutput();
 				ReportOutput("Aborting...");
 				return;
 			}
 
-			if (yaraScan)
+			if (isYaraEnabled)
 			{
 				if (!File.Exists(yaraFiltersFile))
 				{
@@ -157,13 +177,37 @@ namespace FilePropertiesBaselineConsole
 
 			IDataPersistenceLayer dataPersistenceLayer;
 
-			if (sqliteDb)
+			if (isSqliteEnabled)
 			{
-				dataPersistenceLayer = new SqliteDataPersistenceLayer(connectionString);
+				dataPersistenceLayer = new SqliteDataPersistenceLayer(sqliteDbFile);
+			}
+			else if (isCsvEnabled)
+			{
+				dataPersistenceLayer = new CsvDataPersistenceLayer(csvFile);
+			}
+			else if (isSqlServerEnabled)
+			{
+				dataPersistenceLayer = new SqlDataPersistenceLayer(sqlConnectionString);
 			}
 			else
 			{
-				dataPersistenceLayer = new SqlDataPersistenceLayer(connectionString);
+				ReportOutput("No output parameter provided!");
+
+				if (!string.IsNullOrWhiteSpace(sqlConnectionString))
+				{
+					ReportOutput("(SQL server connection string supplied in config file, asuming SQL server output...)");
+					dataPersistenceLayer = new SqlDataPersistenceLayer(sqlConnectionString);
+				}
+				else
+				{
+					ReportOutput("You must supply an output parameter, e.g.:");
+					ReportOutput("-c:C:\\out.csv");
+					ReportOutput($"OR provide a SQL server connection string in the config file: {_thisExecutableFilename}");
+					ReportOutput("(Because it defaults to a SQL server connection. However, the connection string was missing.)");
+					ReportOutput();
+					ReportOutput("Aborting...");
+					return;
+				}
 			}
 
 			FileEnumeratorParameters parameters =
@@ -172,7 +216,7 @@ namespace FilePropertiesBaselineConsole
 						true, // Do not change this. If set to false, it will run on a thread, return immediately and exit, killing the thread.
 						searchPath,
 						searchMask,
-						calcEntropy,
+						isEntropyEnabled,
 						yaraFilters,
 						dataPersistenceLayer,
 						ReportOutput,

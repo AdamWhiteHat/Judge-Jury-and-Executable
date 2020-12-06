@@ -66,6 +66,10 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\DataAccessLayers\CsvDataAccessLayer\CsvDataAccessLayer.csproj">
+      <Project>{419559cb-4da9-40c3-bc60-f5d71108f3ae}</Project>
+      <Name>CsvDataAccessLayer</Name>
+    </ProjectReference>
     <ProjectReference Include="..\DataAccessLayers\SqlDataAccessLayer\SqlDataAccessLayer.csproj">
       <Project>{0332f67b-9b78-49ea-aa16-e01c20c49744}</Project>
       <Name>SqlDataAccessLayer</Name>
