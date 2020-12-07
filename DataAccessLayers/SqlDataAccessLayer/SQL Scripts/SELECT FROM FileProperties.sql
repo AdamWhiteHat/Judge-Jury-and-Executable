@@ -1,28 +1,14 @@
-﻿/*
-
-TRUNCATE TABLE [FileProperties]
-
-*/
-
-/**/
-
-
+﻿
 SELECT TOP 10000 * 
 FROM [FileProperties]
 ORDER BY [MFTNumber] DESC
 
-
 /*
-SELECT TOP 1 *
-FROM [FileProperties]
-WHERE 
-   -- [MFTNumber] = 752 AND [SequenceNumber] = 0 AND [SHA256] = '1C1EEE77FD0151FEFE27D2C1074EF844CEDA7F909A78480A466228A3647C858E'
-  --AND 
-  [YaraRulesMatched] IS NOT NULL
+
+SELECT COUNT(SHA256) FROM [FileProperties]
 
 */
 
---SELECT COUNT(SHA256) FROM [FileProperties]
 
 /*
 
@@ -34,5 +20,12 @@ WHERE
     AND [DirectoryLocation] = ':\Windows\System32'
     AND IsSigned = 0
 ORDER BY [PrevalenceCount] DESC
+
+*/
+
+/*
+
+-- WARNING: This clears all data rows from the table. The table will still exist, but it will be empty.
+TRUNCATE TABLE [FileProperties]
 
 */
