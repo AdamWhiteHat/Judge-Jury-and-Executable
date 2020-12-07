@@ -8,26 +8,28 @@ namespace SqliteDataAccessLayer
 {
 	public static class SqlStrings
 	{
+		private const string TableName = "FileProperties";
+
 		public static string SelectPrevalenceCount =
-			"SELECT [PrevalenceCount] FROM [FileProperties] WHERE {0}";
+			$"SELECT [PrevalenceCount] FROM [{TableName}] WHERE {0}";
 
 		public static string UpdatePrevalenceCount =
-			"UPDATE [FileProperties] SET [PrevalenceCount] = {0} WHERE {1}";
+			$"UPDATE [{TableName}] SET [PrevalenceCount] = {0} WHERE {1}";
 
 		public static string InsertInto =
-		   "INSERT INTO [FileProperties] ({0},[PrevalenceCount],[DateSeen]) VALUES ({1},1,date('now'))";
+		   $"INSERT INTO [{TableName}] ({0},[PrevalenceCount],[DateSeen]) VALUES ({1},1,date('now'))";
 
 		public static string SelectYaraRules =
-			"SELECT TOP 1 [YaraRulesMatched] FROM [FileProperties] WHERE {0} AND [YaraRulesMatched] IS NOT NULL";
+			$"SELECT TOP 1 [YaraRulesMatched] FROM [{TableName}] WHERE {0} AND [YaraRulesMatched] IS NOT NULL";
 
 		public static string UpdateYaraRules =
-			"UPDATE [FileProperties] SET [YaraRulesMatched] = {0} WHERE {1}";
+			$"UPDATE [{TableName}] SET [YaraRulesMatched] = {0} WHERE {1}";
 
 		#region Create Table Script
 
 		public static string CreateTable =
-		@"
-CREATE TABLE [FileProperties] (
+$@"
+CREATE TABLE [{TableName}] (
     [MFTNumber]          BIGINT         NOT NULL,
     [SequenceNumber]     INT            NOT NULL,
     [SHA256]             TEXT           NOT NULL,
