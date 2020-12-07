@@ -109,14 +109,13 @@ namespace FilePropertiesDataObject
 
 			if (this.Length == 0) //Workaround for hard links
 			{
-				if (System.IO.File.Exists(FullPath))
+				if (File.Exists(FullPath))
 				{
-					long length = new System.IO.FileInfo(FullPath).Length;
+					long length = new FileInfo(FullPath).Length;
 					if (length > 0)
 					{
 						this.Length = (ulong)length;
 						node.Size = this.Length;
-
 					}
 				}
 			}
@@ -149,6 +148,10 @@ namespace FilePropertiesDataObject
 				{
 					PopulateSmallFile(parameters, node, hasFileReadPermissions);
 				}
+			}
+			else
+			{
+				this.Sha256Hash = "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"; // SHA256 hash of a null or zero-length input
 			}
 
 			PopulateIsTrusted();
@@ -227,26 +230,26 @@ namespace FilePropertiesDataObject
 
 					}
 				}
-				catch (Exception ex)
-				{
-
-				}
+				catch
+				{ }
 			}
-
 			else
 			{
 				fileBytes = node.GetBytes().SelectMany(chunk => chunk).ToArray();
 				CancellationHelper.ThrowIfCancelled();
 			}
+
 			this.PeData = PeDataObject.TryGetPeDataObject(fileBytes);
 			if (IsPeDataPopulated)
 			{
 				this.Sha256Hash = PeData.SHA256Hash;
 			}
-			else
+
+			if (!IsPeDataPopulated || string.IsNullOrWhiteSpace(this.Sha256Hash))
 			{
 				this.Sha256Hash = Sha256Helper.GetSha256Hash_Array(fileBytes);
 			}
+
 			CancellationHelper.ThrowIfCancelled();
 
 			if (PeData != null)

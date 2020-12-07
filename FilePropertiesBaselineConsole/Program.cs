@@ -225,6 +225,8 @@ namespace FilePropertiesBaselineConsole
 						Log.ExceptionMessage
 					);
 
+			parameters.ThrowIfAnyParametersInvalid();
+
 			ReportOutput("Beginning scan...");
 			FileEnumerator.LaunchFileEnumerator(parameters);
 		}

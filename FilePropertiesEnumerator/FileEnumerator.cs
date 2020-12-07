@@ -71,11 +71,11 @@ namespace FilePropertiesEnumerator
 					lastParent = ".";
 				}
 
-				string drive = parameters.SelectedFolder[0].ToString();
+				string drive = parameters.SelectedFolder[0].ToString().ToUpper();
 
 				List<DriveInfo> ntfsDrives = DriveInfo.GetDrives().Where(d => d.IsReady && d.DriveFormat == "NTFS").ToList();
 
-				DriveInfo driveToAnalyze = ntfsDrives.Where(dr => dr.Name.ToUpper().Contains(drive.ToUpper())).Single();
+				DriveInfo driveToAnalyze = ntfsDrives.Where(dr => dr.Name.ToUpper().Contains(drive)).Single();
 
 				NtfsReader ntfsReader = new NtfsReader(driveToAnalyze, RetrieveMode.All);
 

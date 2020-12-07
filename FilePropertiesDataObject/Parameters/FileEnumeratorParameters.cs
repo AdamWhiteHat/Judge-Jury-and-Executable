@@ -24,9 +24,12 @@ namespace FilePropertiesDataObject.Parameters
 
 		public IDataPersistenceLayer DataPersistenceLayer { get; set; }
 
-		public FileEnumeratorParameters(CancellationToken cancelToken, bool disableWorkerThread,
-										string selectedFolder, string searchPatterns,
-										bool calculateEntropy, List<YaraFilter> yaraParameters,
+		public FileEnumeratorParameters(CancellationToken cancelToken,
+										bool disableWorkerThread,
+										string selectedFolder,
+										string searchPatterns,
+										bool calculateEntropy,
+										List<YaraFilter> yaraParameters,
 										IDataPersistenceLayer dataPersistenceLayerClass,
 										Action<string> reportOutputFunction,
 										Action<string> logOutputFunction,
@@ -75,7 +78,21 @@ namespace FilePropertiesDataObject.Parameters
 			if (parameters.ReportOutputFunction == null) { throw new ArgumentNullException(nameof(parameters.ReportOutputFunction)); }
 			if (parameters.LogOutputFunction == null) { throw new ArgumentNullException(nameof(parameters.LogOutputFunction)); }
 			if (parameters.ReportResultsFunction == null) { throw new ArgumentNullException(nameof(parameters.ReportResultsFunction)); }
+			if (string.IsNullOrWhiteSpace(parameters.SelectedFolder)) { throw new ArgumentNullException(nameof(parameters.SelectedFolder)); }
 			if (!Directory.Exists(parameters.SelectedFolder)) { throw new DirectoryNotFoundException(parameters.SelectedFolder); }
+
+			char suppliedDriveLetter = char.ToUpper(parameters.SelectedFolder[0]);
+
+			List<char> foundDriveLetters = DriveInfo.GetDrives()
+													.Where(d => d.IsReady && d.DriveFormat == "NTFS")
+													.Select(di => di.Name.ToUpper()[0])
+													.ToList();
+
+			if (!foundDriveLetters.Any() || !foundDriveLetters.Contains(suppliedDriveLetter))
+			{
+				throw new DriveNotFoundException($"The drive {suppliedDriveLetter}:\\ was not found, the drive was not mounted or ready, or the drive had a file system other than NTFS.");
+			}
+
 			if (parameters.CancelToken == null) { throw new ArgumentNullException(nameof(parameters.CancelToken), "If you do not want to pass a CancellationToken, then pass 'CancellationToken.None'"); }
 			parameters.CancelToken.ThrowIfCancellationRequested();
 		}

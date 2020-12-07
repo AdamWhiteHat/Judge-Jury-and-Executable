@@ -454,7 +454,7 @@ namespace FilePropertiesBaselineGUI
 
 		private void btnBrowseYaraMatch_Click(object sender, EventArgs e)
 		{
-			string[] selectedFiles = DialogHelper.BrowseForFilesDialog();
+			string[] selectedFiles = DialogHelper.BrowseForFilesDialog(DialogHelper.Filters.YaraFiles);
 
 			if (selectedFiles.Any())
 			{
@@ -612,7 +612,7 @@ namespace FilePropertiesBaselineGUI
 
 		private void btnYaraSave_Click(object sender, EventArgs e)
 		{
-			string selectedFile = DialogHelper.SaveFileDialog();
+			string selectedFile = DialogHelper.SaveFileDialog(DialogHelper.Filters.JsonFiles);
 
 			if (!string.IsNullOrWhiteSpace(selectedFile))
 			{
@@ -622,7 +622,7 @@ namespace FilePropertiesBaselineGUI
 
 		private void btnYaraLoad_Click(object sender, EventArgs e)
 		{
-			string selectedFile = DialogHelper.BrowseForFileDialog();
+			string selectedFile = DialogHelper.BrowseForFileDialog(DialogHelper.Filters.JsonFiles);
 
 			if (!string.IsNullOrWhiteSpace(selectedFile) && File.Exists(selectedFile))
 			{
@@ -662,8 +662,10 @@ namespace FilePropertiesBaselineGUI
 		{
 			if (radioPersistenceCSV.Checked || radioPersistenceSqlite.Checked)
 			{
-				string selectedFile = DialogHelper.BrowseForFileDialog(tbPersistenceParameter.Text);
+				string filter = radioPersistenceCSV.Checked ? DialogHelper.Filters.CsvFiles : DialogHelper.Filters.SqliteFiles;
+				string initialDirectory = string.IsNullOrWhiteSpace(tbPersistenceParameter.Text) ? default(string) : tbPersistenceParameter.Text;
 
+				string selectedFile = DialogHelper.SaveFileDialog(filter, initialDirectory);
 				if (!string.IsNullOrWhiteSpace(selectedFile))
 				{
 					tbPersistenceParameter.Text = selectedFile;
