@@ -233,7 +233,6 @@ ModelManifest.xml
 # Build results
 [Dd]ebugPublic/
 [Rr]eleases/
-[Xx]64/
 [Xx]86/
 [Bb]uild/
 bld/
