@@ -654,7 +654,7 @@ namespace FilePropertiesBaselineGUI
 		private void radioPersistenceSqlServer_CheckedChanged(object sender, EventArgs e)
 		{
 			labelTextBoxDescription.Text = "Connection string:";
-			btnPersistenceBrowse.Text = "Connect...";
+			btnPersistenceBrowse.Text = "Browse...";
 			tbPersistenceParameter.Multiline = true;
 		}
 

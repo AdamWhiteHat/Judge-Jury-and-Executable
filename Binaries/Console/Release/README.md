@@ -44,8 +44,12 @@ Firstly, the tool creates an entry in the database for each record found in the 
 
 ## Rich, high-level data analytics.
 Then all operating-system-level properties, data and meta-data available about each file is collected and augments each entry. As a result of this, even if the file properties from the Framework/Operating System API cannot be accessed due to permissions, file locks (is in use), disk corruption, a zero-byte-length file, or various other reasons, the file will still be recorded, logged and tracked. The entry, however, will simply not contain the information about it that was not accessible to the operating system. Up to 51 different properties may be collected for every file.
+  
 
-
+## 
+![Screenshot](https://github.com/AdamWhiteHat/Judge-Jury-and-Executable/blob/master/Judge-Jury-and-Executable.PNG "Judge Jury and Executable Application Screenshot")
+  
+ 
 ## For each file, information collected includes:
  - SHA256 hash
  - MD5 hash
