@@ -6,7 +6,7 @@ namespace SqlDataAccessLayer
 {
 	public class SqlKey
 	{
-		public List<SqlParameter> Parameters { get; private set; }
+		public SqlParameter[] Parameters { get; private set; }
 
 		private uint _mftNumber;
 		private ushort _sequenceNumber;
@@ -22,7 +22,7 @@ namespace SqlDataAccessLayer
 			_sequenceNumber = sequenceNumber;
 			_sha256Hash = sha256Hash;
 
-			Parameters = new List<SqlParameter>()
+			Parameters = new SqlParameter[]
 			{
 				ParameterHelper.GetNewStringParameter(StringLiteral_SHA256, _sha256Hash),
 				ParameterHelper.GetParameter(StringLiteral_MftNumber, _mftNumber),

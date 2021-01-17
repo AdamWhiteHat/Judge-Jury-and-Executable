@@ -12,14 +12,14 @@ namespace SqliteDataAccessLayer
 		public ushort SequenceNumber { get; set; }
 		public string SHA256 { get; set; }
 
-		public List<SQLiteParameter> Parameters { get; private set; }
+		public SQLiteParameter[] Parameters { get; private set; }
 
 		public SqlKey(uint mftNumber, ushort sequenceNumber, string sha256)
 		{
 			MFTNumber = mftNumber;
 			SequenceNumber = sequenceNumber;
 			SHA256 = sha256;
-			Parameters = new List<SQLiteParameter>
+			Parameters = new SQLiteParameter[]
 			{
 				SqlHelper.GetNewParameterByType("MFTNumber",MFTNumber, DbType.UInt32),
 				SqlHelper.GetNewParameterByType("SequenceNumber",SequenceNumber, DbType.UInt16),

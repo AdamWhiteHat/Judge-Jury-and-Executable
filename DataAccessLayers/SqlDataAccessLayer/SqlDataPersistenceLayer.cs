@@ -37,7 +37,9 @@ namespace SqlDataAccessLayer
 		{
 			SqlKey key = new SqlKey(fileProperties.MFTNumber, fileProperties.SequenceNumber, fileProperties.Sha256Hash);
 
-			List<SqlParameter> sqlParameters = key.Parameters;
+			List<SqlParameter> sqlParameters = new List<SqlParameter>();
+			sqlParameters.AddRange(key.Parameters);
+
 			sqlParameters.AddRange(new List<SqlParameter>
 			{
 				ParameterHelper.GetParameter("DriveLetter", fileProperties.DriveLetter),
@@ -273,7 +275,7 @@ CREATE TABLE [{TableName}] (
 			return false;
 		}
 
-		private object ExecuteScalar(string commandText, List<SqlParameter> sqlParameters)
+		private object ExecuteScalar(string commandText, IEnumerable<SqlParameter> sqlParameters)
 		{
 			try
 			{

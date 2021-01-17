@@ -79,17 +79,17 @@ namespace SqliteDataAccessLayer
 			ExecuteNonQuery(commandText, parameters);
 		}
 
-		public int ExecuteNonQuery(string command, List<SQLiteParameter> parameters = null)
+		public int ExecuteNonQuery(string command, IEnumerable<SQLiteParameter> parameters = null)
 		{
 			return ExecuteNonQuery(_connection.Value, command, parameters);
 		}
 
-		public object ExecuteScalar(string command, List<SQLiteParameter> parameters = null)
+		public object ExecuteScalar(string command, IEnumerable<SQLiteParameter> parameters = null)
 		{
 			return ExecuteScalar(_connection.Value, command, parameters);
 		}
 
-		private static int ExecuteNonQuery(SQLiteConnection connection, string command, List<SQLiteParameter> parameters = null)
+		private static int ExecuteNonQuery(SQLiteConnection connection, string command, IEnumerable<SQLiteParameter> parameters = null)
 		{
 			int result = -1;
 			using (SQLiteCommand cmd = connection.CreateCommand())
@@ -104,7 +104,7 @@ namespace SqliteDataAccessLayer
 			return result;
 		}
 
-		private static object ExecuteScalar(SQLiteConnection connection, string command, List<SQLiteParameter> parameters = null)
+		private static object ExecuteScalar(SQLiteConnection connection, string command, IEnumerable<SQLiteParameter> parameters = null)
 		{
 			object result = null;
 			using (SQLiteCommand cmd = connection.CreateCommand())

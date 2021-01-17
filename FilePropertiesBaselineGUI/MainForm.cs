@@ -664,7 +664,6 @@ namespace FilePropertiesBaselineGUI
 			{
 				string filter = radioPersistenceCSV.Checked ? DialogHelper.Filters.CsvFiles : DialogHelper.Filters.SqliteFiles;
 				string initialDirectory = string.IsNullOrWhiteSpace(tbPersistenceParameter.Text) ? default(string) : tbPersistenceParameter.Text;
-
 				string selectedFile = DialogHelper.SaveFileDialog(filter, initialDirectory);
 				if (!string.IsNullOrWhiteSpace(selectedFile))
 				{
@@ -675,7 +674,8 @@ namespace FilePropertiesBaselineGUI
 			{
 				DataConnectionDialog dataConnectionDialog = new DataConnectionDialog();
 				DataSource.AddStandardDataSources(dataConnectionDialog);
-
+				dataConnectionDialog.SelectedDataSource = DataSource.SqlDataSource;
+				dataConnectionDialog.ConnectionString = "Data Source=(LocalDB)\\MSSQLLocalDB;Integrated Security=True;";
 				if (DataConnectionDialog.Show(dataConnectionDialog) == DialogResult.OK)
 				{
 					tbPersistenceParameter.Text = dataConnectionDialog.ConnectionString;

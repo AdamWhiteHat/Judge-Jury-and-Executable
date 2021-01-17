@@ -7,19 +7,19 @@ namespace SqlDataAccessLayer
 {
 	public static class SqlParametersExtensionMethods
 	{
-		public static string AsColumnString(this List<SqlParameter> source)
+		public static string AsColumnString(this IEnumerable<SqlParameter> source)
 		{
-			return $"[{string.Join("],[", source.Select(param => param.ParameterName.Replace("@", "")))}]";
+			return $"[{string.Join("],[", source.Select(sqlParam => sqlParam.ParameterName.Replace("@", "")))}]";
 		}
 
-		public static string AsValuesString(this List<SqlParameter> source)
+		public static string AsValuesString(this IEnumerable<SqlParameter> source)
 		{
-			return string.Join(",", source.Select(param => param.ParameterName));
+			return string.Join(",", source.Select(sqlParam => sqlParam.ParameterName));
 		}
 
-		public static string AsWhereString(this List<SqlParameter> source)
+		public static string AsWhereString(this IEnumerable<SqlParameter> source)
 		{
-			return string.Join(" AND ", source.Select(param => $"[{param.ParameterName.Replace("@", "")}] = {param.ParameterName}"));
+			return string.Join(" AND ", source.Select(sqlParam => $"[{sqlParam.ParameterName.Replace("@", "")}] = {sqlParam.ParameterName}"));
 		}
 	}
 }
