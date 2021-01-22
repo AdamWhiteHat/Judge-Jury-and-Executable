@@ -171,6 +171,8 @@ namespace FilePropertiesDataObject
 			else
 			{
 				this.Sha256 = "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"; // SHA256 hash of a null or zero-length input
+				this.SHA1 = "DA39A3EE5E6B4B0D3255BFEF95601890AFD80709";
+				this.MD5 = "D41D8CD98F00B204E9800998ECF8427E";
 			}
 
 			PopulateIsTrusted();
