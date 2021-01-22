@@ -14,7 +14,7 @@ namespace SqlDataAccessLayer
 			{
 				return GetNewStringParameter(name, value as string);
 			}
-			return GetNewParameterByType(name, (object)value, dbType);
+			return GetNewParameterByType(name, value, dbType);
 		}
 
 		public static SqlParameter GetNewStringParameter(string name, string value)
@@ -27,9 +27,10 @@ namespace SqlDataAccessLayer
 			return new SqlParameter(string.Concat("@", name), SqlDbType.NVarChar, 250) { Value = safeValue, Direction = ParameterDirection.Input };
 		}
 
-		public static SqlParameter GetNewParameterByType(string name, object value, SqlDbType type)
+		public static SqlParameter GetNewParameterByType<T>(string name, T value, SqlDbType type)
 		{
-			return new SqlParameter(string.Concat("@", name), type) { Value = value, Direction = ParameterDirection.Input };
+			object parameterValue = (value != null) ? (object)value : DBNull.Value;
+			return new SqlParameter(string.Concat("@", name), type) { Value = parameterValue, Direction = ParameterDirection.Input };
 		}
 
 		private static Dictionary<Type, SqlDbType> _typeToDbtypeDictionary = new Dictionary<Type, SqlDbType>

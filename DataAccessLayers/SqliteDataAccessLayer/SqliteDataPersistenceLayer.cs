@@ -31,7 +31,7 @@ namespace SqliteDataAccessLayer
 
 		public bool PersistFileProperties(FileProperties fileProperties)
 		{
-			SqlKey key = new SqlKey(fileProperties.MFTNumber, fileProperties.SequenceNumber, fileProperties.Sha256Hash);
+			SqlKey key = new SqlKey(fileProperties.MFTNumber, fileProperties.SequenceNumber, fileProperties.Sha256);
 
 			List<SQLiteParameter> sqlParameters = new List<SQLiteParameter>();
 			sqlParameters.AddRange(key.Parameters);
@@ -72,27 +72,27 @@ namespace SqliteDataAccessLayer
 				SqlHelper.GetParameter("Language", fileProperties.Language),
 				SqlHelper.GetParameter("ComputerName", fileProperties.ComputerName),
 
-				SqlHelper.GetParameter("Attributes", fileProperties.Attributes?.ToString() ?? ""),
+				SqlHelper.GetParameter("Attributes", fileProperties.Attributes),
 
-				SqlHelper.GetParameter("SHA1",fileProperties.PeData?.SHA1Hash ?? ""),
-				SqlHelper.GetParameter("MD5", fileProperties.PeData?.MD5Hash ?? ""),
-				SqlHelper.GetParameter("ImpHash", fileProperties.PeData?.ImpHash ?? ""),
-				SqlHelper.GetParameter("IsDll", fileProperties.PeData?.IsDll ?? false),
-				SqlHelper.GetParameter("IsExe", fileProperties.PeData?.IsExe ?? false),
-				SqlHelper.GetParameter("IsDriver", fileProperties.PeData?.IsDriver ?? false),
-				SqlHelper.GetParameter("IsSigned", fileProperties.PeData?.IsSigned ?? false),
-				SqlHelper.GetParameter("IsSignatureValid", fileProperties.PeData?.IsSignatureValid ?? false),
-				SqlHelper.GetParameter("IsValidCertChain", fileProperties.PeData?.IsValidCertChain ?? false),
-				SqlHelper.GetNewParameterByType("BinaryType", (object)fileProperties.PeData?.BinaryType ??  DBNull.Value, DbType.Int32),
-				SqlHelper.GetNewParameterByType("CompileDate", (object)fileProperties.PeData?.CompileDate ??  DBNull.Value, DbType.DateTime2),
+				SqlHelper.GetParameter("SHA1",fileProperties.SHA1),
+				SqlHelper.GetParameter("MD5", fileProperties.MD5),
+				SqlHelper.GetParameter("ImpHash", fileProperties.ImpHash),
+				SqlHelper.GetParameter("IsDll", fileProperties.IsDll),
+				SqlHelper.GetParameter("IsExe", fileProperties.IsExe),
+				SqlHelper.GetParameter("IsDriver", fileProperties.IsDriver),
+				SqlHelper.GetParameter("IsSigned", fileProperties.IsSigned),
+				SqlHelper.GetParameter("IsSignatureValid", fileProperties.IsSignatureValid ),
+				SqlHelper.GetParameter("IsValidCertChain", fileProperties.IsValidCertChain),
+				SqlHelper.GetNewParameterByType("BinaryType", fileProperties.BinaryType.GetValueOrDefault(), DbType.Int32),
+				SqlHelper.GetNewParameterByType("CompileDate", fileProperties.CompileDate.GetValueOrDefault(), DbType.DateTime2),
 				SqlHelper.GetParameter("IsTrusted", fileProperties.IsTrusted),
 
-				SqlHelper.GetParameter("CertSubject", fileProperties.Authenticode?.CertSubject ?? ""),
-				SqlHelper.GetParameter("CertIssuer", fileProperties.Authenticode?.CertIssuer ?? ""),
-				SqlHelper.GetParameter("CertSerialNumber", fileProperties.Authenticode?.CertSerialNumber ?? ""),
-				SqlHelper.GetParameter("CertThumbprint", fileProperties.Authenticode?.CertThumbprint ?? ""),
-				SqlHelper.GetParameter("CertNotBefore", fileProperties.Authenticode?.CertNotBefore ?? ""),
-				SqlHelper.GetParameter("CertNotAfter", fileProperties.Authenticode?.CertNotAfter ?? ""),
+				SqlHelper.GetParameter("CertSubject", fileProperties.CertSubject),
+				SqlHelper.GetParameter("CertIssuer", fileProperties.CertIssuer),
+				SqlHelper.GetParameter("CertSerialNumber", fileProperties.CertSerialNumber ),
+				SqlHelper.GetParameter("CertThumbprint", fileProperties.CertThumbprint ),
+				SqlHelper.GetParameter("CertNotBefore", fileProperties.CertNotBefore ),
+				SqlHelper.GetParameter("CertNotAfter", fileProperties.CertNotAfter),
 
 				SqlHelper.GetParameter("Entropy", fileProperties.Entropy ?? 0)
 			});
@@ -106,17 +106,18 @@ namespace SqliteDataAccessLayer
 
 			count += 1;
 
-			if (fileProperties.IsYaraRulesMatchedPopulated)
+			if (!string.IsNullOrWhiteSpace(fileProperties.YaraMatchedRules))
 			{
-				List<string> newYaraMatchedRules = fileProperties.YaraRulesMatched.ToList();
+				List<string> newYaraMatchedRules = new List<string>();
 
 				string currentYaraRulesMatchedValue = _dataClient.GetExistingYaraRules(key);
 				if (currentYaraRulesMatchedValue != null)
 				{
 					newYaraMatchedRules.AddRange(YaraHelper.ParseDelimitedRulesString(currentYaraRulesMatchedValue));
-
-					_dataClient.UpdateExistingYaraRule(key, newYaraMatchedRules);
 				}
+				newYaraMatchedRules.AddRange(YaraHelper.ParseDelimitedRulesString(fileProperties.YaraMatchedRules));
+
+				_dataClient.UpdateExistingYaraRule(key, newYaraMatchedRules);
 			}
 
 			_dataClient.UpdatePrevalenceCount(key, count);

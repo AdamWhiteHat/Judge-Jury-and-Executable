@@ -10,7 +10,7 @@ namespace FilePropertiesDataObject.Helpers
 	{
 		public static List<string> ScanBytes(byte[] fileBytes, string rulesPath)
 		{
-			List<string> result = null;
+			List<string> result = new List<string>();
 			try
 			{
 				List<ScanResult> scanResults = QuickScan.Memory(fileBytes, rulesPath);
@@ -29,7 +29,7 @@ namespace FilePropertiesDataObject.Helpers
 
 		public static List<string> ScanFile(string filePath, string rulesPath)
 		{
-			List<string> result = null;
+			List<string> result = new List<string>();
 			try
 			{
 				List<ScanResult> scanResults = QuickScan.File(filePath, rulesPath);

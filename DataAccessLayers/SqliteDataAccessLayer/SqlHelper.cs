@@ -11,12 +11,13 @@ namespace SqliteDataAccessLayer
 		public static SQLiteParameter GetParameter<T>(string name, T value)
 		{
 			DbType dbType = _typeToDbtypeDictionary[typeof(T)];
-			return GetNewParameterByType(name, (object)value, dbType);
+			return GetNewParameterByType(name, value, dbType);
 		}
 
-		public static SQLiteParameter GetNewParameterByType(string name, object value, DbType type)
+		public static SQLiteParameter GetNewParameterByType<T>(string name, T value, DbType type)
 		{
-			return new SQLiteParameter(string.Concat("@", name), type) { Value = value, Direction = ParameterDirection.Input };
+			object parameterValue = (value != null) ? (object)value : DBNull.Value;
+			return new SQLiteParameter(string.Concat("@", name), type) { Value = parameterValue, Direction = ParameterDirection.Input };
 		}
 
 		private static Dictionary<Type, DbType> _typeToDbtypeDictionary = new Dictionary<Type, DbType>

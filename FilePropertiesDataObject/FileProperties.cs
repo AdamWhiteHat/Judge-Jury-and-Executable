@@ -22,7 +22,10 @@ namespace FilePropertiesDataObject
 
 		public uint MFTNumber { get; private set; }
 		public ushort SequenceNumber { get; private set; }
-		public string Sha256Hash { get; private set; }
+		public string Sha256 { get; private set; }
+		public string SHA1 { get; private set; }
+		public string MD5 { get; private set; }
+		public string ImpHash { get { return _peData?.ImpHash ?? ""; } }
 
 		public ulong Length { get; private set; }
 		public char DriveLetter { get; private set; }
@@ -38,14 +41,8 @@ namespace FilePropertiesDataObject
 		public DateTime CreationTime { get; private set; }
 		public DateTime LastAccessTime { get; private set; }
 		public DateTime LastWriteTime { get; private set; }
+		public string Attributes { get { return _attributes?.ToString() ?? ""; } }
 
-		public bool IsTrusted { get; private set; }
-		public PeDataObject PeData { get; private set; }
-		public AuthenticodeData Authenticode { get; private set; }
-		public double? Entropy { get; private set; }
-		public List<string> YaraRulesMatched { get; private set; }
-
-		public Attributes Attributes { get; private set; }
 		public string Project { get; private set; }
 		public string ProviderItemID { get; private set; }
 		public string OriginalFileName { get; private set; }
@@ -65,19 +62,41 @@ namespace FilePropertiesDataObject
 		public string Language { get; private set; }
 		public string ComputerName { get; private set; }
 
-		public bool IsPeDataPopulated { get { return !(PeData == null); } }
-		public bool IsAuthenticodePopulated { get { return !(Authenticode == null); } }
-		public bool IsEntropyPopulated { get { return (Entropy.HasValue && Entropy.Value > 0); } }
-		public bool IsYaraRulesMatchedPopulated { get { return (YaraRulesMatched != null && YaraRulesMatched.Any()); } }
+		public string CertSubject { get { return _authenticode?.CertSubject ?? ""; } }
+		public string CertIssuer { get { return _authenticode?.CertIssuer ?? ""; } }
+		public string CertSerialNumber { get { return _authenticode?.CertSerialNumber ?? ""; } }
+		public string CertThumbprint { get { return _authenticode?.CertThumbprint ?? ""; } }
+		public string CertNotBefore { get { return _authenticode?.CertNotBefore ?? ""; } }
+		public string CertNotAfter { get { return _authenticode?.CertNotAfter ?? ""; } }
+
+		public bool IsDll { get { return _peData?.IsDll ?? false; } }
+		public bool IsExe { get { return _peData?.IsExe ?? false; } }
+		public bool IsDriver { get { return _peData?.IsDriver ?? false; } }
+		public bool IsSigned { get { return _peData?.IsSigned ?? false; } }
+		public bool IsTrusted { get; private set; }
+		public bool IsSignatureValid { get { return _peData?.IsSignatureValid ?? false; } }
+		public bool IsValidCertChain { get { return _peData?.IsValidCertChain ?? false; } }
+
+		public int? BinaryType { get { return _peData?.BinaryType ?? null; } }
+		public DateTime? CompileDate { get { return _peData?.CompileDate ?? null; } }
+		public double? Entropy { get; private set; }
+		public string YaraMatchedRules { get { return YaraHelper.FormatDelimitedRulesString(_yaraRulesMatched); } }
+
+
+		internal List<string> _yaraRulesMatched { get; set; }
+
+		private Attributes _attributes { get; set; }
+		private PeDataObject _peData { get; set; }
+		private AuthenticodeData _authenticode { get; set; }
 
 		#endregion
 
 		public FileProperties()
 		{
-			PeData = null;
-			Authenticode = null;
+			_peData = null;
+			_authenticode = null;
 			Entropy = null;
-			YaraRulesMatched = null;
+			_yaraRulesMatched = new List<string>();
 		}
 
 		public void PopulateFileProperties(FileEnumeratorParameters parameters, char driveLetter, INode node)
@@ -151,33 +170,39 @@ namespace FilePropertiesDataObject
 			}
 			else
 			{
-				this.Sha256Hash = "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"; // SHA256 hash of a null or zero-length input
+				this.Sha256 = "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"; // SHA256 hash of a null or zero-length input
 			}
 
 			PopulateIsTrusted();
 			CancellationHelper.ThrowIfCancelled();
 
-			this.Attributes = new Attributes(node);
+			this._attributes = new Attributes(node);
 			CancellationHelper.ThrowIfCancelled();
 		}
 
 		private void PopulateLargeFile(FileEnumeratorParameters parameters, INode node, bool hasFileReadPermissions)
 		{
 			IEnumerable<byte[]> fileChunks = node.GetBytes();
-			CancellationHelper.ThrowIfCancelled();
 
-			this.Sha256Hash = Sha256Helper.GetSha256Hash_IEnumerable(fileChunks, this.Length);
-			CancellationHelper.ThrowIfCancelled();
+			this.Sha256 = Hash.ByteEnumerable.Sha256(fileChunks);
 
 			if (hasFileReadPermissions)
 			{
-				this.PeData = PeDataObject.TryGetPeDataObject(FullPath);
-				if (PeData != null)
+				this._peData = PeDataObject.TryGetPeDataObject(FullPath);
+				if (_peData != null)
 				{
-					this.Authenticode = AuthenticodeData.GetAuthenticodeData(PeData.Certificate);
+					this.SHA1 = _peData.SHA1Hash;
+					this.MD5 = _peData.MD5Hash;
+					this._authenticode = AuthenticodeData.GetAuthenticodeData(this._peData.Certificate);
 				}
-				CancellationHelper.ThrowIfCancelled();
+				else
+				{
+					this.SHA1 = Hash.ByteEnumerable.Sha1(fileChunks);
+					this.MD5 = Hash.ByteEnumerable.MD5(fileChunks);
+				}
 			}
+
+			CancellationHelper.ThrowIfCancelled();
 
 			/*
 			if (parameters.CalculateEntropy)
@@ -193,7 +218,7 @@ namespace FilePropertiesDataObject
 
 				if (!string.IsNullOrWhiteSpace(yaraIndexFilename))
 				{
-					this.YaraRulesMatched = YaraHelper.ScanFile(FullPath, yaraIndexFilename);
+					this._yaraRulesMatched = YaraHelper.ScanFile(FullPath, yaraIndexFilename);
 				}
 			}
 		}
@@ -205,11 +230,8 @@ namespace FilePropertiesDataObject
 			{
 				try
 				{
-
-					using (FileStream fsSource = new FileStream(FullPath,
-						FileMode.Open, FileAccess.Read))
+					using (FileStream fsSource = new FileStream(FullPath, FileMode.Open, FileAccess.Read))
 					{
-
 						// Read the source file into a byte array.
 						fileBytes = new byte[fsSource.Length];
 						int numBytesToRead = (int)fsSource.Length;
@@ -221,13 +243,12 @@ namespace FilePropertiesDataObject
 
 							// Break when the end of the file is reached.
 							if (n == 0)
-								break;
+							{ break; }
 
 							numBytesRead += n;
 							numBytesToRead -= n;
 						}
 						numBytesToRead = fileBytes.Length;
-
 					}
 				}
 				catch
@@ -236,27 +257,25 @@ namespace FilePropertiesDataObject
 			else
 			{
 				fileBytes = node.GetBytes().SelectMany(chunk => chunk).ToArray();
-				CancellationHelper.ThrowIfCancelled();
 			}
 
-			this.PeData = PeDataObject.TryGetPeDataObject(fileBytes);
-			if (IsPeDataPopulated)
+			this._peData = PeDataObject.TryGetPeDataObject(fileBytes);
+			if (this._peData != null)
 			{
-				this.Sha256Hash = PeData.SHA256Hash;
+				this.Sha256 = _peData.SHA256Hash;
+				this.SHA1 = _peData.SHA1Hash;
+				this.MD5 = _peData.MD5Hash;
+				this._authenticode = AuthenticodeData.GetAuthenticodeData(this._peData.Certificate);
 			}
 
-			if (!IsPeDataPopulated || string.IsNullOrWhiteSpace(this.Sha256Hash))
+			if (this._peData == null || string.IsNullOrWhiteSpace(this.Sha256))
 			{
-				this.Sha256Hash = Sha256Helper.GetSha256Hash_Array(fileBytes);
+				this.Sha256 = Hash.ByteArray.Sha256(fileBytes);
+				this.SHA1 = Hash.ByteArray.Sha1(fileBytes);
+				this.MD5 = Hash.ByteArray.MD5(fileBytes);
 			}
 
 			CancellationHelper.ThrowIfCancelled();
-
-			if (PeData != null)
-			{
-				this.Authenticode = AuthenticodeData.GetAuthenticodeData(PeData.Certificate);
-				CancellationHelper.ThrowIfCancelled();
-			}
 
 			if (parameters.CalculateEntropy)
 			{
@@ -270,7 +289,7 @@ namespace FilePropertiesDataObject
 
 				if (!string.IsNullOrWhiteSpace(yaraIndexFilename))
 				{
-					this.YaraRulesMatched = YaraHelper.ScanBytes(fileBytes, yaraIndexFilename);
+					this._yaraRulesMatched = YaraHelper.ScanBytes(fileBytes, yaraIndexFilename);
 				}
 			}
 		}
@@ -314,7 +333,7 @@ namespace FilePropertiesDataObject
 
 			string yaraIndexContents = YaraHelper.MakeYaraIndexFile(distinctRulesToRun);
 
-			string indexFileHash = Sha256Helper.GetSha256Hash_Array(Encoding.UTF8.GetBytes(yaraIndexContents));
+			string indexFileHash = Hash.ByteArray.Sha256(Encoding.UTF8.GetBytes(yaraIndexContents));
 
 			string yaraIndexFilename = Path.Combine(Path.GetTempPath(), $"{indexFileHash}-index.yar");
 

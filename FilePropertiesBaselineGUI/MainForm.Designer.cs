@@ -39,25 +39,25 @@
 			this.panelParameters = new System.Windows.Forms.Panel();
 			this.checkBoxYaraRules = new System.Windows.Forms.CheckBox();
 			this.panelYaraParameters = new System.Windows.Forms.Panel();
-			this.btnYaraLoad = new System.Windows.Forms.Button();
-			this.btnYaraSave = new System.Windows.Forms.Button();
-			this.btnRemoveYaraFilter = new System.Windows.Forms.Button();
-			this.btnAddYaraFilter = new System.Windows.Forms.Button();
-			this.panelListBox = new System.Windows.Forms.Panel();
-			this.listBoxYaraFilters = new System.Windows.Forms.ListBox();
 			this.panelYara = new System.Windows.Forms.Panel();
 			this.radioButtonYara_ElseNoMatch = new System.Windows.Forms.RadioButton();
+			this.radioButtonYara_AlwaysRun = new System.Windows.Forms.RadioButton();
+			this.radioButtonYara_IsPeFile = new System.Windows.Forms.RadioButton();
+			this.radioButtonYara_Extention = new System.Windows.Forms.RadioButton();
+			this.radioButtonYara_MimeType = new System.Windows.Forms.RadioButton();
 			this.panelYaraMatchRules = new System.Windows.Forms.Panel();
 			this.tbYaraRuleMatchFiles = new System.Windows.Forms.TextBox();
 			this.btnBrowseYaraMatch = new System.Windows.Forms.Button();
 			this.labelYaraRulesToRun = new System.Windows.Forms.Label();
 			this.panelYaraFilterValue = new System.Windows.Forms.Panel();
-			this.labelYaraFilterValue = new System.Windows.Forms.Label();
 			this.tbYaraFilterValue = new System.Windows.Forms.TextBox();
-			this.radioButtonYara_AlwaysRun = new System.Windows.Forms.RadioButton();
-			this.radioButtonYara_IsPeFile = new System.Windows.Forms.RadioButton();
-			this.radioButtonYara_Extention = new System.Windows.Forms.RadioButton();
-			this.radioButtonYara_MimeType = new System.Windows.Forms.RadioButton();
+			this.labelYaraFilterValue = new System.Windows.Forms.Label();
+			this.btnAddYaraFilter = new System.Windows.Forms.Button();
+			this.btnRemoveYaraFilter = new System.Windows.Forms.Button();
+			this.btnYaraSave = new System.Windows.Forms.Button();
+			this.btnYaraLoad = new System.Windows.Forms.Button();
+			this.panelListBox = new System.Windows.Forms.Panel();
+			this.listBoxYaraFilters = new System.Windows.Forms.ListBox();
 			this.flowLayoutPanelTop = new System.Windows.Forms.FlowLayoutPanel();
 			this.panelSearchButton = new System.Windows.Forms.Panel();
 			this.panel1 = new System.Windows.Forms.Panel();
@@ -74,10 +74,10 @@
 			this.panelTop = new System.Windows.Forms.Panel();
 			this.panelParameters.SuspendLayout();
 			this.panelYaraParameters.SuspendLayout();
-			this.panelListBox.SuspendLayout();
 			this.panelYara.SuspendLayout();
 			this.panelYaraMatchRules.SuspendLayout();
 			this.panelYaraFilterValue.SuspendLayout();
+			this.panelListBox.SuspendLayout();
 			this.flowLayoutPanelTop.SuspendLayout();
 			this.panelSearchButton.SuspendLayout();
 			this.panel1.SuspendLayout();
@@ -159,7 +159,7 @@
 			this.btnSearch.Name = "btnSearch";
 			this.btnSearch.Size = new System.Drawing.Size(198, 27);
 			this.btnSearch.TabIndex = 1;
-			this.btnSearch.Text = "Search";
+			this.btnSearch.Text = "Scan";
 			this.btnSearch.UseVisualStyleBackColor = true;
 			this.btnSearch.Click += new System.EventHandler(this.btnSearch_Click);
 			// 
@@ -208,72 +208,6 @@
 			this.panelYaraParameters.Size = new System.Drawing.Size(757, 154);
 			this.panelYaraParameters.TabIndex = 0;
 			// 
-			// btnYaraLoad
-			// 
-			this.btnYaraLoad.Anchor = System.Windows.Forms.AnchorStyles.Top;
-			this.btnYaraLoad.Location = new System.Drawing.Point(626, 127);
-			this.btnYaraLoad.Name = "btnYaraLoad";
-			this.btnYaraLoad.Size = new System.Drawing.Size(114, 22);
-			this.btnYaraLoad.TabIndex = 4;
-			this.btnYaraLoad.Text = "Load filter";
-			this.btnYaraLoad.UseVisualStyleBackColor = true;
-			this.btnYaraLoad.Click += new System.EventHandler(this.btnYaraLoad_Click);
-			// 
-			// btnYaraSave
-			// 
-			this.btnYaraSave.Anchor = System.Windows.Forms.AnchorStyles.Top;
-			this.btnYaraSave.Location = new System.Drawing.Point(626, 106);
-			this.btnYaraSave.Name = "btnYaraSave";
-			this.btnYaraSave.Size = new System.Drawing.Size(114, 22);
-			this.btnYaraSave.TabIndex = 3;
-			this.btnYaraSave.Text = "Export filters";
-			this.btnYaraSave.UseVisualStyleBackColor = true;
-			this.btnYaraSave.Click += new System.EventHandler(this.btnYaraSave_Click);
-			// 
-			// btnRemoveYaraFilter
-			// 
-			this.btnRemoveYaraFilter.Location = new System.Drawing.Point(522, 53);
-			this.btnRemoveYaraFilter.Name = "btnRemoveYaraFilter";
-			this.btnRemoveYaraFilter.Size = new System.Drawing.Size(87, 23);
-			this.btnRemoveYaraFilter.TabIndex = 1;
-			this.btnRemoveYaraFilter.Text = "<- Remove";
-			this.btnRemoveYaraFilter.UseVisualStyleBackColor = true;
-			this.btnRemoveYaraFilter.Click += new System.EventHandler(this.btnRemoveYaraFilter_Click);
-			// 
-			// btnAddYaraFilter
-			// 
-			this.btnAddYaraFilter.Location = new System.Drawing.Point(522, 27);
-			this.btnAddYaraFilter.Name = "btnAddYaraFilter";
-			this.btnAddYaraFilter.Size = new System.Drawing.Size(87, 23);
-			this.btnAddYaraFilter.TabIndex = 0;
-			this.btnAddYaraFilter.Text = "Add ->";
-			this.btnAddYaraFilter.UseVisualStyleBackColor = true;
-			this.btnAddYaraFilter.Click += new System.EventHandler(this.btnAddYaraFilter_Click);
-			// 
-			// panelListBox
-			// 
-			this.panelListBox.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-			this.panelListBox.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-			this.panelListBox.Controls.Add(this.listBoxYaraFilters);
-			this.panelListBox.Location = new System.Drawing.Point(614, 5);
-			this.panelListBox.Name = "panelListBox";
-			this.panelListBox.Size = new System.Drawing.Size(137, 101);
-			this.panelListBox.TabIndex = 1;
-			// 
-			// listBoxYaraFilters
-			// 
-			this.listBoxYaraFilters.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
-            | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-			this.listBoxYaraFilters.FormattingEnabled = true;
-			this.listBoxYaraFilters.Location = new System.Drawing.Point(2, 2);
-			this.listBoxYaraFilters.Name = "listBoxYaraFilters";
-			this.listBoxYaraFilters.SelectionMode = System.Windows.Forms.SelectionMode.MultiExtended;
-			this.listBoxYaraFilters.Size = new System.Drawing.Size(131, 95);
-			this.listBoxYaraFilters.TabIndex = 0;
-			this.listBoxYaraFilters.KeyUp += new System.Windows.Forms.KeyEventHandler(this.listBoxYaraFilters_KeyUp);
-			// 
 			// panelYara
 			// 
 			this.panelYara.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
@@ -302,6 +236,54 @@
 			this.radioButtonYara_ElseNoMatch.Text = "ELSE (No matches)";
 			this.radioButtonYara_ElseNoMatch.UseVisualStyleBackColor = true;
 			this.radioButtonYara_ElseNoMatch.CheckedChanged += new System.EventHandler(this.radioButtonYara_HideFilterValue_CheckedChanged);
+			// 
+			// radioButtonYara_AlwaysRun
+			// 
+			this.radioButtonYara_AlwaysRun.AutoSize = true;
+			this.radioButtonYara_AlwaysRun.Location = new System.Drawing.Point(4, 76);
+			this.radioButtonYara_AlwaysRun.Name = "radioButtonYara_AlwaysRun";
+			this.radioButtonYara_AlwaysRun.Size = new System.Drawing.Size(115, 17);
+			this.radioButtonYara_AlwaysRun.TabIndex = 3;
+			this.radioButtonYara_AlwaysRun.TabStop = true;
+			this.radioButtonYara_AlwaysRun.Text = "IF true (Always run)";
+			this.radioButtonYara_AlwaysRun.UseVisualStyleBackColor = true;
+			this.radioButtonYara_AlwaysRun.CheckedChanged += new System.EventHandler(this.radioButtonYara_HideFilterValue_CheckedChanged);
+			// 
+			// radioButtonYara_IsPeFile
+			// 
+			this.radioButtonYara_IsPeFile.AutoSize = true;
+			this.radioButtonYara_IsPeFile.Location = new System.Drawing.Point(4, 54);
+			this.radioButtonYara_IsPeFile.Name = "radioButtonYara_IsPeFile";
+			this.radioButtonYara_IsPeFile.Size = new System.Drawing.Size(153, 17);
+			this.radioButtonYara_IsPeFile.TabIndex = 2;
+			this.radioButtonYara_IsPeFile.TabStop = true;
+			this.radioButtonYara_IsPeFile.Text = "IF file is an executable (PE)";
+			this.radioButtonYara_IsPeFile.UseVisualStyleBackColor = true;
+			this.radioButtonYara_IsPeFile.CheckedChanged += new System.EventHandler(this.radioButtonYara_HideFilterValue_CheckedChanged);
+			// 
+			// radioButtonYara_Extention
+			// 
+			this.radioButtonYara_Extention.AutoSize = true;
+			this.radioButtonYara_Extention.Location = new System.Drawing.Point(4, 32);
+			this.radioButtonYara_Extention.Name = "radioButtonYara_Extention";
+			this.radioButtonYara_Extention.Size = new System.Drawing.Size(109, 17);
+			this.radioButtonYara_Extention.TabIndex = 1;
+			this.radioButtonYara_Extention.TabStop = true;
+			this.radioButtonYara_Extention.Text = "IF file extention is:";
+			this.radioButtonYara_Extention.UseVisualStyleBackColor = true;
+			this.radioButtonYara_Extention.CheckedChanged += new System.EventHandler(this.radioButtonYara_ShowFilterValue_CheckedChanged);
+			// 
+			// radioButtonYara_MimeType
+			// 
+			this.radioButtonYara_MimeType.AutoSize = true;
+			this.radioButtonYara_MimeType.Location = new System.Drawing.Point(4, 10);
+			this.radioButtonYara_MimeType.Name = "radioButtonYara_MimeType";
+			this.radioButtonYara_MimeType.Size = new System.Drawing.Size(101, 17);
+			this.radioButtonYara_MimeType.TabIndex = 0;
+			this.radioButtonYara_MimeType.TabStop = true;
+			this.radioButtonYara_MimeType.Text = "IF MIME type is:";
+			this.radioButtonYara_MimeType.UseVisualStyleBackColor = true;
+			this.radioButtonYara_MimeType.CheckedChanged += new System.EventHandler(this.radioButtonYara_ShowFilterValue_CheckedChanged);
 			// 
 			// panelYaraMatchRules
 			// 
@@ -352,6 +334,15 @@
 			this.panelYaraFilterValue.Size = new System.Drawing.Size(384, 44);
 			this.panelYaraFilterValue.TabIndex = 5;
 			// 
+			// tbYaraFilterValue
+			// 
+			this.tbYaraFilterValue.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+			this.tbYaraFilterValue.Location = new System.Drawing.Point(48, 20);
+			this.tbYaraFilterValue.Name = "tbYaraFilterValue";
+			this.tbYaraFilterValue.Size = new System.Drawing.Size(253, 20);
+			this.tbYaraFilterValue.TabIndex = 0;
+			// 
 			// labelYaraFilterValue
 			// 
 			this.labelYaraFilterValue.AutoSize = true;
@@ -362,62 +353,71 @@
 			this.labelYaraFilterValue.TabIndex = 18;
 			this.labelYaraFilterValue.Text = "YARA filter value:";
 			// 
-			// tbYaraFilterValue
+			// btnAddYaraFilter
 			// 
-			this.tbYaraFilterValue.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+			this.btnAddYaraFilter.Location = new System.Drawing.Point(522, 27);
+			this.btnAddYaraFilter.Name = "btnAddYaraFilter";
+			this.btnAddYaraFilter.Size = new System.Drawing.Size(87, 23);
+			this.btnAddYaraFilter.TabIndex = 0;
+			this.btnAddYaraFilter.Text = "Add ->";
+			this.btnAddYaraFilter.UseVisualStyleBackColor = true;
+			this.btnAddYaraFilter.Click += new System.EventHandler(this.btnAddYaraFilter_Click);
+			// 
+			// btnRemoveYaraFilter
+			// 
+			this.btnRemoveYaraFilter.Location = new System.Drawing.Point(522, 53);
+			this.btnRemoveYaraFilter.Name = "btnRemoveYaraFilter";
+			this.btnRemoveYaraFilter.Size = new System.Drawing.Size(87, 23);
+			this.btnRemoveYaraFilter.TabIndex = 1;
+			this.btnRemoveYaraFilter.Text = "<- Remove";
+			this.btnRemoveYaraFilter.UseVisualStyleBackColor = true;
+			this.btnRemoveYaraFilter.Click += new System.EventHandler(this.btnRemoveYaraFilter_Click);
+			// 
+			// btnYaraSave
+			// 
+			this.btnYaraSave.Anchor = System.Windows.Forms.AnchorStyles.Top;
+			this.btnYaraSave.Location = new System.Drawing.Point(626, 106);
+			this.btnYaraSave.Name = "btnYaraSave";
+			this.btnYaraSave.Size = new System.Drawing.Size(114, 22);
+			this.btnYaraSave.TabIndex = 3;
+			this.btnYaraSave.Text = "Export filters";
+			this.btnYaraSave.UseVisualStyleBackColor = true;
+			this.btnYaraSave.Click += new System.EventHandler(this.btnYaraSave_Click);
+			// 
+			// btnYaraLoad
+			// 
+			this.btnYaraLoad.Anchor = System.Windows.Forms.AnchorStyles.Top;
+			this.btnYaraLoad.Location = new System.Drawing.Point(626, 127);
+			this.btnYaraLoad.Name = "btnYaraLoad";
+			this.btnYaraLoad.Size = new System.Drawing.Size(114, 22);
+			this.btnYaraLoad.TabIndex = 4;
+			this.btnYaraLoad.Text = "Load filter";
+			this.btnYaraLoad.UseVisualStyleBackColor = true;
+			this.btnYaraLoad.Click += new System.EventHandler(this.btnYaraLoad_Click);
+			// 
+			// panelListBox
+			// 
+			this.panelListBox.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-			this.tbYaraFilterValue.Location = new System.Drawing.Point(48, 20);
-			this.tbYaraFilterValue.Name = "tbYaraFilterValue";
-			this.tbYaraFilterValue.Size = new System.Drawing.Size(253, 20);
-			this.tbYaraFilterValue.TabIndex = 0;
+			this.panelListBox.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+			this.panelListBox.Controls.Add(this.listBoxYaraFilters);
+			this.panelListBox.Location = new System.Drawing.Point(614, 5);
+			this.panelListBox.Name = "panelListBox";
+			this.panelListBox.Size = new System.Drawing.Size(137, 101);
+			this.panelListBox.TabIndex = 1;
 			// 
-			// radioButtonYara_AlwaysRun
+			// listBoxYaraFilters
 			// 
-			this.radioButtonYara_AlwaysRun.AutoSize = true;
-			this.radioButtonYara_AlwaysRun.Location = new System.Drawing.Point(4, 76);
-			this.radioButtonYara_AlwaysRun.Name = "radioButtonYara_AlwaysRun";
-			this.radioButtonYara_AlwaysRun.Size = new System.Drawing.Size(115, 17);
-			this.radioButtonYara_AlwaysRun.TabIndex = 3;
-			this.radioButtonYara_AlwaysRun.TabStop = true;
-			this.radioButtonYara_AlwaysRun.Text = "IF true (Always run)";
-			this.radioButtonYara_AlwaysRun.UseVisualStyleBackColor = true;
-			this.radioButtonYara_AlwaysRun.CheckedChanged += new System.EventHandler(this.radioButtonYara_HideFilterValue_CheckedChanged);
-			// 
-			// radioButtonYara_IsPeFile
-			// 
-			this.radioButtonYara_IsPeFile.AutoSize = true;
-			this.radioButtonYara_IsPeFile.Location = new System.Drawing.Point(4, 54);
-			this.radioButtonYara_IsPeFile.Name = "radioButtonYara_IsPeFile";
-			this.radioButtonYara_IsPeFile.Size = new System.Drawing.Size(153, 17);
-			this.radioButtonYara_IsPeFile.TabIndex = 2;
-			this.radioButtonYara_IsPeFile.TabStop = true;
-			this.radioButtonYara_IsPeFile.Text = "IF file is an executable (PE)";
-			this.radioButtonYara_IsPeFile.UseVisualStyleBackColor = true;
-			this.radioButtonYara_IsPeFile.CheckedChanged += new System.EventHandler(this.radioButtonYara_HideFilterValue_CheckedChanged);
-			// 
-			// radioButtonYara_Extention
-			// 
-			this.radioButtonYara_Extention.AutoSize = true;
-			this.radioButtonYara_Extention.Location = new System.Drawing.Point(4, 32);
-			this.radioButtonYara_Extention.Name = "radioButtonYara_Extention";
-			this.radioButtonYara_Extention.Size = new System.Drawing.Size(109, 17);
-			this.radioButtonYara_Extention.TabIndex = 1;
-			this.radioButtonYara_Extention.TabStop = true;
-			this.radioButtonYara_Extention.Text = "IF file extention is:";
-			this.radioButtonYara_Extention.UseVisualStyleBackColor = true;
-			this.radioButtonYara_Extention.CheckedChanged += new System.EventHandler(this.radioButtonYara_ShowFilterValue_CheckedChanged);
-			// 
-			// radioButtonYara_MimeType
-			// 
-			this.radioButtonYara_MimeType.AutoSize = true;
-			this.radioButtonYara_MimeType.Location = new System.Drawing.Point(4, 10);
-			this.radioButtonYara_MimeType.Name = "radioButtonYara_MimeType";
-			this.radioButtonYara_MimeType.Size = new System.Drawing.Size(101, 17);
-			this.radioButtonYara_MimeType.TabIndex = 0;
-			this.radioButtonYara_MimeType.TabStop = true;
-			this.radioButtonYara_MimeType.Text = "IF MIME type is:";
-			this.radioButtonYara_MimeType.UseVisualStyleBackColor = true;
-			this.radioButtonYara_MimeType.CheckedChanged += new System.EventHandler(this.radioButtonYara_ShowFilterValue_CheckedChanged);
+			this.listBoxYaraFilters.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+			this.listBoxYaraFilters.FormattingEnabled = true;
+			this.listBoxYaraFilters.Location = new System.Drawing.Point(2, 2);
+			this.listBoxYaraFilters.Name = "listBoxYaraFilters";
+			this.listBoxYaraFilters.SelectionMode = System.Windows.Forms.SelectionMode.MultiExtended;
+			this.listBoxYaraFilters.Size = new System.Drawing.Size(131, 95);
+			this.listBoxYaraFilters.TabIndex = 0;
+			this.listBoxYaraFilters.KeyUp += new System.Windows.Forms.KeyEventHandler(this.listBoxYaraFilters_KeyUp);
 			// 
 			// flowLayoutPanelTop
 			// 
@@ -609,13 +609,13 @@
 			this.panelParameters.ResumeLayout(false);
 			this.panelParameters.PerformLayout();
 			this.panelYaraParameters.ResumeLayout(false);
-			this.panelListBox.ResumeLayout(false);
 			this.panelYara.ResumeLayout(false);
 			this.panelYara.PerformLayout();
 			this.panelYaraMatchRules.ResumeLayout(false);
 			this.panelYaraMatchRules.PerformLayout();
 			this.panelYaraFilterValue.ResumeLayout(false);
 			this.panelYaraFilterValue.PerformLayout();
+			this.panelListBox.ResumeLayout(false);
 			this.flowLayoutPanelTop.ResumeLayout(false);
 			this.flowLayoutPanelTop.PerformLayout();
 			this.panelSearchButton.ResumeLayout(false);

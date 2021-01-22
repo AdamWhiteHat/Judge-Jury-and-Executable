@@ -265,7 +265,7 @@ namespace FilePropertiesBaselineGUI
 					panelYaraParameters.Enabled = true;
 				}
 				panelParameters.Enabled = true;
-				btnSearch.Text = "Search";
+				btnSearch.Text = "Scan";
 				btnSearch.Enabled = true;
 			}
 		}

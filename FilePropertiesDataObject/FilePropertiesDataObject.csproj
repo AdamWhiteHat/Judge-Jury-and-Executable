@@ -81,7 +81,7 @@
     <Compile Include="YaraFilter.cs" />
     <Compile Include="PeData.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Helpers\Sha256Helper.cs" />
+    <Compile Include="Helpers\Hash.cs" />
     <Compile Include="Helpers\YaraHelper.cs" />
   </ItemGroup>
   <ItemGroup>

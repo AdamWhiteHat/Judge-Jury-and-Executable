@@ -35,7 +35,7 @@ namespace SqlDataAccessLayer
 
 		public bool PersistFileProperties(FileProperties fileProperties)
 		{
-			SqlKey key = new SqlKey(fileProperties.MFTNumber, fileProperties.SequenceNumber, fileProperties.Sha256Hash);
+			SqlKey key = new SqlKey(fileProperties.MFTNumber, fileProperties.SequenceNumber, fileProperties.Sha256);
 
 			List<SqlParameter> sqlParameters = new List<SqlParameter>();
 			sqlParameters.AddRange(key.Parameters);
@@ -77,29 +77,29 @@ namespace SqlDataAccessLayer
 				ParameterHelper.GetParameter("Language", fileProperties.Language),
 				ParameterHelper.GetParameter("ComputerName", fileProperties.ComputerName),
 
-				ParameterHelper.GetParameter("Attributes", fileProperties.Attributes?.ToString() ?? ""),
+				ParameterHelper.GetParameter("Attributes", fileProperties.Attributes),
 
-				ParameterHelper.GetParameter("SHA1",fileProperties.PeData?.SHA1Hash ?? ""),
-				ParameterHelper.GetParameter("MD5", fileProperties.PeData?.MD5Hash ?? ""),
-				ParameterHelper.GetParameter("ImpHash", fileProperties.PeData?.ImpHash ?? ""),
-				ParameterHelper.GetParameter("IsDll", fileProperties.PeData?.IsDll ?? false),
-				ParameterHelper.GetParameter("IsExe", fileProperties.PeData?.IsExe ?? false),
-				ParameterHelper.GetParameter("IsDriver", fileProperties.PeData?.IsDriver ?? false),
-				ParameterHelper.GetParameter("IsSigned", fileProperties.PeData?.IsSigned ?? false),
-				ParameterHelper.GetParameter("IsSignatureValid", fileProperties.PeData?.IsSignatureValid ?? false),
-				ParameterHelper.GetParameter("IsValidCertChain", fileProperties.PeData?.IsValidCertChain ?? false),
-				ParameterHelper.GetNewParameterByType("BinaryType", (object)fileProperties.PeData?.BinaryType ??  DBNull.Value, SqlDbType.Int),
-				ParameterHelper.GetNewParameterByType("CompileDate", (object)fileProperties.PeData?.CompileDate ??  DBNull.Value, SqlDbType.DateTime2),
+				ParameterHelper.GetParameter("SHA1",fileProperties.SHA1),
+				ParameterHelper.GetParameter("MD5", fileProperties.MD5 ),
+				ParameterHelper.GetParameter("ImpHash", fileProperties.ImpHash ),
+				ParameterHelper.GetParameter("IsDll", fileProperties.IsDll),
+				ParameterHelper.GetParameter("IsExe", fileProperties.IsExe ),
+				ParameterHelper.GetParameter("IsDriver", fileProperties.IsDriver ),
+				ParameterHelper.GetParameter("IsSigned", fileProperties.IsSigned),
+				ParameterHelper.GetParameter("IsSignatureValid", fileProperties.IsSignatureValid ),
+				ParameterHelper.GetParameter("IsValidCertChain", fileProperties.IsValidCertChain ),
+				ParameterHelper.GetNewParameterByType("BinaryType", fileProperties.BinaryType.GetValueOrDefault(), SqlDbType.Int),
+				ParameterHelper.GetNewParameterByType("CompileDate", fileProperties.CompileDate.GetValueOrDefault(), SqlDbType.DateTime2),
 				ParameterHelper.GetParameter("IsTrusted", fileProperties.IsTrusted),
 
-				ParameterHelper.GetParameter("CertSubject", fileProperties.Authenticode?.CertSubject ?? ""),
-				ParameterHelper.GetParameter("CertIssuer", fileProperties.Authenticode?.CertIssuer ?? ""),
-				ParameterHelper.GetParameter("CertSerialNumber", fileProperties.Authenticode?.CertSerialNumber ?? ""),
-				ParameterHelper.GetParameter("CertThumbprint", fileProperties.Authenticode?.CertThumbprint ?? ""),
-				ParameterHelper.GetParameter("CertNotBefore", fileProperties.Authenticode?.CertNotBefore ?? ""),
-				ParameterHelper.GetParameter("CertNotAfter", fileProperties.Authenticode?.CertNotAfter ?? ""),
+				ParameterHelper.GetParameter("CertSubject", fileProperties.CertSubject),
+				ParameterHelper.GetParameter("CertIssuer", fileProperties.CertIssuer),
+				ParameterHelper.GetParameter("CertSerialNumber", fileProperties.CertSerialNumber),
+				ParameterHelper.GetParameter("CertThumbprint", fileProperties.CertThumbprint),
+				ParameterHelper.GetParameter("CertNotBefore", fileProperties.CertNotBefore ),
+				ParameterHelper.GetParameter("CertNotAfter", fileProperties.CertNotAfter),
 
-				ParameterHelper.GetParameter("Entropy", fileProperties.Entropy ?? 0)
+				ParameterHelper.GetParameter("Entropy", fileProperties.Entropy??0)
 			});
 
 			return InsertIntoDB(fileProperties, key, sqlParameters);
@@ -116,15 +116,17 @@ namespace SqlDataAccessLayer
 		{
 			string updateText = string.Empty;
 
-			if (fileProperties.IsYaraRulesMatchedPopulated)
+			if (!string.IsNullOrWhiteSpace(fileProperties.YaraMatchedRules))
 			{
-				List<string> newYaraMatchedRules = fileProperties.YaraRulesMatched.ToList();
+				List<string> newYaraMatchedRules = new List<string>();
 
 				string currentYaraRulesMatchedValue = GetExistingYaraRules(key);
 				if (currentYaraRulesMatchedValue != null)
 				{
 					newYaraMatchedRules.AddRange(YaraHelper.ParseDelimitedRulesString(currentYaraRulesMatchedValue));
 				}
+
+				newYaraMatchedRules.AddRange(YaraHelper.ParseDelimitedRulesString(fileProperties.YaraMatchedRules));
 
 				string newYaraRulesMatchedValue = YaraHelper.FormatDelimitedRulesString(newYaraMatchedRules);
 
