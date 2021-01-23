@@ -15,7 +15,6 @@ namespace CsvDataAccessLayer
 		private List<string> _columnNames;
 		private string _headerRow;
 		private static string _delimiter = ",";
-		private static char[] _excludeChars = new char[] { '\r', '\n' };
 
 		public CsvDataPersistenceLayer(string csvFilePath)
 		{
@@ -36,8 +35,8 @@ namespace CsvDataAccessLayer
 			foreach (PropertyInfo property in typeof(FileProperties).GetProperties(BindingFlags.Public | BindingFlags.Instance))
 			{
 				object value = property.GetValue(fileProperties, null);
-				string stringValue = (value == null) ? "" : new string(value.ToString().Except(_excludeChars).ToArray());
-				values.Add($"\"{stringValue.Replace("\"", "\"\"")}\"");
+				string stringValue = (value == null) ? "" : value.ToString();
+				values.Add($"\"{stringValue.Replace("\r", "").Replace("\n", "").Replace("\"", "\"\"")}\"");
 			}
 
 			File.AppendAllLines(_csvFilePath, new string[] { string.Join(_delimiter, values) });
@@ -57,7 +56,7 @@ namespace CsvDataAccessLayer
 			List<string> result = new List<string>();
 			foreach (PropertyInfo property in classType.GetProperties())
 			{
-				result.Add(property.Name); // Add property name
+				result.Add($"\"{property.Name}\""); // Add property name
 			}
 			return result;
 		}
