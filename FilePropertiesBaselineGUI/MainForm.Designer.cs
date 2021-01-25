@@ -506,6 +506,7 @@
 			this.tbPersistenceParameter.Name = "tbPersistenceParameter";
 			this.tbPersistenceParameter.Size = new System.Drawing.Size(542, 38);
 			this.tbPersistenceParameter.TabIndex = 3;
+			this.tbPersistenceParameter.TextChanged += new System.EventHandler(this.tbPersistenceParameter_TextChanged);
 			// 
 			// radioPersistenceCSV
 			// 

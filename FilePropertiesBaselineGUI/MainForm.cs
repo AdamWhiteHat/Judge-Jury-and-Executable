@@ -14,6 +14,7 @@ using FilePropertiesEnumerator;
 using FilePropertiesDataObject;
 using FilePropertiesDataObject.Parameters;
 using Microsoft.Data.ConnectionUI;
+using Microsoft.Win32;
 
 namespace FilePropertiesBaselineGUI
 {
@@ -658,6 +659,29 @@ namespace FilePropertiesBaselineGUI
 			tbPersistenceParameter.Multiline = true;
 		}
 
+		private void tbPersistenceParameter_TextChanged(object sender, EventArgs e)
+		{
+			if (!string.IsNullOrWhiteSpace(tbPersistenceParameter.Text))
+			{
+				if (File.Exists(tbPersistenceParameter.Text))
+				{
+					DialogResult mbResut =
+						MessageBox.Show(
+							$"{Path.GetFileName(tbPersistenceParameter.Text)} already exists.\nDo you want to replace it?",
+							"Confirm Save File",
+							MessageBoxButtons.YesNo,
+							MessageBoxIcon.Warning);
+
+					if (mbResut == DialogResult.No)
+					{
+						tbPersistenceParameter.Clear();
+						return;
+					}
+
+				}
+			}
+		}
+
 		private void btnPersistenceBrowse_Click(object sender, EventArgs e)
 		{
 			if (radioPersistenceCSV.Checked || radioPersistenceSqlite.Checked)
@@ -675,12 +699,42 @@ namespace FilePropertiesBaselineGUI
 				DataConnectionDialog dataConnectionDialog = new DataConnectionDialog();
 				DataSource.AddStandardDataSources(dataConnectionDialog);
 				dataConnectionDialog.SelectedDataSource = DataSource.SqlDataSource;
-				dataConnectionDialog.ConnectionString = "Data Source=(LocalDB)\\MSSQLLocalDB;Integrated Security=True;";
+
+				string presetConnectionString = "(LocalDB)\\MSSQLLocalDB";
+
+				string[] sqlInstances = GetInstalledSQLInstances();
+				if (sqlInstances.Any())
+				{
+					string computerName = SystemInformation.ComputerName;
+					presetConnectionString = $"{computerName}\\{sqlInstances.First()}";
+				}
+
+				dataConnectionDialog.ConnectionString = $@"Data Source={presetConnectionString};Integrated Security=True;";
 				if (DataConnectionDialog.Show(dataConnectionDialog) == DialogResult.OK)
 				{
 					tbPersistenceParameter.Text = dataConnectionDialog.ConnectionString;
 				}
 			}
+		}
+
+		private static string[] GetInstalledSQLInstances()
+		{
+			string[] results = new string[0];
+			try
+			{
+				using (RegistryKey key = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Microsoft\Microsoft SQL Server\Instance Names\SQL"))
+				{
+					if (key != null)
+					{
+						results = key.GetValueNames();
+					}
+				}
+			}
+			catch (Exception ex)
+			{
+				Console.WriteLine(ex.ToString());
+			}
+			return results;
 		}
 
 		#endregion
