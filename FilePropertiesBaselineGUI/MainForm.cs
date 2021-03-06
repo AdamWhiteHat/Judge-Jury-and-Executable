@@ -101,6 +101,10 @@ namespace FilePropertiesBaselineGUI
 
 		private void btnSearch_Click(object sender, EventArgs e)
 		{
+		      if (radioPersistenceCSV.Checked || radioPersistenceSqlite.Checked)
+		      {
+			Directory.CreateDirectory(Path.GetDirectoryName(tbPersistenceParameter.Text));
+		      }
 			BeginScanning();
 		}
 
