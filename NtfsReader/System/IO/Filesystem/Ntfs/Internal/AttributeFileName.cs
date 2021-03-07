@@ -54,7 +54,7 @@ namespace System.IO.Filesystem.Ntfs.Internal
 		public UInt32 FileAttributes;
 		public UInt32 AlignmentOrReserved;
 		public byte NameLength;
-		public byte NameType;                 /* NTFS=0x01, DOS=0x02 */
-		public char Name;
+		public byte NameType;                 /* POSIX=0x00, WIN32=0x01, DOS=0x02, WIN32+DOS=0x03  */
+        public char Name;
 	};
 }

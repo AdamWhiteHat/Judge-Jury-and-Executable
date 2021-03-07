@@ -53,10 +53,14 @@ namespace System.IO.Filesystem.Ntfs
 
 				//loop until we reach the root directory
 				if (parent == ROOTDIRECTORY)
+				{
 					break;
+				}
 
 				if (parent == lastNode)
+				{
 					throw new InvalidDataException("Detected a loop in the tree structure.");
+				}
 
 				fullPathNodes.Push(parent);
 
@@ -74,14 +78,17 @@ namespace System.IO.Filesystem.Ntfs
 				fullPath.Append(GetNameFromIndex(_nodes[node].NameIndex));
 
 				if (fullPathNodes.Count > 0)
-					fullPath.Append(@"\");
+				{ fullPath.Append(@"\"); }
 			}
 
 			string path = fullPath.ToString();
 			if (_locallyMappedDriveRootPath != null)
+			{
 				if (path.StartsWith(_locallyMappedDriveRootPath, StringComparison.OrdinalIgnoreCase))
-					path = Path.Combine(_driveInfo.Name, path.Substring(_locallyMappedDriveRootPath.Length).TrimStart(new char[] { '\\' }));
-
+				{ 
+					path = Path.Combine(_driveInfo.Name, path.Substring(_locallyMappedDriveRootPath.Length).TrimStart(new char[] { '\\' })); 
+				}
+			}
 			return path;
 		}
 	}

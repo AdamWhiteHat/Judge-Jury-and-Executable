@@ -238,7 +238,7 @@ namespace System.IO.Filesystem.Ntfs
 			BlockStart = nodeIndex;
 			BlockEnd = BlockStart + bufferSize / _diskInfo.BytesPerMftRecord;
 			if (BlockEnd > dataStream.Size * 8)
-				BlockEnd = dataStream.Size * 8;
+			{ BlockEnd = dataStream.Size * 8; }
 
 			UInt64 u1 = 0;
 
@@ -277,7 +277,7 @@ namespace System.IO.Filesystem.Ntfs
 
 			ulong position =
 				(dataStream.Fragments[fragmentIndex].Lcn - RealVcn) * _diskInfo.BytesPerSector *
-					_diskInfo.SectorsPerCluster + BlockStart * _diskInfo.BytesPerMftRecord;
+								_diskInfo.SectorsPerCluster + BlockStart * _diskInfo.BytesPerMftRecord;
 
 			ReadFile(buffer, (BlockEnd - BlockStart) * _diskInfo.BytesPerMftRecord, position);
 
@@ -489,6 +489,8 @@ namespace System.IO.Filesystem.Ntfs
 		/// </summary>
 		private unsafe void ProcessAttributes(ref Node node, UInt32 nodeIndex, byte* ptr, UInt64 BufLength, UInt16 instance, int depth, List<Stream> streams, bool isMftNode)
 		{
+			int currentNameType = -1;
+
 			Attribute* attribute = null;
 			for (uint AttributeOffset = 0; AttributeOffset < BufLength; AttributeOffset = AttributeOffset + attribute->Length)
 			{
@@ -527,14 +529,32 @@ namespace System.IO.Filesystem.Ntfs
 							//node.ParentNodeIndex = ((UInt64)attributeFileName->ParentDirectory.InodeNumberHighPart << 32) + attributeFileName->ParentDirectory.InodeNumberLowPart;
 							node.ParentNodeIndex = attributeFileName->ParentDirectory.InodeNumberLowPart;
 
-							
+
 							if (node.Size == 0)  //missing file size
 							{
 								node.Size = attributeFileName->DataSize; //set file size if not already set
 							}
 
-							if (attributeFileName->NameType == 1 || node.NameIndex == 0)
-							{ node.NameIndex = GetNameIndex(new string(&attributeFileName->Name, 0, attributeFileName->NameLength)); }
+							if (node.NameIndex == 0)
+							{
+								currentNameType = (int)attributeFileName->NameType;
+								node.NameIndex = GetNameIndex(new string(&attributeFileName->Name, 0, attributeFileName->NameLength));
+							}
+							else
+							{
+								int attributeNameType = (int)attributeFileName->NameType;
+
+								if (attributeNameType == 0 || currentNameType == 2)
+								{
+									currentNameType = attributeNameType;
+									node.NameIndex = GetNameIndex(new string(&attributeFileName->Name, 0, attributeFileName->NameLength));
+								}
+							}
+
+							//if (attributeFileName->NameType == 1 || node.NameIndex == 0)
+							//{
+							//	node.NameIndex = GetNameIndex(new string(&attributeFileName->Name, 0, attributeFileName->NameLength)); 
+							//}
 
 							break;
 
