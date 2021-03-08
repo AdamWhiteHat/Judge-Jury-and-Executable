@@ -526,10 +526,6 @@ namespace System.IO.Filesystem.Ntfs
 							if (attributeFileName->ParentDirectory.InodeNumberHighPart > 0)
 							{ throw new NotSupportedException("48 bits inode are not supported to reduce memory footprint."); }
 
-							//node.ParentNodeIndex = ((UInt64)attributeFileName->ParentDirectory.InodeNumberHighPart << 32) + attributeFileName->ParentDirectory.InodeNumberLowPart;
-							node.ParentNodeIndex = attributeFileName->ParentDirectory.InodeNumberLowPart;
-
-
 							if (node.Size == 0)  //missing file size
 							{
 								node.Size = attributeFileName->DataSize; //set file size if not already set
@@ -539,22 +535,18 @@ namespace System.IO.Filesystem.Ntfs
 							{
 								currentNameType = (int)attributeFileName->NameType;
 								node.NameIndex = GetNameIndex(new string(&attributeFileName->Name, 0, attributeFileName->NameLength));
+								node.ParentNodeIndex = attributeFileName->ParentDirectory.InodeNumberLowPart;
 							}
 							else
 							{
 								int attributeNameType = (int)attributeFileName->NameType;
-
 								if (attributeNameType == 0 || currentNameType == 2)
 								{
 									currentNameType = attributeNameType;
 									node.NameIndex = GetNameIndex(new string(&attributeFileName->Name, 0, attributeFileName->NameLength));
+									node.ParentNodeIndex = attributeFileName->ParentDirectory.InodeNumberLowPart;
 								}
 							}
-
-							//if (attributeFileName->NameType == 1 || node.NameIndex == 0)
-							//{
-							//	node.NameIndex = GetNameIndex(new string(&attributeFileName->Name, 0, attributeFileName->NameLength)); 
-							//}
 
 							break;
 
