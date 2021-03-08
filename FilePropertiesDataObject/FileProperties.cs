@@ -255,11 +255,14 @@ namespace FilePropertiesDataObject
 				}
 				catch (System.IO.IOException ioException)
 				{
-					string hash = "File access blocked by anti-virus program.";
-					this.Sha256 = hash;
-					this.SHA1 = hash;
-					this.MD5 = hash;
-					return;
+					if (ioException.Message.Contains("contains a virus"))
+					{
+						string hash = "File access blocked by anti-virus program.";
+						this.Sha256 = hash;
+						this.SHA1 = hash;
+						this.MD5 = hash;
+						return;
+					}
 				}
 				catch
 				{ }
