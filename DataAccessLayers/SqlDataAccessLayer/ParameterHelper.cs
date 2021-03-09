@@ -24,7 +24,7 @@ namespace SqlDataAccessLayer
 			{
 				safeValue = value.Replace("'", "");
 			}
-			return new SqlParameter(string.Concat("@", name), SqlDbType.NVarChar, 250) { Value = safeValue, Direction = ParameterDirection.Input };
+			return new SqlParameter(string.Concat("@", name), SqlDbType.NVarChar) { Value = safeValue, Direction = ParameterDirection.Input };
 		}
 
 		public static SqlParameter GetNewParameterByType<T>(string name, T value, SqlDbType type)
