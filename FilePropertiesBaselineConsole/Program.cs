@@ -283,11 +283,16 @@ namespace FilePropertiesBaselineConsole
 			Log.ToUI(message);
 		}
 
-		private static void ReportResults(List<FailSuccessCount> counts)
+		private static void ReportResults(FileEnumeratorReport report)
 		{
-			foreach (FailSuccessCount count in counts)
+			foreach (FailSuccessCount count in report.Counts)
 			{
-				count.ToStrings().ForEach(s => ReportOutput(s));
+				count.ToStrings().ForEach(s => Log.ToAll(s));
+			}
+			Log.ToAll();
+			foreach (string line in report.Timings.GetReport())
+			{
+				Log.ToAll(line);
 			}
 
 			ReportOutput();

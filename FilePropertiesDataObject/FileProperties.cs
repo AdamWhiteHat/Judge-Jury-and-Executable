@@ -82,12 +82,15 @@ namespace FilePropertiesDataObject
 		public double? Entropy { get; private set; }
 		public string YaraMatchedRules { get { return YaraHelper.FormatDelimitedRulesString(_yaraRulesMatched); } }
 
-
 		internal List<string> _yaraRulesMatched { get; set; }
 
 		private Attributes _attributes { get; set; }
 		private PeDataObject _peData { get; set; }
 		private AuthenticodeData _authenticode { get; set; }
+		private TimingMetrics _timingMetrics = null;
+
+		// Max number of bytes for a file size before reading a file in chunks
+		private UInt64 MaxLength = (ulong)NtfsReader.MaxClustersToRead * (ulong)4096;
 
 		#endregion
 
@@ -99,10 +102,12 @@ namespace FilePropertiesDataObject
 			_yaraRulesMatched = new List<string>();
 		}
 
-		public void PopulateFileProperties(FileEnumeratorParameters parameters, char driveLetter, INode node)
+		public void PopulateFileProperties(FileEnumeratorParameters parameters, char driveLetter, INode node, TimingMetrics timingMetrics)
 		{
 			if (parameters == null) return;
 			if (node == null) return;
+
+			_timingMetrics = timingMetrics;
 
 			CancellationHelper.SetCancellationToken(parameters.CancelToken);
 			CancellationHelper.ThrowIfCancelled();
@@ -146,20 +151,10 @@ namespace FilePropertiesDataObject
 				hasFileReadPermissions = true;
 			}
 
-			if (hasFileReadPermissions)
-			{
-				PopulateFileInfoProperties(FullPath);
-				CancellationHelper.ThrowIfCancelled();
-
-				PopulateShellFileInfo(FullPath);
-				CancellationHelper.ThrowIfCancelled();
-			}
-
 			if (this.Length != 0)
 			{
-				var maxLength = ((ulong)NtfsReader.MaxClustersToRead * (ulong)4096);
 				// Some entries in the MFT are greater than int.MaxValue !! That or the size is corrupt. Either way, we handle that here.
-				if (this.Length > maxLength) //(int.MaxValue - 1))
+				if (this.Length > MaxLength) //(int.MaxValue - 1))
 				{
 					PopulateLargeFile(parameters, node, hasFileReadPermissions);
 				}
@@ -186,8 +181,8 @@ namespace FilePropertiesDataObject
 		{
 			IEnumerable<byte[]> fileChunks = node.GetBytes();
 
+			_timingMetrics.Start(TimingMetric.FileHashing);
 			this.Sha256 = Hash.ByteEnumerable.Sha256(fileChunks);
-
 			if (hasFileReadPermissions)
 			{
 				this._peData = PeDataObject.TryGetPeDataObject(FullPath);
@@ -195,7 +190,6 @@ namespace FilePropertiesDataObject
 				{
 					this.SHA1 = _peData.SHA1Hash;
 					this.MD5 = _peData.MD5Hash;
-					this._authenticode = AuthenticodeData.GetAuthenticodeData(this._peData.Certificate);
 				}
 				else
 				{
@@ -203,25 +197,40 @@ namespace FilePropertiesDataObject
 					this.MD5 = Hash.ByteEnumerable.MD5(fileChunks);
 				}
 			}
+			_timingMetrics.Stop(TimingMetric.FileHashing);
+
+			if (_peData != null)
+			{
+				this._authenticode = AuthenticodeData.GetAuthenticodeData(this._peData.Certificate);
+			}
 
 			CancellationHelper.ThrowIfCancelled();
 
-			/*
-			if (parameters.CalculateEntropy)
+			if (hasFileReadPermissions)
 			{
-				this.Entropy = EntropyHelper.CalculateFileEntropy(fileChunks, this.Length);
+				PopulateFileInfoProperties(FullPath);
+				PopulateShellFileInfo(FullPath);
 				CancellationHelper.ThrowIfCancelled();
 			}
-			*/
 
 			if (hasFileReadPermissions)
 			{
 				string yaraIndexFilename = PopulateYaraInfo(parameters.YaraParameters);
-
 				if (!string.IsNullOrWhiteSpace(yaraIndexFilename))
 				{
+					_timingMetrics.Start(TimingMetric.YaraScanning);
 					this._yaraRulesMatched = YaraHelper.ScanFile(FullPath, yaraIndexFilename);
+					_timingMetrics.Stop(TimingMetric.YaraScanning);
 				}
+				CancellationHelper.ThrowIfCancelled();
+			}
+
+			if (parameters.CalculateEntropy) // Should we calculate entropy on really large files?
+			{
+				_timingMetrics.Start(TimingMetric.CalculatingEntropy);
+				this.Entropy = EntropyHelper.CalculateFileEntropy(fileChunks, this.Length);
+				_timingMetrics.Stop(TimingMetric.CalculatingEntropy);
+				CancellationHelper.ThrowIfCancelled();
 			}
 		}
 
@@ -272,13 +281,13 @@ namespace FilePropertiesDataObject
 				fileBytes = node.GetBytes().SelectMany(chunk => chunk).ToArray();
 			}
 
+			_timingMetrics.Start(TimingMetric.FileHashing);
 			this._peData = PeDataObject.TryGetPeDataObject(fileBytes);
 			if (this._peData != null)
 			{
 				this.Sha256 = _peData.SHA256Hash;
 				this.SHA1 = _peData.SHA1Hash;
 				this.MD5 = _peData.MD5Hash;
-				this._authenticode = AuthenticodeData.GetAuthenticodeData(this._peData.Certificate);
 			}
 
 			if (this._peData == null || string.IsNullOrWhiteSpace(this.Sha256))
@@ -287,23 +296,40 @@ namespace FilePropertiesDataObject
 				this.SHA1 = Hash.ByteArray.Sha1(fileBytes);
 				this.MD5 = Hash.ByteArray.MD5(fileBytes);
 			}
+			_timingMetrics.Stop(TimingMetric.FileHashing);
+
+			if (this._peData != null)
+			{
+				this._authenticode = AuthenticodeData.GetAuthenticodeData(this._peData.Certificate);
+			}
 
 			CancellationHelper.ThrowIfCancelled();
 
-			if (parameters.CalculateEntropy)
+			if (hasFileReadPermissions)
 			{
-				this.Entropy = EntropyHelper.CalculateFileEntropy(fileBytes);
+				PopulateFileInfoProperties(FullPath);
+				PopulateShellFileInfo(FullPath);
 				CancellationHelper.ThrowIfCancelled();
 			}
 
 			if (hasFileReadPermissions)
 			{
 				string yaraIndexFilename = PopulateYaraInfo(parameters.YaraParameters);
-
 				if (!string.IsNullOrWhiteSpace(yaraIndexFilename))
 				{
+					_timingMetrics.Start(TimingMetric.YaraScanning);
 					this._yaraRulesMatched = YaraHelper.ScanBytes(fileBytes, yaraIndexFilename);
+					_timingMetrics.Stop(TimingMetric.YaraScanning);
 				}
+				CancellationHelper.ThrowIfCancelled();
+			}
+
+			if (parameters.CalculateEntropy)
+			{
+				_timingMetrics.Start(TimingMetric.CalculatingEntropy);
+				this.Entropy = EntropyHelper.CalculateFileEntropy(fileBytes);
+				_timingMetrics.Stop(TimingMetric.CalculatingEntropy);
+				CancellationHelper.ThrowIfCancelled();
 			}
 		}
 
@@ -344,6 +370,7 @@ namespace FilePropertiesDataObject
 				return string.Empty;
 			}
 
+			_timingMetrics.Start(TimingMetric.YaraIndexBuilding);
 			string yaraIndexContents = YaraHelper.MakeYaraIndexFile(distinctRulesToRun);
 
 			string indexFileHash = Hash.ByteArray.Sha256(Encoding.UTF8.GetBytes(yaraIndexContents));
@@ -354,6 +381,7 @@ namespace FilePropertiesDataObject
 			{
 				File.WriteAllText(yaraIndexFilename, yaraIndexContents);
 			}
+			_timingMetrics.Stop(TimingMetric.YaraIndexBuilding);
 
 			return yaraIndexFilename;
 		}
@@ -393,6 +421,7 @@ namespace FilePropertiesDataObject
 					return;
 				}
 
+				_timingMetrics.Start(TimingMetric.GettingShellInfo);
 				using (ShellFile file = ShellFile.FromFilePath(fullPath))
 				{
 					using (ShellProperties fileProperties = file.Properties)
@@ -420,6 +449,7 @@ namespace FilePropertiesDataObject
 						ComputerName = shellProperty.ComputerName.Value ?? "";
 					}
 				}
+				_timingMetrics.Stop(TimingMetric.GettingShellInfo);
 			}
 			catch
 			{ }

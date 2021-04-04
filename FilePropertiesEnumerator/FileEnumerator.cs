@@ -4,8 +4,6 @@ using System.Text;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Collections.Generic;
-
-using SqlDataAccessLayer;
 using FilePropertiesDataObject;
 using FilePropertiesDataObject.Parameters;
 using System.IO.Filesystem.Ntfs;
@@ -26,20 +24,16 @@ namespace FilePropertiesEnumerator
 			Path.AltDirectorySeparatorChar
 		};
 
-		private static FailSuccessCount fileEnumCount = null;
-		private static FailSuccessCount databaseInsertCount = null;
-
 		public static void LaunchFileEnumerator(FileEnumeratorParameters parameters)
 		{
 			var fileEnumerationDelegate
-				= new Func<FileEnumeratorParameters, List<FailSuccessCount>>((args) => Worker(args));
+				= new Func<FileEnumeratorParameters, FileEnumeratorReport>((args) => Worker(args));
 
 			if (!parameters.DisableWorkerThread)
 			{
-				Task<List<FailSuccessCount>> enumerationTask = Task.Run(() =>
+				Task<FileEnumeratorReport> enumerationTask = Task.Run(() =>
 				{
-					List<FailSuccessCount> results = new List<FailSuccessCount>();
-					results.AddRange(fileEnumerationDelegate.Invoke(parameters));
+					FileEnumeratorReport results = fileEnumerationDelegate.Invoke(parameters);
 					return results;
 				},
 				parameters.CancelToken);
@@ -48,15 +42,16 @@ namespace FilePropertiesEnumerator
 			}
 			else
 			{
-				List<FailSuccessCount> results = fileEnumerationDelegate.Invoke(parameters);
+				FileEnumeratorReport results = fileEnumerationDelegate.Invoke(parameters);
 				parameters.ReportResultsFunction(results);
 			}
 		}
 
-		private static List<FailSuccessCount> Worker(FileEnumeratorParameters parameters)
+		private static FileEnumeratorReport Worker(FileEnumeratorParameters parameters)
 		{
-			fileEnumCount = new FailSuccessCount("OS files enumerated");
-			databaseInsertCount = new FailSuccessCount("OS database rows updated");
+			TimingMetrics timingMetrics = new TimingMetrics();
+			FailSuccessCount fileEnumCount = new FailSuccessCount("OS files enumerated");
+			FailSuccessCount databaseInsertCount = new FailSuccessCount("OS database rows updated");
 
 			try
 			{
@@ -108,7 +103,7 @@ namespace FilePropertiesEnumerator
 					fileEnumCount.IncrementSucceededCount();
 
 					FileProperties prop = new FileProperties();
-					prop.PopulateFileProperties(parameters, parameters.SelectedFolder[0], node);
+					prop.PopulateFileProperties(parameters, parameters.SelectedFolder[0], node, timingMetrics);
 
 					// INSERT file properties into _DATABASE_
 					bool insertResult = dataPersistenceLayer.PersistFileProperties(prop);
@@ -129,7 +124,7 @@ namespace FilePropertiesEnumerator
 			catch (OperationCanceledException)
 			{ }
 
-			return new List<FailSuccessCount> { fileEnumCount, databaseInsertCount };
+			return new FileEnumeratorReport(new List<FailSuccessCount> { fileEnumCount, databaseInsertCount }, timingMetrics);
 		}
 
 		private static bool FileMatchesPattern(string fullName, string[] searchPatterns)

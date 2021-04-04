@@ -19,7 +19,7 @@ namespace FilePropertiesDataObject.Parameters
 
 		public Action<string> ReportOutputFunction { get; set; }
 		public Action<string> LogOutputFunction { get; set; }
-		public Action<List<FailSuccessCount>> ReportResultsFunction { get; set; }
+		public Action<FileEnumeratorReport> ReportResultsFunction { get; set; }
 		public Action<string, string, Exception> ReportExceptionFunction { get; set; }
 
 		public IDataPersistenceLayer DataPersistenceLayer { get; set; }
@@ -33,7 +33,7 @@ namespace FilePropertiesDataObject.Parameters
 										IDataPersistenceLayer dataPersistenceLayerClass,
 										Action<string> reportOutputFunction,
 										Action<string> logOutputFunction,
-										Action<List<FailSuccessCount>> reportResultsFunction,
+										Action<FileEnumeratorReport> reportResultsFunction,
 										Action<string, string, Exception> reportExceptionFunction
 										)
 		{

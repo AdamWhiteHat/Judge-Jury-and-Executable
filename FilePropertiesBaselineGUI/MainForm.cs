@@ -101,25 +101,25 @@ namespace FilePropertiesBaselineGUI
 
 		private void btnSearch_Click(object sender, EventArgs e)
 		{
-		      if (radioPersistenceCSV.Checked || radioPersistenceSqlite.Checked)
-		      {
-			if (tbPersistenceParameter.Text == "")
+			if (radioPersistenceCSV.Checked || radioPersistenceSqlite.Checked)
 			{
-			  MessageBox.Show("File output path is required", "Judge, Jury, and Executable", MessageBoxButtons.OK, MessageBoxIcon.Information);
-			  btnPersistenceBrowse.PerformClick();
-			  return;
+				if (tbPersistenceParameter.Text == "")
+				{
+					MessageBox.Show("File output path is required", "Judge, Jury, and Executable", MessageBoxButtons.OK, MessageBoxIcon.Information);
+					btnPersistenceBrowse.PerformClick();
+					return;
+				}
+				try
+				{
+					Directory.CreateDirectory(Path.GetDirectoryName(tbPersistenceParameter.Text));
+				}
+				catch
+				{
+					MessageBox.Show("Could not create folder path: \"" + tbPersistenceParameter.Text + "\"" + "\n\nPlease update the " + char.ToLower(labelTextBoxDescription.Text[0]) + labelTextBoxDescription.Text.Substring(1, labelTextBoxDescription.Text.Length - 2) + " to a valid location that this application can write to.", "Judge, Jury, and Executable", MessageBoxButtons.OK, MessageBoxIcon.Error);
+					tbPersistenceParameter.Select();
+					return;
+				}
 			}
-			try
-			{
-			  Directory.CreateDirectory(Path.GetDirectoryName(tbPersistenceParameter.Text));
-			}
-			catch
-			{
-			  MessageBox.Show("Could not create folder path: \"" + tbPersistenceParameter.Text + "\"" + "\n\nPlease update the " + char.ToLower(labelTextBoxDescription.Text[0]) + labelTextBoxDescription.Text.Substring(1, labelTextBoxDescription.Text.Length - 2) + " to a valid location that this application can write to.", "Judge, Jury, and Executable", MessageBoxButtons.OK, MessageBoxIcon.Error);
-			  tbPersistenceParameter.Select();
-			  return;
-			}
-		      }
 			BeginScanning();
 		}
 
@@ -233,20 +233,25 @@ namespace FilePropertiesBaselineGUI
 			}
 		}
 
-		private void ReportNumbers(List<FailSuccessCount> counts)
+		private void ReportNumbers(FileEnumeratorReport report)
 		{
 			TimeSpan enumerationTimeSpan = DateTime.Now.Subtract(enumerationStart);
 
-			foreach (FailSuccessCount count in counts)
+			foreach (FailSuccessCount count in report.Counts)
 			{
 				Log.ToAll($"Succeeded: {count.SucceededCount} {count.Description}.");
 			}
-			foreach (FailSuccessCount count in counts)
+			foreach (FailSuccessCount count in report.Counts)
 			{
 				Log.ToAll($"Failed: {count.FailedCount} {count.Description}.");
 			}
 
 			Log.ToAll($"Enumeration time: {enumerationTimeSpan.ToString()}");
+			Log.ToAll();
+			foreach (string line in report.Timings.GetReport())
+			{
+				Log.ToAll(line);
+			}
 			Log.ToAll();
 			Log.ToAll("Enumeration finished!");
 

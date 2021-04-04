@@ -78,6 +78,8 @@
     <Compile Include="IDataPersistenceLayer.cs" />
     <Compile Include="Parameters\FileEnumeratorParameters.cs" />
     <Compile Include="FileProperties.cs" />
+    <Compile Include="Parameters\FileEnumeratorReport.cs" />
+    <Compile Include="TimingMetrics.cs" />
     <Compile Include="YaraFilter.cs" />
     <Compile Include="PeData.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
