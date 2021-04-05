@@ -9,19 +9,19 @@ namespace SqliteDataAccessLayer
 	public static class SqlStrings
 	{
 		public static string SelectPrevalenceCount =
-			"SELECT [PrevalenceCount] FROM [FileProperties] WHERE {0}";
+            "SELECT [PrevalenceCount] FROM [FileProperties] WHERE [SHA256] = @SHA256 AND[MFTNumber] = @MFTNumber AND[SequenceNumber] = @SequenceNumber";
 
 		public static string UpdatePrevalenceCount =
-			"UPDATE [FileProperties] SET [PrevalenceCount] = {0} WHERE {1}";
+            "UPDATE [FileProperties] SET [PrevalenceCount] = {0} WHERE [SHA256] = @SHA256 AND[MFTNumber] = @MFTNumber AND[SequenceNumber] = @SequenceNumber";
 
 		public static string InsertInto =
 		   "INSERT INTO [FileProperties] ({0},[PrevalenceCount],[DateSeen]) VALUES ({1},1,date('now'))";
 
 		public static string SelectYaraRules =
-			"SELECT TOP 1 [YaraRulesMatched] FROM [FileProperties] WHERE {0} AND [YaraRulesMatched] IS NOT NULL";
+            "SELECT TOP 1 [YaraRulesMatched] FROM [FileProperties] WHERE [SHA256] = @SHA256 AND[MFTNumber] = @MFTNumber AND[SequenceNumber] = @SequenceNumber AND [YaraRulesMatched] IS NOT NULL";
 
 		public static string UpdateYaraRules =
-			"UPDATE [FileProperties] SET [YaraRulesMatched] = {0} WHERE {1}";
+            "UPDATE [FileProperties] SET [YaraRulesMatched] = {0} WHERE [SHA256] = @SHA256 AND[MFTNumber] = @MFTNumber AND[SequenceNumber] = @SequenceNumber";
 
 		#region Create Table Script
 

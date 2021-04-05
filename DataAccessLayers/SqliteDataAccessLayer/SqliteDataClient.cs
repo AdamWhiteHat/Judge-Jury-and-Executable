@@ -12,7 +12,7 @@ namespace SqliteDataAccessLayer
 	{
 		private string _dbFilePath;
 		private static string _connectionString;
-		private Lazy<SQLiteConnection> _connection = new Lazy<SQLiteConnection>(() => SqliteDataClient.OpenConnection(_connectionString));
+		private Lazy<SQLiteConnection> _connection = new Lazy<SQLiteConnection>(() => OpenConnection(_connectionString));
 
 		public SqliteDataClient(string dbFilePath)
 		{
@@ -44,9 +44,7 @@ namespace SqliteDataAccessLayer
 		{
 			int prevalenceCount = -1;
 
-			string commandText = string.Format(SqlStrings.SelectPrevalenceCount, key.GetWhereClause());
-
-			object result = ExecuteScalar(commandText, key.Parameters);
+			object result = ExecuteScalar(SqlStrings.SelectPrevalenceCount, key.GetSqlParameters());
 			if (result != null)
 			{
 				prevalenceCount = (int)result;
@@ -57,14 +55,13 @@ namespace SqliteDataAccessLayer
 
 		public void UpdatePrevalenceCount(SqlKey key, int newCount)
 		{
-			string commandText = string.Format(SqlStrings.UpdatePrevalenceCount, newCount, key.GetWhereClause());
-			ExecuteNonQuery(commandText, key.Parameters);
+			string commandText = string.Format(SqlStrings.UpdatePrevalenceCount, newCount);
+			ExecuteNonQuery(commandText, key.GetSqlParameters());
 		}
 
 		public string GetExistingYaraRules(SqlKey key)
 		{
-			string commandText = string.Format(SqlStrings.SelectYaraRules, key.GetWhereClause());
-			return (string)ExecuteScalar(commandText, key.Parameters) ?? "";
+			return (string)ExecuteScalar(SqlStrings.SelectYaraRules, key.GetSqlParameters()) ?? "";
 		}
 
 		public void UpdateExistingYaraRule(SqlKey key, List<string> newYaraMatchedRules)
@@ -72,10 +69,10 @@ namespace SqliteDataAccessLayer
 			string newYaraRulesMatchedValue = YaraHelper.FormatDelimitedRulesString(newYaraMatchedRules);
 			SQLiteParameter yaraMatchedRulesParameter = SqlHelper.GetParameter("YaraRulesMatched", newYaraRulesMatchedValue);
 
-			List<SQLiteParameter> parameters = key.Parameters.ToList();
+			List<SQLiteParameter> parameters = key.GetSqlParameters().ToList();
 			parameters.Add(yaraMatchedRulesParameter);
 
-			string commandText = string.Format(SqlStrings.UpdateYaraRules, yaraMatchedRulesParameter.ParameterName, key.GetWhereClause());
+			string commandText = string.Format(SqlStrings.UpdateYaraRules, yaraMatchedRulesParameter.ParameterName);
 			ExecuteNonQuery(commandText, parameters);
 		}
 

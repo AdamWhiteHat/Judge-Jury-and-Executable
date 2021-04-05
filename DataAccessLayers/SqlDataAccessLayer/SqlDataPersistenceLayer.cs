@@ -38,7 +38,7 @@ namespace SqlDataAccessLayer
 			SqlKey key = new SqlKey(fileProperties.MFTNumber, fileProperties.SequenceNumber, fileProperties.Sha256);
 
 			List<SqlParameter> sqlParameters = new List<SqlParameter>();
-			sqlParameters.AddRange(key.Parameters);
+			sqlParameters.AddRange(key.GetSqlParameters());
 
 			sqlParameters.AddRange(new List<SqlParameter>
 			{
@@ -109,7 +109,7 @@ namespace SqlDataAccessLayer
 		{
 			string queryText = $"SELECT TOP 1 [YaraRulesMatched] FROM [{TableName}] WHERE {key.GetWhereClause()} AND [YaraRulesMatched] IS NOT NULL";
 
-			return (string)ExecuteScalar(queryText, key.Parameters);
+			return (string)ExecuteScalar(queryText, key.GetSqlParameters());
 		}
 
 		private bool InsertIntoDB(FileProperties fileProperties, SqlKey key, List<SqlParameter> sqlParameters)

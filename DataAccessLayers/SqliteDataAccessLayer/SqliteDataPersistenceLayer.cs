@@ -34,7 +34,7 @@ namespace SqliteDataAccessLayer
 			SqlKey key = new SqlKey(fileProperties.MFTNumber, fileProperties.SequenceNumber, fileProperties.Sha256);
 
 			List<SQLiteParameter> sqlParameters = new List<SQLiteParameter>();
-			sqlParameters.AddRange(key.Parameters);
+			sqlParameters.AddRange(key.GetSqlParameters());
 			sqlParameters.AddRange(new List<SQLiteParameter>
 			{
 				SqlHelper.GetParameter("DriveLetter", fileProperties.DriveLetter),

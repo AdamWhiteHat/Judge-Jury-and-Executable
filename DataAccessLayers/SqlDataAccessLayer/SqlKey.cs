@@ -6,8 +6,6 @@ namespace SqlDataAccessLayer
 {
 	public class SqlKey
 	{
-		public SqlParameter[] Parameters { get; private set; }
-
 		private uint _mftNumber;
 		private ushort _sequenceNumber;
 		private string _sha256Hash;
@@ -21,8 +19,11 @@ namespace SqlDataAccessLayer
 			_mftNumber = mftNumber;
 			_sequenceNumber = sequenceNumber;
 			_sha256Hash = sha256Hash;
+		}
 
-			Parameters = new SqlParameter[]
+		public SqlParameter[] GetSqlParameters()
+		{
+			return new SqlParameter[]
 			{
 				ParameterHelper.GetNewStringParameter(StringLiteral_SHA256, _sha256Hash),
 				ParameterHelper.GetParameter(StringLiteral_MftNumber, _mftNumber),
@@ -30,8 +31,6 @@ namespace SqlDataAccessLayer
 			};
 		}
 
-		public string GetColumnsString() => Parameters.AsColumnString();
-		public string GetValuesString() => Parameters.AsValuesString();
-		public string GetWhereClause() => Parameters.AsWhereString();
+		public string GetWhereClause() => "[SHA256] = @SHA256 AND [MFTNumber] = @MFTNumber AND [SequenceNumber] = @SequenceNumber";
 	}
 }
