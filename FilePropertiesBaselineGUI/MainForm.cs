@@ -597,8 +597,7 @@ namespace FilePropertiesBaselineGUI
 			string[] selectedFiles = DialogHelper.BrowseForFilesDialog(DialogHelper.Filters.YaraFiles);
 			if (selectedFiles.Any())
 			{
-				yaraMatchFiles = new List<string>();
-				yaraMatchFiles = selectedFiles.ToList();
+				yaraMatchFiles.AddRange(selectedFiles.ToList());
 				yaraErrorProvider.SetError(listYaraMatchFiles, string.Empty);
 				UpdateYaraMatchFiles();
 			}

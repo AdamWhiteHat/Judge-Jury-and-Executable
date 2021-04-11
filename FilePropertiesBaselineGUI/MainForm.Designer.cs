@@ -165,7 +165,7 @@
 			this.btnSearch.Location = new System.Drawing.Point(3, 99);
 			this.btnSearch.Name = "btnSearch";
 			this.btnSearch.Size = new System.Drawing.Size(198, 27);
-			this.btnSearch.TabIndex = 1;
+			this.btnSearch.TabIndex = 0;
 			this.btnSearch.Text = "Scan";
 			this.btnSearch.UseVisualStyleBackColor = true;
 			this.btnSearch.Click += new System.EventHandler(this.btnSearch_Click);
@@ -257,7 +257,7 @@
 			this.panelYaraCondition.MinimumSize = new System.Drawing.Size(400, 100);
 			this.panelYaraCondition.Name = "panelYaraCondition";
 			this.panelYaraCondition.Size = new System.Drawing.Size(620, 154);
-			this.panelYaraCondition.TabIndex = 31;
+			this.panelYaraCondition.TabIndex = 0;
 			// 
 			// listYaraMatchFiles
 			// 
@@ -269,9 +269,10 @@
 			this.listYaraMatchFiles.Location = new System.Drawing.Point(107, 40);
 			this.listYaraMatchFiles.Name = "listYaraMatchFiles";
 			this.listYaraMatchFiles.Size = new System.Drawing.Size(425, 77);
-			this.listYaraMatchFiles.TabIndex = 36;
+			this.listYaraMatchFiles.TabIndex = 2;
 			this.listYaraMatchFiles.UseCompatibleStateImageBehavior = false;
 			this.listYaraMatchFiles.View = System.Windows.Forms.View.List;
+			this.listYaraMatchFiles.KeyUp += new System.Windows.Forms.KeyEventHandler(this.listYaraMatchFiles_KeyUp);
 			this.listYaraMatchFiles.MouseUp += new System.Windows.Forms.MouseEventHandler(this.listYaraMatchFiles_MouseUp);
 			// 
 			// contextMenuYaraMatchFiles
@@ -336,7 +337,7 @@
 			this.btnBrowseYaraMatch.Location = new System.Drawing.Point(538, 40);
 			this.btnBrowseYaraMatch.Name = "btnBrowseYaraMatch";
 			this.btnBrowseYaraMatch.Size = new System.Drawing.Size(74, 23);
-			this.btnBrowseYaraMatch.TabIndex = 1;
+			this.btnBrowseYaraMatch.TabIndex = 3;
 			this.btnBrowseYaraMatch.Text = "Browse...";
 			this.btnBrowseYaraMatch.UseVisualStyleBackColor = true;
 			this.btnBrowseYaraMatch.Click += new System.EventHandler(this.btnBrowseYaraMatch_Click);
@@ -347,7 +348,7 @@
 			this.btnCancelAddYaraCondition.Location = new System.Drawing.Point(558, 123);
 			this.btnCancelAddYaraCondition.Name = "btnCancelAddYaraCondition";
 			this.btnCancelAddYaraCondition.Size = new System.Drawing.Size(54, 23);
-			this.btnCancelAddYaraCondition.TabIndex = 31;
+			this.btnCancelAddYaraCondition.TabIndex = 5;
 			this.btnCancelAddYaraCondition.Text = "Cancel";
 			this.btnCancelAddYaraCondition.UseVisualStyleBackColor = true;
 			this.btnCancelAddYaraCondition.Click += new System.EventHandler(this.btnCancelAddYaraCondition_Click);
@@ -358,7 +359,7 @@
 			this.btnOkAddYaraCondition.Location = new System.Drawing.Point(471, 123);
 			this.btnOkAddYaraCondition.Name = "btnOkAddYaraCondition";
 			this.btnOkAddYaraCondition.Size = new System.Drawing.Size(81, 23);
-			this.btnOkAddYaraCondition.TabIndex = 20;
+			this.btnOkAddYaraCondition.TabIndex = 4;
 			this.btnOkAddYaraCondition.Text = "OK";
 			this.btnOkAddYaraCondition.UseVisualStyleBackColor = true;
 			this.btnOkAddYaraCondition.Click += new System.EventHandler(this.btnOkAddYaraCondition_Click);
@@ -375,7 +376,7 @@
 			this.comboConditionType.Location = new System.Drawing.Point(107, 12);
 			this.comboConditionType.Name = "comboConditionType";
 			this.comboConditionType.Size = new System.Drawing.Size(105, 21);
-			this.comboConditionType.TabIndex = 28;
+			this.comboConditionType.TabIndex = 0;
 			this.comboConditionType.SelectionChangeCommitted += new System.EventHandler(this.comboConditionType_SelectionChangeCommitted);
 			// 
 			// tbYaraConditionValue
@@ -385,7 +386,7 @@
 			this.tbYaraConditionValue.Location = new System.Drawing.Point(233, 12);
 			this.tbYaraConditionValue.Name = "tbYaraConditionValue";
 			this.tbYaraConditionValue.Size = new System.Drawing.Size(363, 20);
-			this.tbYaraConditionValue.TabIndex = 19;
+			this.tbYaraConditionValue.TabIndex = 1;
 			// 
 			// btnNewAddYaraCondition
 			// 
@@ -393,7 +394,7 @@
 			this.btnNewAddYaraCondition.Location = new System.Drawing.Point(251, 68);
 			this.btnNewAddYaraCondition.Name = "btnNewAddYaraCondition";
 			this.btnNewAddYaraCondition.Size = new System.Drawing.Size(114, 23);
-			this.btnNewAddYaraCondition.TabIndex = 28;
+			this.btnNewAddYaraCondition.TabIndex = 0;
 			this.btnNewAddYaraCondition.Text = "Add...";
 			this.btnNewAddYaraCondition.UseVisualStyleBackColor = true;
 			this.btnNewAddYaraCondition.Click += new System.EventHandler(this.btnNewAddYaraCondition_Click);
@@ -404,7 +405,7 @@
 			this.btnYaraSave.Location = new System.Drawing.Point(517, 35);
 			this.btnYaraSave.Name = "btnYaraSave";
 			this.btnYaraSave.Size = new System.Drawing.Size(99, 22);
-			this.btnYaraSave.TabIndex = 3;
+			this.btnYaraSave.TabIndex = 1;
 			this.btnYaraSave.Text = "Save filters...";
 			this.btnYaraSave.UseVisualStyleBackColor = true;
 			this.btnYaraSave.Click += new System.EventHandler(this.btnYaraSave_Click);
@@ -415,7 +416,7 @@
 			this.btnYaraLoad.Location = new System.Drawing.Point(517, 56);
 			this.btnYaraLoad.Name = "btnYaraLoad";
 			this.btnYaraLoad.Size = new System.Drawing.Size(99, 22);
-			this.btnYaraLoad.TabIndex = 4;
+			this.btnYaraLoad.TabIndex = 2;
 			this.btnYaraLoad.Text = "Load filters...";
 			this.btnYaraLoad.UseVisualStyleBackColor = true;
 			this.btnYaraLoad.Click += new System.EventHandler(this.btnYaraLoad_Click);
@@ -431,7 +432,7 @@
 			this.treeViewYaraFilters.Name = "treeViewYaraFilters";
 			this.treeViewYaraFilters.ShowNodeToolTips = true;
 			this.treeViewYaraFilters.Size = new System.Drawing.Size(131, 154);
-			this.treeViewYaraFilters.TabIndex = 29;
+			this.treeViewYaraFilters.TabIndex = 0;
 			this.treeViewYaraFilters.KeyUp += new System.Windows.Forms.KeyEventHandler(this.treeViewYaraFilters_KeyUp);
 			// 
 			// contextMenuYaraTreeView
@@ -477,7 +478,7 @@
 			this.panelSearchButton.MinimumSize = new System.Drawing.Size(757, 27);
 			this.panelSearchButton.Name = "panelSearchButton";
 			this.panelSearchButton.Size = new System.Drawing.Size(757, 130);
-			this.panelSearchButton.TabIndex = 2;
+			this.panelSearchButton.TabIndex = 1;
 			// 
 			// panel1
 			// 
@@ -578,7 +579,7 @@
 			this.linkGitHub.Location = new System.Drawing.Point(450, 113);
 			this.linkGitHub.Name = "linkGitHub";
 			this.linkGitHub.Size = new System.Drawing.Size(305, 13);
-			this.linkGitHub.TabIndex = 2;
+			this.linkGitHub.TabIndex = 1;
 			this.linkGitHub.TabStop = true;
 			this.linkGitHub.Text = "https://github.com/AdamWhiteHat/Judge-Jury-and-Executable";
 			this.linkGitHub.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.linkGitHub_LinkClicked);
