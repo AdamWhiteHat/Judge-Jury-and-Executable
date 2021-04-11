@@ -34,8 +34,12 @@ namespace FilePropertiesDataObject
 		public YaraFilter(YaraFilterType filterType, string filterValue, List<string> onMatchRules)
 		{
 			FilterType = filterType;
+			OnMatchRules = onMatchRules.ToList();
 			FilterValue = filterValue;
-			OnMatchRules = onMatchRules;
+			if (FilterValue.Any(c => char.IsWhiteSpace(c)))
+			{
+				FilterValue = new string(FilterValue.Where(c => !char.IsWhiteSpace(c)).ToArray());
+			}
 		}
 
 		public List<string> ProcessRule(FileProperties fileProperties)
@@ -100,30 +104,31 @@ namespace FilePropertiesDataObject
 			return true;
 		}
 
-		private static string JoinString = ", ";
-
 		public override string ToString()
 		{
-			string onMatchRules = $"{{ {string.Join(JoinString, OnMatchRules.Select(s => Path.GetFileName(s)))} }}";
 			if (FilterType == YaraFilterType.ElseNoMatch)
 			{
-				return "ELSE => " + onMatchRules;
+				return "else(no rules matches)";
 			}
 			else if (FilterType == YaraFilterType.AlwaysRun)
 			{
-				return "IF(true) => " + onMatchRules;
+				return "if(true)";
 			}
 			else if (FilterType == YaraFilterType.IsPeFile)
 			{
-				return "IF(PE) => " + onMatchRules;
+				return "if(PE file)";
 			}
 			else if (FilterType == YaraFilterType.FileExtension)
 			{
-				return $"IF(*{FilterValue}) => {onMatchRules}";
+				return $"if(ext == {FilterValue})";
 			}
-			else // if (FilterType == YaraFilterType.MimeType)
+			else if (FilterType == YaraFilterType.MimeType)
 			{
-				return $"IF({FilterValue}) => {onMatchRules}";
+				return $"if(MimeType == {FilterValue})";
+			}
+			else
+			{
+				throw new NotImplementedException();
 			}
 		}
 	}

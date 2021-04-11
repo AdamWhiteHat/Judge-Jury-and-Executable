@@ -15,9 +15,20 @@ using FilePropertiesDataObject;
 using FilePropertiesDataObject.Parameters;
 using Microsoft.Data.ConnectionUI;
 using Microsoft.Win32;
+using System.Collections;
 
 namespace FilePropertiesBaselineGUI
 {
+	public enum ComboBoxSelection
+	{
+		None = -1,
+		Always = 0,
+		PeFile = 1,
+		FileExtension = 2,
+		MimeType = 3,
+		NoMatches = 4
+	}
+
 	public partial class MainForm : Form
 	{
 		private CancellationTokenSource cancelTokenSource = new CancellationTokenSource();
@@ -35,6 +46,11 @@ namespace FilePropertiesBaselineGUI
 
 		private static int yaraPanelHeight_Collapsed = 10;
 		private static TextBox OutputTextBox;
+
+		private static AutoCompleteStringCollection AutoComplete_FileExtensions;
+		private static AutoCompleteStringCollection AutoComplete_MimeTypes;
+
+		#region Constructor
 
 		public MainForm()
 		{
@@ -76,9 +92,15 @@ namespace FilePropertiesBaselineGUI
 				tbSearchPatterns.Text = Settings.GUI_SearchPattern;
 			}
 
+			AutoComplete_FileExtensions = new AutoCompleteStringCollection();
+			AutoComplete_MimeTypes = new AutoCompleteStringCollection();
+
+			AutoComplete_FileExtensions.AddRange(Properties.Settings.Default.AutoComplete_FileExtensions.Cast<string>().ToArray());
+			AutoComplete_MimeTypes.AddRange(Properties.Settings.Default.AutoComplete_MimeTypes.Cast<string>().ToArray());
+
 			#endregion
 
-			#region Yara panel members initialization
+			#region YARA panel members initialization
 
 			yaraPanelHeight_Expanded = panelYaraParameters.Height;
 			yaraPanelHeightDifference = yaraPanelHeight_Expanded - yaraPanelHeight_Collapsed;
@@ -91,24 +113,42 @@ namespace FilePropertiesBaselineGUI
 
 			mainformWidth_Previous = this.Width;
 
-			radioButtonYara_AlwaysRun.Checked = true;
+			tbYaraConditionValue.Visible = false;
+			panelYaraCondition.Visible = false;
 
 			#endregion
 
 		}
 
+		#endregion
+
 		#region Search/Cancel/Reset Behavior
 
 		private void btnSearch_Click(object sender, EventArgs e)
 		{
-			if (radioPersistenceCSV.Checked || radioPersistenceSqlite.Checked)
+
+			if (string.IsNullOrWhiteSpace(tbPersistenceParameter.Text))
 			{
-				if (tbPersistenceParameter.Text == "")
+				string message = "";
+				if (radioPersistenceCSV.Checked || radioPersistenceSqlite.Checked)
 				{
-					MessageBox.Show("File output path is required", "Judge, Jury, and Executable", MessageBoxButtons.OK, MessageBoxIcon.Information);
-					btnPersistenceBrowse.PerformClick();
+					message = "A output file path is required.";
+				}
+				else if (radioPersistenceSqlServer.Checked)
+				{
+					message = "You must select a SQL server or supply a SQL connection string.";
+				}
+
+				MessageBox.Show(message, "Judge, Jury, and Executable", MessageBoxButtons.OK, MessageBoxIcon.Information);
+				BrowseForPersistenceMethod();
+				if (string.IsNullOrWhiteSpace(tbPersistenceParameter.Text))
+				{
 					return;
 				}
+			}
+
+			if (radioPersistenceCSV.Checked || radioPersistenceSqlite.Checked)
+			{
 				try
 				{
 					Directory.CreateDirectory(Path.GetDirectoryName(tbPersistenceParameter.Text));
@@ -120,6 +160,7 @@ namespace FilePropertiesBaselineGUI
 					return;
 				}
 			}
+
 			BeginScanning();
 		}
 
@@ -417,7 +458,8 @@ namespace FilePropertiesBaselineGUI
 				this.MinimumSize = new System.Drawing.Size(this.MinimumSize.Width, mainformMinimumHeight_Collapsed);
 				panelYaraParameters.Height = yaraPanelHeight_Collapsed;
 				this.Height = mainformHeight_Collapsed;
-				ClearAllYaraSettings();
+				panelYaraCondition.Visible = false;
+				DiscardAllUnsavedYaraRules();
 			}
 			else
 			{
@@ -425,57 +467,104 @@ namespace FilePropertiesBaselineGUI
 				this.MinimumSize = new System.Drawing.Size(this.MinimumSize.Width, mainformMinimumHeight_Expanded);
 				panelYaraParameters.Height = yaraPanelHeight_Expanded;
 				this.Height = mainformHeight_Expanded;
+				panelYaraCondition.Visible = false;
 			}
 
+			yaraErrorProvider.Clear();
 			panelYaraParameters.Visible = checkBoxYaraRules.Checked;
-		}
-
-		private void radioButtonYara_HideFilterValue_CheckedChanged(object sender, EventArgs e)
-		{
-			RadioButton control = (RadioButton)sender;
-			if (control.Checked)
-			{
-				panelYaraFilterValue.Visible = false;
-			}
-		}
-
-		private void radioButtonYara_ShowFilterValue_CheckedChanged(object sender, EventArgs e)
-		{
-			RadioButton control = (RadioButton)sender;
-			if (control.Checked)
-			{
-				panelYaraFilterValue.Visible = true;
-			}
-		}
-
-		private void UpdateYaraFilterListbox()
-		{
-			listBoxYaraFilters.SuspendLayout();
-			listBoxYaraFilters.Items.Clear();
-
-			foreach (YaraFilter filter in currentYaraFilters)
-			{
-				listBoxYaraFilters.Items.Add(filter.ToString());
-			}
-
-			listBoxYaraFilters.ResumeLayout();
-		}
-
-		private void ClearAllYaraSettings()
-		{
-			tbYaraRuleMatchFiles.Text = "";
-			tbYaraFilterValue.Text = "";
-
-			currentYaraFilters.Clear();
-
-			listBoxYaraFilters.SuspendLayout();
-			listBoxYaraFilters.Items.Clear();
-			listBoxYaraFilters.ResumeLayout();
 		}
 
 		#endregion
 
-		#region Add/Remove Filters
+		#region Yara Filter Configure
+
+		private void comboConditionType_SelectionChangeCommitted(object sender, EventArgs e)
+		{
+			if (comboConditionType.SelectedIndex == (int)ComboBoxSelection.None)
+			{
+				tbYaraConditionValue.Visible = false;
+				tbYaraConditionValue.Text = "";
+				SetAutoCompleteSource(tbYaraConditionValue);
+			}
+			else if (comboConditionType.SelectedIndex == (int)ComboBoxSelection.Always)
+			{
+				tbYaraConditionValue.Visible = false;
+				tbYaraConditionValue.Text = "";
+				SetAutoCompleteSource(tbYaraConditionValue);
+			}
+			else if (comboConditionType.SelectedIndex == (int)ComboBoxSelection.PeFile)
+			{
+				tbYaraConditionValue.Visible = false;
+				tbYaraConditionValue.Text = "";
+				SetAutoCompleteSource(tbYaraConditionValue);
+			}
+			else if (comboConditionType.SelectedIndex == (int)ComboBoxSelection.FileExtension)
+			{
+				tbYaraConditionValue.Visible = true;
+				tbYaraConditionValue.Text = ".exe";
+				SetAutoCompleteSource(tbYaraConditionValue, AutoComplete_FileExtensions);
+				tbYaraConditionValue.Focus();
+			}
+			else if (comboConditionType.SelectedIndex == (int)ComboBoxSelection.MimeType)
+			{
+				tbYaraConditionValue.Visible = true;
+				tbYaraConditionValue.Text = "application/octet-stream";
+				SetAutoCompleteSource(tbYaraConditionValue, AutoComplete_MimeTypes);
+				tbYaraConditionValue.Focus();
+			}
+			else if (comboConditionType.SelectedIndex == (int)ComboBoxSelection.NoMatches)
+			{
+				tbYaraConditionValue.Visible = false;
+				tbYaraConditionValue.Text = "";
+				SetAutoCompleteSource(tbYaraConditionValue);
+			}
+
+			yaraErrorProvider.SetError(comboConditionType, string.Empty);
+			yaraErrorProvider.SetError(tbYaraConditionValue, string.Empty);
+		}
+
+		private static void SetAutoCompleteSource(TextBox textBox, AutoCompleteStringCollection autoCompleteCollection = null)
+		{
+			if (autoCompleteCollection == null || autoCompleteCollection.Count == 0)
+			{
+				textBox.AutoCompleteMode = AutoCompleteMode.None;
+				textBox.AutoCompleteSource = AutoCompleteSource.None;
+				textBox.AutoCompleteCustomSource = new AutoCompleteStringCollection();
+			}
+			else
+			{
+				textBox.AutoCompleteMode = AutoCompleteMode.Suggest;
+				textBox.AutoCompleteSource = AutoCompleteSource.CustomSource;
+				textBox.AutoCompleteCustomSource = autoCompleteCollection;
+			}
+		}
+
+		private void ClearYaraControls()
+		{
+			tbYaraConditionValue.Clear();
+			listYaraMatchFiles.Clear();
+			yaraMatchFiles.Clear();
+
+			comboConditionType.SelectedIndex = (int)ComboBoxSelection.None;
+			comboConditionType.Text = "(select)";
+
+			yaraErrorProvider.SetError(comboConditionType, string.Empty);
+			yaraErrorProvider.SetError(tbYaraConditionValue, string.Empty);
+			yaraErrorProvider.SetError(listYaraMatchFiles, string.Empty);
+		}
+
+		private void DiscardAllUnsavedYaraRules()
+		{
+			ClearYaraControls();
+
+			currentYaraFilters.Clear();
+
+			treeViewYaraFilters.Nodes.Clear();
+		}
+
+		#endregion
+
+		#region Yara Match Rule Files
 
 		private void btnBrowseYaraMatch_Click(object sender, EventArgs e)
 		{
@@ -484,50 +573,201 @@ namespace FilePropertiesBaselineGUI
 			if (selectedFiles.Any())
 			{
 				yaraMatchFiles = selectedFiles.ToList();
-				tbYaraRuleMatchFiles.Text = string.Join(", ", yaraMatchFiles.Select(s => Path.GetFileName(s)));
 			}
 			else
 			{
 				yaraMatchFiles = new List<string>();
-				tbYaraRuleMatchFiles.Text = "";
+			}
+
+			yaraErrorProvider.SetError(listYaraMatchFiles, string.Empty);
+			UpdateYaraMatchFiles();
+		}
+
+		private void ToolStripMenuItem_RemoveMatchFile_Click(object sender, EventArgs e)
+		{
+			DeleteSelectedYaraMatchFiles();
+		}
+
+		private void listYaraMatchFiles_KeyUp(object sender, KeyEventArgs e)
+		{
+			if (e.KeyCode == Keys.Delete)
+			{
+				DeleteSelectedYaraMatchFiles();
 			}
 		}
 
-		private void btnAddYaraFilter_Click(object sender, EventArgs e)
+		private void DeleteSelectedYaraMatchFiles()
 		{
+			foreach (ListViewItem item in listYaraMatchFiles.SelectedItems)
+			{
+				string file = (string)item.Tag;
+				yaraMatchFiles.Remove(file);
+			}
+
+			UpdateYaraMatchFiles();
+		}
+
+		private void UpdateYaraMatchFiles()
+		{
+			listYaraMatchFiles.Clear();
+			foreach (string file in yaraMatchFiles.ToList())
+			{
+				ListViewItem item = new ListViewItem(Path.GetFileName(file));
+				item.Tag = file;
+				listYaraMatchFiles.Items.Add(item);
+			}
+		}
+
+		#endregion
+
+		#region Yara Filters TreeView 
+
+		private void UpdateYaraFilterTreeView()
+		{
+			treeViewYaraFilters.SuspendLayout();
+			treeViewYaraFilters.Nodes.Clear();
+
+			foreach (YaraFilter filter in currentYaraFilters)
+			{
+				List<TreeNode> childNodes = new List<TreeNode>();
+
+				foreach (string file in filter.OnMatchRules.ToList())
+				{
+					TreeNode child = new TreeNode(Path.GetFileName(file));
+					child.ToolTipText = file;
+					childNodes.Add(child);
+				}
+
+				string nodeText = "";
+
+				if (filter.FilterType == YaraFilterType.FileExtension || filter.FilterType == YaraFilterType.MimeType)
+				{
+					nodeText = filter.FilterValue;
+				}
+				else if (filter.FilterType == YaraFilterType.AlwaysRun)
+				{
+					nodeText = "Always run rules";
+				}
+				else if (filter.FilterType == YaraFilterType.IsPeFile)
+				{
+					nodeText = "Is PE file";
+				}
+				else if (filter.FilterType == YaraFilterType.ElseNoMatch)
+				{
+					nodeText = "No matches";
+				}
+
+				TreeNode node = new TreeNode(nodeText);
+				node.ToolTipText = filter.ToString();
+				node.Nodes.AddRange(childNodes.ToArray());
+				node.Tag = (int)currentYaraFilters.IndexOf(filter);
+				node.Collapse();
+
+				treeViewYaraFilters.Nodes.Add(node);
+			}
+
+			treeViewYaraFilters.ResumeLayout();
+		}
+
+		private void contextMenuYaraTreeView_Opening(object sender, System.ComponentModel.CancelEventArgs e)
+		{
+			if (treeViewYaraFilters.Nodes.Count == 0)
+			{
+				e.Cancel = true;
+			}
+		}
+
+		private void removeTreeFilterToolStripMenuItem_Click(object sender, EventArgs e)
+		{
+			treeView_RemoveSelected();
+		}
+
+		private void treeViewYaraFilters_KeyUp(object sender, KeyEventArgs e)
+		{
+			if (e.KeyCode == Keys.Delete)
+			{
+				treeView_RemoveSelected();
+			}
+		}
+
+		private void treeView_RemoveSelected()
+		{
+			TreeNode selectedNode = treeViewYaraFilters.SelectedNode;
+			int level = selectedNode.Level;
+
+			int index = -1;
+			if (level == 1)
+			{
+				TreeNode parent = selectedNode.Parent;
+				index = (int)parent.Tag;
+				YaraFilter filter = currentYaraFilters[index];
+
+				filter.OnMatchRules.Remove(selectedNode.ToolTipText);
+
+				selectedNode.Remove();
+
+				return;
+			}
+			else
+			{
+				index = (int)selectedNode.Tag;
+				currentYaraFilters.RemoveAt(index);
+				selectedNode.Remove();
+			}
+		}
+
+		#endregion
+
+		#region Add/Remove Yara Filters
+
+		private void btnNewAddYaraCondition_Click(object sender, EventArgs e)
+		{
+			panelYaraCondition.Visible = true;
+		}
+
+		private void btnCancelAddYaraCondition_Click(object sender, EventArgs e)
+		{
+			ClearYaraControls();
+			panelYaraCondition.Visible = false;
+		}
+
+		private void btnOkAddYaraCondition_Click(object sender, EventArgs e)
+		{
+			if (comboConditionType.SelectedIndex == (int)ComboBoxSelection.None)
+			{
+				yaraErrorProvider.SetError(comboConditionType, "Missing filter type");
+				return;
+			}
+
 			if (!yaraMatchFiles.Any())
 			{
-				MessageBox.Show($"Must have at least one file selected under \"{labelYaraRulesToRun.Text}\" selected.\n\nFilter not added.", AddYaraRuleErrorCaption, MessageBoxButtons.OK, MessageBoxIcon.Error);
+				yaraErrorProvider.SetError(listYaraMatchFiles, "Missing rule file(s)");
+				//MessageBox.Show($"You must select at least 1 rule file.\n\nFilter not added.", AddYaraRuleErrorCaption, MessageBoxButtons.OK, MessageBoxIcon.Error);
 				return;
 			}
 
 			YaraFilterType filterType = YaraFilterType.AlwaysRun;
 			string filterValue = string.Empty;
 
-			if (radioButtonYara_AlwaysRun.Checked)
+			if (comboConditionType.SelectedIndex == (int)ComboBoxSelection.Always)
 			{
 				filterType = YaraFilterType.AlwaysRun;
 			}
-			else if (radioButtonYara_IsPeFile.Checked)
+			else if (comboConditionType.SelectedIndex == (int)ComboBoxSelection.PeFile)
 			{
 				filterType = YaraFilterType.IsPeFile;
 			}
-			else if (radioButtonYara_Extention.Checked)
+			else if (comboConditionType.SelectedIndex == (int)ComboBoxSelection.FileExtension)
 			{
 				filterType = YaraFilterType.FileExtension;
-				if (string.IsNullOrWhiteSpace(tbYaraFilterValue.Text))
+				if (string.IsNullOrWhiteSpace(tbYaraConditionValue.Text))
 				{
-					MessageBox.Show($"\"{labelYaraFilterValue.Text.Replace(":", "")}\" cannot be empty when \"{radioButtonYara_Extention.Text.Replace(":", "")}\" is selected.\n\nFilter not added.", AddYaraRuleErrorCaption, MessageBoxButtons.OK, MessageBoxIcon.Error);
+					yaraErrorProvider.SetError(tbYaraConditionValue, "Missing file extension");
+					//MessageBox.Show($"You forgot to enter a file extension to filter by in the text box.\n\nFilter not added.", AddYaraRuleErrorCaption, MessageBoxButtons.OK, MessageBoxIcon.Error);
 					return;
 				}
 
-				filterValue = tbYaraFilterValue.Text;
-
-				if (filterValue.Any(c => char.IsWhiteSpace(c)))
-				{
-					MessageBox.Show("No whitespace is allowed in a file extension.\n\nFilter not added.", AddYaraRuleErrorCaption, MessageBoxButtons.OK, MessageBoxIcon.Error);
-					return;
-				}
+				filterValue = tbYaraConditionValue.Text;
 
 				if (!filterValue.Contains('.'))
 				{
@@ -542,27 +782,23 @@ namespace FilePropertiesBaselineGUI
 					}
 					else
 					{
-						MessageBox.Show($"You are attempting to add a FILE EXTENSION filter, yet the YARA filter value does not contain the required character '.'.\n\nFilter not added.", AddYaraRuleErrorCaption, MessageBoxButtons.OK, MessageBoxIcon.Error);
+						yaraErrorProvider.SetError(tbYaraConditionValue, "File extensions should start with a period ('.')");
+						//MessageBox.Show($"You are attempting to add a FILE EXTENSION filter, yet the YARA filter value does not contain the required character '.'.\n\nFilter not added.", AddYaraRuleErrorCaption, MessageBoxButtons.OK, MessageBoxIcon.Error);
 						return;
 					}
 				}
 			}
-			else if (radioButtonYara_MimeType.Checked)
+			else if (comboConditionType.SelectedIndex == (int)ComboBoxSelection.MimeType)
 			{
 				filterType = YaraFilterType.MimeType;
-				if (string.IsNullOrWhiteSpace(tbYaraFilterValue.Text))
+				if (string.IsNullOrWhiteSpace(tbYaraConditionValue.Text))
 				{
-					MessageBox.Show($"\"{labelYaraFilterValue.Text.Replace(":", "")}\" cannot be empty when \"{radioButtonYara_MimeType.Text.Replace(":", "")}\" is selected.\n\nFilter not added.", AddYaraRuleErrorCaption, MessageBoxButtons.OK, MessageBoxIcon.Error);
+					yaraErrorProvider.SetError(tbYaraConditionValue, "Missing MIME type");
+					//MessageBox.Show($"You forgot to enter a MIME type to filter by in the text box.\n\nFilter not added.", AddYaraRuleErrorCaption, MessageBoxButtons.OK, MessageBoxIcon.Error);
 					return;
 				}
 
-				filterValue = tbYaraFilterValue.Text;
-
-				if (filterValue.Any(c => char.IsWhiteSpace(c)))
-				{
-					MessageBox.Show("No whitespace is allowed in a MIME type.\n\nFilter not added.", AddYaraRuleErrorCaption, MessageBoxButtons.OK, MessageBoxIcon.Error);
-					return;
-				}
+				filterValue = tbYaraConditionValue.Text;
 
 				if (!filterValue.Contains('/'))
 				{
@@ -577,14 +813,16 @@ namespace FilePropertiesBaselineGUI
 					}
 					else
 					{
-						MessageBox.Show($"You are attempting to add a MIME type filter, yet the YARA filter value does not contain the required character '/'.\n\nFilter not added.", AddYaraRuleErrorCaption, MessageBoxButtons.OK, MessageBoxIcon.Error);
+						yaraErrorProvider.SetError(tbYaraConditionValue, "MIME types contain a slash ('/')");
+						//MessageBox.Show($"You are attempting to add a MIME type filter, yet the YARA filter value does not contain the required character '/'.\n\nFilter not added.", AddYaraRuleErrorCaption, MessageBoxButtons.OK, MessageBoxIcon.Error);
 						return;
 					}
 				}
 			}
-			else if (radioButtonYara_ElseNoMatch.Checked)
+			else if (comboConditionType.SelectedIndex == (int)ComboBoxSelection.NoMatches)
 			{
 				filterType = YaraFilterType.ElseNoMatch;
+				filterValue = "";
 			}
 
 			YaraFilter yaraFilter = new YaraFilter(filterType, filterValue, yaraMatchFiles);
@@ -597,43 +835,32 @@ namespace FilePropertiesBaselineGUI
 
 			currentYaraFilters.Add(yaraFilter);
 
-			UpdateYaraFilterListbox();
+			UpdateYaraFilterTreeView();
+			ClearYaraControls();
+			panelYaraCondition.Visible = false;
 		}
 
-		private void btnRemoveYaraFilter_Click(object sender, EventArgs e)
+		private void ContextMenuListBox_Opening(object sender, System.ComponentModel.CancelEventArgs e)
 		{
-			listBoxYaraFilters_RemoveSelected();
-		}
-
-		private void listBoxYaraFilters_KeyUp(object sender, KeyEventArgs e)
-		{
-			if (e.KeyCode == Keys.Delete)
+			ContextMenuStrip contextMenu = (ContextMenuStrip)sender;
+			if (contextMenu.SourceControl is ListView)
 			{
-				listBoxYaraFilters_RemoveSelected();
+				ListView listView = (ListView)contextMenu.SourceControl;
+				if (listView.Items.Count == 0)
+				{
+					e.Cancel = true;
+				}
 			}
 		}
 
-		private void listBoxYaraFilters_RemoveSelected()
+		private void tbYaraConditionValue_TextChanged(object sender, EventArgs e)
 		{
-			var selectedIndices = listBoxYaraFilters.SelectedIndices.Cast<int>().ToList();
-
-			List<YaraFilter> toRemove = new List<YaraFilter>();
-			foreach (int index in selectedIndices)
-			{
-				toRemove.Add(currentYaraFilters[index]);
-			}
-
-			foreach (YaraFilter filter in toRemove)
-			{
-				currentYaraFilters.Remove(filter);
-			}
-
-			UpdateYaraFilterListbox();
+			yaraErrorProvider.SetError(tbYaraConditionValue, string.Empty);
 		}
 
 		#endregion
 
-		#region Load/Save Yara Rules Filter Configuration
+		#region Load/Save Yara Rules Filters
 
 		private void btnYaraSave_Click(object sender, EventArgs e)
 		{
@@ -652,7 +879,7 @@ namespace FilePropertiesBaselineGUI
 			if (!string.IsNullOrWhiteSpace(selectedFile) && File.Exists(selectedFile))
 			{
 				currentYaraFilters = JsonSerialization.Load.Generic<List<YaraFilter>>(selectedFile);
-				UpdateYaraFilterListbox();
+				UpdateYaraFilterTreeView();
 			}
 		}
 
@@ -701,12 +928,16 @@ namespace FilePropertiesBaselineGUI
 						tbPersistenceParameter.Clear();
 						return;
 					}
-
 				}
 			}
 		}
 
 		private void btnPersistenceBrowse_Click(object sender, EventArgs e)
+		{
+			BrowseForPersistenceMethod();
+		}
+
+		private void BrowseForPersistenceMethod()
 		{
 			if (radioPersistenceCSV.Checked || radioPersistenceSqlite.Checked)
 			{
@@ -760,6 +991,8 @@ namespace FilePropertiesBaselineGUI
 			}
 			return results;
 		}
+
+
 
 		#endregion
 
