@@ -40,9 +40,7 @@
 			this.panelParameters = new System.Windows.Forms.Panel();
 			this.checkBoxYaraRules = new System.Windows.Forms.CheckBox();
 			this.panelYaraParameters = new System.Windows.Forms.Panel();
-			this.treeViewYaraFilters = new System.Windows.Forms.TreeView();
-			this.contextMenuYaraTreeView = new System.Windows.Forms.ContextMenuStrip(this.components);
-			this.removeTreeFilterToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+			this.splitContainerYara = new System.Windows.Forms.SplitContainer();
 			this.panelYaraCondition = new System.Windows.Forms.Panel();
 			this.listYaraMatchFiles = new System.Windows.Forms.ListView();
 			this.contextMenuYaraMatchFiles = new System.Windows.Forms.ContextMenuStrip(this.components);
@@ -56,9 +54,12 @@
 			this.btnOkAddYaraCondition = new System.Windows.Forms.Button();
 			this.comboConditionType = new System.Windows.Forms.ComboBox();
 			this.tbYaraConditionValue = new System.Windows.Forms.TextBox();
+			this.btnNewAddYaraCondition = new System.Windows.Forms.Button();
 			this.btnYaraSave = new System.Windows.Forms.Button();
 			this.btnYaraLoad = new System.Windows.Forms.Button();
-			this.btnNewAddYaraCondition = new System.Windows.Forms.Button();
+			this.treeViewYaraFilters = new System.Windows.Forms.TreeView();
+			this.contextMenuYaraTreeView = new System.Windows.Forms.ContextMenuStrip(this.components);
+			this.removeTreeFilterToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
 			this.flowLayoutPanelTop = new System.Windows.Forms.FlowLayoutPanel();
 			this.panelSearchButton = new System.Windows.Forms.Panel();
 			this.panel1 = new System.Windows.Forms.Panel();
@@ -76,9 +77,13 @@
 			this.yaraErrorProvider = new System.Windows.Forms.ErrorProvider(this.components);
 			this.panelParameters.SuspendLayout();
 			this.panelYaraParameters.SuspendLayout();
-			this.contextMenuYaraTreeView.SuspendLayout();
+			((System.ComponentModel.ISupportInitialize)(this.splitContainerYara)).BeginInit();
+			this.splitContainerYara.Panel1.SuspendLayout();
+			this.splitContainerYara.Panel2.SuspendLayout();
+			this.splitContainerYara.SuspendLayout();
 			this.panelYaraCondition.SuspendLayout();
 			this.contextMenuYaraMatchFiles.SuspendLayout();
+			this.contextMenuYaraTreeView.SuspendLayout();
 			this.flowLayoutPanelTop.SuspendLayout();
 			this.panelSearchButton.SuspendLayout();
 			this.panel1.SuspendLayout();
@@ -196,12 +201,11 @@
 			// 
 			// panelYaraParameters
 			// 
+			this.panelYaraParameters.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
 			this.panelYaraParameters.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-			this.panelYaraParameters.Controls.Add(this.treeViewYaraFilters);
-			this.panelYaraParameters.Controls.Add(this.panelYaraCondition);
-			this.panelYaraParameters.Controls.Add(this.btnYaraSave);
-			this.panelYaraParameters.Controls.Add(this.btnYaraLoad);
-			this.panelYaraParameters.Controls.Add(this.btnNewAddYaraCondition);
+			this.panelYaraParameters.Controls.Add(this.splitContainerYara);
 			this.panelYaraParameters.Location = new System.Drawing.Point(1, 106);
 			this.panelYaraParameters.Margin = new System.Windows.Forms.Padding(1);
 			this.panelYaraParameters.MinimumSize = new System.Drawing.Size(757, 2);
@@ -209,34 +213,29 @@
 			this.panelYaraParameters.Size = new System.Drawing.Size(757, 154);
 			this.panelYaraParameters.TabIndex = 0;
 			// 
-			// treeViewYaraFilters
+			// splitContainerYara
 			// 
-			this.treeViewYaraFilters.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+			this.splitContainerYara.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-			this.treeViewYaraFilters.ContextMenuStrip = this.contextMenuYaraTreeView;
-			this.treeViewYaraFilters.HideSelection = false;
-			this.treeViewYaraFilters.Location = new System.Drawing.Point(604, -1);
-			this.treeViewYaraFilters.Name = "treeViewYaraFilters";
-			this.treeViewYaraFilters.ShowNodeToolTips = true;
-			this.treeViewYaraFilters.Size = new System.Drawing.Size(149, 154);
-			this.treeViewYaraFilters.TabIndex = 29;
-			this.treeViewYaraFilters.KeyUp += new System.Windows.Forms.KeyEventHandler(this.treeViewYaraFilters_KeyUp);
+			this.splitContainerYara.Location = new System.Drawing.Point(0, -1);
+			this.splitContainerYara.Name = "splitContainerYara";
 			// 
-			// contextMenuYaraTreeView
+			// splitContainerYara.Panel1
 			// 
-			this.contextMenuYaraTreeView.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.removeTreeFilterToolStripMenuItem});
-			this.contextMenuYaraTreeView.Name = "contextMenuYaraTreeView";
-			this.contextMenuYaraTreeView.Size = new System.Drawing.Size(118, 26);
-			this.contextMenuYaraTreeView.Opening += new System.ComponentModel.CancelEventHandler(this.contextMenuYaraTreeView_Opening);
+			this.splitContainerYara.Panel1.Controls.Add(this.panelYaraCondition);
+			this.splitContainerYara.Panel1.Controls.Add(this.btnNewAddYaraCondition);
+			this.splitContainerYara.Panel1.Controls.Add(this.btnYaraSave);
+			this.splitContainerYara.Panel1.Controls.Add(this.btnYaraLoad);
+			this.splitContainerYara.Panel1MinSize = 410;
 			// 
-			// removeTreeFilterToolStripMenuItem
+			// splitContainerYara.Panel2
 			// 
-			this.removeTreeFilterToolStripMenuItem.Name = "removeTreeFilterToolStripMenuItem";
-			this.removeTreeFilterToolStripMenuItem.Size = new System.Drawing.Size(117, 22);
-			this.removeTreeFilterToolStripMenuItem.Text = "Remove";
-			this.removeTreeFilterToolStripMenuItem.Click += new System.EventHandler(this.removeTreeFilterToolStripMenuItem_Click);
+			this.splitContainerYara.Panel2.Controls.Add(this.treeViewYaraFilters);
+			this.splitContainerYara.Panel2MinSize = 110;
+			this.splitContainerYara.Size = new System.Drawing.Size(756, 154);
+			this.splitContainerYara.SplitterDistance = 619;
+			this.splitContainerYara.TabIndex = 32;
 			// 
 			// panelYaraCondition
 			// 
@@ -254,11 +253,11 @@
 			this.panelYaraCondition.Controls.Add(this.btnOkAddYaraCondition);
 			this.panelYaraCondition.Controls.Add(this.comboConditionType);
 			this.panelYaraCondition.Controls.Add(this.tbYaraConditionValue);
-			this.panelYaraCondition.Location = new System.Drawing.Point(-1, -1);
+			this.panelYaraCondition.Location = new System.Drawing.Point(-1, 0);
 			this.panelYaraCondition.MinimumSize = new System.Drawing.Size(400, 100);
 			this.panelYaraCondition.Name = "panelYaraCondition";
-			this.panelYaraCondition.Size = new System.Drawing.Size(603, 154);
-			this.panelYaraCondition.TabIndex = 27;
+			this.panelYaraCondition.Size = new System.Drawing.Size(620, 154);
+			this.panelYaraCondition.TabIndex = 31;
 			// 
 			// listYaraMatchFiles
 			// 
@@ -269,11 +268,11 @@
 			this.listYaraMatchFiles.HideSelection = false;
 			this.listYaraMatchFiles.Location = new System.Drawing.Point(107, 40);
 			this.listYaraMatchFiles.Name = "listYaraMatchFiles";
-			this.listYaraMatchFiles.Size = new System.Drawing.Size(408, 77);
+			this.listYaraMatchFiles.Size = new System.Drawing.Size(425, 77);
 			this.listYaraMatchFiles.TabIndex = 36;
 			this.listYaraMatchFiles.UseCompatibleStateImageBehavior = false;
 			this.listYaraMatchFiles.View = System.Windows.Forms.View.List;
-			this.listYaraMatchFiles.KeyUp += new System.Windows.Forms.KeyEventHandler(this.listYaraMatchFiles_KeyUp);
+			this.listYaraMatchFiles.MouseUp += new System.Windows.Forms.MouseEventHandler(this.listYaraMatchFiles_MouseUp);
 			// 
 			// contextMenuYaraMatchFiles
 			// 
@@ -334,7 +333,7 @@
 			// btnBrowseYaraMatch
 			// 
 			this.btnBrowseYaraMatch.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-			this.btnBrowseYaraMatch.Location = new System.Drawing.Point(521, 40);
+			this.btnBrowseYaraMatch.Location = new System.Drawing.Point(538, 40);
 			this.btnBrowseYaraMatch.Name = "btnBrowseYaraMatch";
 			this.btnBrowseYaraMatch.Size = new System.Drawing.Size(74, 23);
 			this.btnBrowseYaraMatch.TabIndex = 1;
@@ -345,7 +344,7 @@
 			// btnCancelAddYaraCondition
 			// 
 			this.btnCancelAddYaraCondition.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-			this.btnCancelAddYaraCondition.Location = new System.Drawing.Point(541, 123);
+			this.btnCancelAddYaraCondition.Location = new System.Drawing.Point(558, 123);
 			this.btnCancelAddYaraCondition.Name = "btnCancelAddYaraCondition";
 			this.btnCancelAddYaraCondition.Size = new System.Drawing.Size(54, 23);
 			this.btnCancelAddYaraCondition.TabIndex = 31;
@@ -356,7 +355,7 @@
 			// btnOkAddYaraCondition
 			// 
 			this.btnOkAddYaraCondition.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-			this.btnOkAddYaraCondition.Location = new System.Drawing.Point(454, 123);
+			this.btnOkAddYaraCondition.Location = new System.Drawing.Point(471, 123);
 			this.btnOkAddYaraCondition.Name = "btnOkAddYaraCondition";
 			this.btnOkAddYaraCondition.Size = new System.Drawing.Size(81, 23);
 			this.btnOkAddYaraCondition.TabIndex = 20;
@@ -383,15 +382,26 @@
 			// 
 			this.tbYaraConditionValue.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-			this.tbYaraConditionValue.Location = new System.Drawing.Point(231, 12);
+			this.tbYaraConditionValue.Location = new System.Drawing.Point(233, 12);
 			this.tbYaraConditionValue.Name = "tbYaraConditionValue";
-			this.tbYaraConditionValue.Size = new System.Drawing.Size(346, 20);
+			this.tbYaraConditionValue.Size = new System.Drawing.Size(363, 20);
 			this.tbYaraConditionValue.TabIndex = 19;
-			this.tbYaraConditionValue.TextChanged += new System.EventHandler(this.tbYaraConditionValue_TextChanged);
+			// 
+			// btnNewAddYaraCondition
+			// 
+			this.btnNewAddYaraCondition.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)));
+			this.btnNewAddYaraCondition.Location = new System.Drawing.Point(251, 68);
+			this.btnNewAddYaraCondition.Name = "btnNewAddYaraCondition";
+			this.btnNewAddYaraCondition.Size = new System.Drawing.Size(114, 23);
+			this.btnNewAddYaraCondition.TabIndex = 28;
+			this.btnNewAddYaraCondition.Text = "Add...";
+			this.btnNewAddYaraCondition.UseVisualStyleBackColor = true;
+			this.btnNewAddYaraCondition.Click += new System.EventHandler(this.btnNewAddYaraCondition_Click);
 			// 
 			// btnYaraSave
 			// 
-			this.btnYaraSave.Location = new System.Drawing.Point(499, 15);
+			this.btnYaraSave.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+			this.btnYaraSave.Location = new System.Drawing.Point(517, 35);
 			this.btnYaraSave.Name = "btnYaraSave";
 			this.btnYaraSave.Size = new System.Drawing.Size(99, 22);
 			this.btnYaraSave.TabIndex = 3;
@@ -401,7 +411,8 @@
 			// 
 			// btnYaraLoad
 			// 
-			this.btnYaraLoad.Location = new System.Drawing.Point(499, 36);
+			this.btnYaraLoad.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+			this.btnYaraLoad.Location = new System.Drawing.Point(517, 56);
 			this.btnYaraLoad.Name = "btnYaraLoad";
 			this.btnYaraLoad.Size = new System.Drawing.Size(99, 22);
 			this.btnYaraLoad.TabIndex = 4;
@@ -409,15 +420,34 @@
 			this.btnYaraLoad.UseVisualStyleBackColor = true;
 			this.btnYaraLoad.Click += new System.EventHandler(this.btnYaraLoad_Click);
 			// 
-			// btnNewAddYaraCondition
+			// treeViewYaraFilters
 			// 
-			this.btnNewAddYaraCondition.Location = new System.Drawing.Point(206, 45);
-			this.btnNewAddYaraCondition.Name = "btnNewAddYaraCondition";
-			this.btnNewAddYaraCondition.Size = new System.Drawing.Size(114, 23);
-			this.btnNewAddYaraCondition.TabIndex = 28;
-			this.btnNewAddYaraCondition.Text = "Add...";
-			this.btnNewAddYaraCondition.UseVisualStyleBackColor = true;
-			this.btnNewAddYaraCondition.Click += new System.EventHandler(this.btnNewAddYaraCondition_Click);
+			this.treeViewYaraFilters.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+			this.treeViewYaraFilters.ContextMenuStrip = this.contextMenuYaraTreeView;
+			this.treeViewYaraFilters.HideSelection = false;
+			this.treeViewYaraFilters.Location = new System.Drawing.Point(0, 0);
+			this.treeViewYaraFilters.Name = "treeViewYaraFilters";
+			this.treeViewYaraFilters.ShowNodeToolTips = true;
+			this.treeViewYaraFilters.Size = new System.Drawing.Size(131, 154);
+			this.treeViewYaraFilters.TabIndex = 29;
+			this.treeViewYaraFilters.KeyUp += new System.Windows.Forms.KeyEventHandler(this.treeViewYaraFilters_KeyUp);
+			// 
+			// contextMenuYaraTreeView
+			// 
+			this.contextMenuYaraTreeView.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.removeTreeFilterToolStripMenuItem});
+			this.contextMenuYaraTreeView.Name = "contextMenuYaraTreeView";
+			this.contextMenuYaraTreeView.Size = new System.Drawing.Size(118, 26);
+			this.contextMenuYaraTreeView.Opening += new System.ComponentModel.CancelEventHandler(this.contextMenuYaraTreeView_Opening);
+			// 
+			// removeTreeFilterToolStripMenuItem
+			// 
+			this.removeTreeFilterToolStripMenuItem.Name = "removeTreeFilterToolStripMenuItem";
+			this.removeTreeFilterToolStripMenuItem.Size = new System.Drawing.Size(117, 22);
+			this.removeTreeFilterToolStripMenuItem.Text = "Remove";
+			this.removeTreeFilterToolStripMenuItem.Click += new System.EventHandler(this.removeTreeFilterToolStripMenuItem_Click);
 			// 
 			// flowLayoutPanelTop
 			// 
@@ -614,10 +644,14 @@
 			this.panelParameters.ResumeLayout(false);
 			this.panelParameters.PerformLayout();
 			this.panelYaraParameters.ResumeLayout(false);
-			this.contextMenuYaraTreeView.ResumeLayout(false);
+			this.splitContainerYara.Panel1.ResumeLayout(false);
+			this.splitContainerYara.Panel2.ResumeLayout(false);
+			((System.ComponentModel.ISupportInitialize)(this.splitContainerYara)).EndInit();
+			this.splitContainerYara.ResumeLayout(false);
 			this.panelYaraCondition.ResumeLayout(false);
 			this.panelYaraCondition.PerformLayout();
 			this.contextMenuYaraMatchFiles.ResumeLayout(false);
+			this.contextMenuYaraTreeView.ResumeLayout(false);
 			this.flowLayoutPanelTop.ResumeLayout(false);
 			this.flowLayoutPanelTop.PerformLayout();
 			this.panelSearchButton.ResumeLayout(false);
@@ -645,7 +679,6 @@
 		private System.Windows.Forms.Label label1;
 		private System.Windows.Forms.Button btnSearch;
 		private System.Windows.Forms.Panel panelParameters;
-		private System.Windows.Forms.Button btnBrowseYaraMatch;
 		private System.Windows.Forms.Panel panelYaraParameters;
 		private System.Windows.Forms.CheckBox checkBoxYaraRules;
 		private System.Windows.Forms.Button btnYaraSave;
@@ -664,23 +697,25 @@
 		private System.Windows.Forms.RadioButton radioPersistenceCSV;
 		private System.Windows.Forms.RadioButton radioPersistenceSqlite;
 		private System.Windows.Forms.RadioButton radioPersistenceSqlServer;
-		private System.Windows.Forms.Panel panelYaraCondition;
-		private System.Windows.Forms.Button btnCancelAddYaraCondition;
-		private System.Windows.Forms.Button btnOkAddYaraCondition;
-		private System.Windows.Forms.ComboBox comboConditionType;
-		private System.Windows.Forms.TextBox tbYaraConditionValue;
-		private System.Windows.Forms.Label label6;
-		private System.Windows.Forms.Label label5;
-		private System.Windows.Forms.Label label4;
-		private System.Windows.Forms.Label label3;
 		private System.Windows.Forms.Button btnNewAddYaraCondition;
 		private System.Windows.Forms.ErrorProvider yaraErrorProvider;
-		private System.Windows.Forms.ListView listYaraMatchFiles;
 		private System.Windows.Forms.ContextMenuStrip contextMenuYaraMatchFiles;
 		private System.Windows.Forms.ToolStripMenuItem toolStripMenuItem_RemoveMatchFile;
 		private System.Windows.Forms.TreeView treeViewYaraFilters;
 		private System.Windows.Forms.ContextMenuStrip contextMenuYaraTreeView;
 		private System.Windows.Forms.ToolStripMenuItem removeTreeFilterToolStripMenuItem;
+		private System.Windows.Forms.Panel panelYaraCondition;
+		private System.Windows.Forms.ListView listYaraMatchFiles;
+		private System.Windows.Forms.Label label6;
+		private System.Windows.Forms.Label label5;
+		private System.Windows.Forms.Label label4;
+		private System.Windows.Forms.Label label3;
+		private System.Windows.Forms.Button btnBrowseYaraMatch;
+		private System.Windows.Forms.Button btnCancelAddYaraCondition;
+		private System.Windows.Forms.Button btnOkAddYaraCondition;
+		private System.Windows.Forms.ComboBox comboConditionType;
+		private System.Windows.Forms.TextBox tbYaraConditionValue;
+		private System.Windows.Forms.SplitContainer splitContainerYara;
 	}
 }
 

@@ -568,19 +568,15 @@ namespace FilePropertiesBaselineGUI
 
 		private void btnBrowseYaraMatch_Click(object sender, EventArgs e)
 		{
-			string[] selectedFiles = DialogHelper.BrowseForFilesDialog(DialogHelper.Filters.YaraFiles);
+			BrowseYaraMatchFiles();
+		}
 
-			if (selectedFiles.Any())
+		private void listYaraMatchFiles_MouseUp(object sender, MouseEventArgs e)
+		{
+			if (listYaraMatchFiles.Items.Count == 0)
 			{
-				yaraMatchFiles = selectedFiles.ToList();
+				BrowseYaraMatchFiles();
 			}
-			else
-			{
-				yaraMatchFiles = new List<string>();
-			}
-
-			yaraErrorProvider.SetError(listYaraMatchFiles, string.Empty);
-			UpdateYaraMatchFiles();
 		}
 
 		private void ToolStripMenuItem_RemoveMatchFile_Click(object sender, EventArgs e)
@@ -593,6 +589,18 @@ namespace FilePropertiesBaselineGUI
 			if (e.KeyCode == Keys.Delete)
 			{
 				DeleteSelectedYaraMatchFiles();
+			}
+		}
+
+		private void BrowseYaraMatchFiles()
+		{
+			string[] selectedFiles = DialogHelper.BrowseForFilesDialog(DialogHelper.Filters.YaraFiles);
+			if (selectedFiles.Any())
+			{
+				yaraMatchFiles = new List<string>();
+				yaraMatchFiles = selectedFiles.ToList();
+				yaraErrorProvider.SetError(listYaraMatchFiles, string.Empty);
+				UpdateYaraMatchFiles();
 			}
 		}
 
@@ -657,13 +665,13 @@ namespace FilePropertiesBaselineGUI
 					nodeText = "No matches";
 				}
 
-				TreeNode node = new TreeNode(nodeText);
-				node.ToolTipText = filter.ToString();
-				node.Nodes.AddRange(childNodes.ToArray());
-				node.Tag = (int)currentYaraFilters.IndexOf(filter);
-				node.Collapse();
+				TreeNode parentNode = new TreeNode(nodeText);
+				parentNode.ToolTipText = filter.ToString();
+				parentNode.Nodes.AddRange(childNodes.ToArray());
+				parentNode.Tag = filter;
+				parentNode.Collapse();
 
-				treeViewYaraFilters.Nodes.Add(node);
+				treeViewYaraFilters.Nodes.Add(parentNode);
 			}
 
 			treeViewYaraFilters.ResumeLayout();
@@ -695,23 +703,26 @@ namespace FilePropertiesBaselineGUI
 			TreeNode selectedNode = treeViewYaraFilters.SelectedNode;
 			int level = selectedNode.Level;
 
-			int index = -1;
 			if (level == 1)
 			{
 				TreeNode parent = selectedNode.Parent;
-				index = (int)parent.Tag;
-				YaraFilter filter = currentYaraFilters[index];
+				YaraFilter filter = (YaraFilter)parent.Tag;
 
 				filter.OnMatchRules.Remove(selectedNode.ToolTipText);
-
 				selectedNode.Remove();
+
+				if (!filter.OnMatchRules.Any())
+				{
+					currentYaraFilters.Remove(filter);
+					parent.Remove();
+				}
 
 				return;
 			}
 			else
 			{
-				index = (int)selectedNode.Tag;
-				currentYaraFilters.RemoveAt(index);
+				YaraFilter filter = (YaraFilter)selectedNode.Tag;
+				currentYaraFilters.Remove(filter);
 				selectedNode.Remove();
 			}
 		}
@@ -991,8 +1002,6 @@ namespace FilePropertiesBaselineGUI
 			}
 			return results;
 		}
-
-
 
 		#endregion
 
