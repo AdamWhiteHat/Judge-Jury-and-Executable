@@ -529,23 +529,21 @@ namespace FilePropertiesBaselineGUI
 					return;
 				}
 
-				if (!filterValue.Contains('.'))
+				if (filterValue.Contains('/'))
 				{
-					if (filterValue.Contains('/'))
+					if (MessageBox.Show("You are attempting to add a file extension filter, yet the YARA filter value looks like a MIME type.\n\nDo you wish to add this as a MIME type filter instead?", AddYaraRuleErrorCaption, MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.No)
 					{
-						if (MessageBox.Show("You are attempting to add a file extension filter, yet the YARA filter value looks like a MIME type.\n\nDo you wish to add this as a MIME type filter instead?", AddYaraRuleErrorCaption, MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.No)
-						{
-							return;
-						}
-
-						filterType = YaraFilterType.MimeType;
-					}
-					else
-					{
-						MessageBox.Show($"You are attempting to add a FILE EXTENSION filter, yet the YARA filter value does not contain the required character '.'.\n\nFilter not added.", AddYaraRuleErrorCaption, MessageBoxButtons.OK, MessageBoxIcon.Error);
 						return;
 					}
+
+					filterType = YaraFilterType.MimeType;
 				}
+				else if (!filterValue.Contains('.'))
+				{
+					MessageBox.Show($"You are attempting to add a FILE EXTENSION filter, yet the YARA filter value does not contain the required character '.'.\n\nFilter not added.", AddYaraRuleErrorCaption, MessageBoxButtons.OK, MessageBoxIcon.Error);
+					return;
+				}
+
 			}
 			else if (radioButtonYara_MimeType.Checked)
 			{
