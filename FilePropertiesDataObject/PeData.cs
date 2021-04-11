@@ -134,7 +134,7 @@ namespace FilePropertiesDataObject
 				}
 				else if (peFile.Is64Bit)
 				{
-					this.BinaryType = 16;
+					this.BinaryType = 64;
 				}
 			}
 
