@@ -220,7 +220,7 @@ namespace FilePropertiesBaselineConsole
 						yaraFilters,
 						dataPersistenceLayer,
 						ReportOutput,
-						Log.ToAll,
+						Log.LogOutputAction,
 						ReportResults,
 						Log.ExceptionMessage
 					);

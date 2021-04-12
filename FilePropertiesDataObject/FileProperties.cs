@@ -347,19 +347,15 @@ namespace FilePropertiesDataObject
 				CancellationHelper.ThrowIfCancelled();
 			}
 
-			if (hasFileReadPermissions)
+			Rules compiledRules = GetCompiledYaraRules(parameters.YaraParameters);
+			if (compiledRules != null)
 			{
-				Rules compiledRules = GetCompiledYaraRules(parameters.YaraParameters);
-				if (compiledRules != null)
-				{
-					_timingMetrics.Start(TimingMetric.YaraScanning);
-					this._yaraRulesMatched = YaraHelper.ScanBytes(fileBytes, compiledRules);
-					_timingMetrics.Stop(TimingMetric.YaraScanning);
-					compiledRules = null;
-				}
-
-				CancellationHelper.ThrowIfCancelled();
+				_timingMetrics.Start(TimingMetric.YaraScanning);
+				this._yaraRulesMatched = YaraHelper.ScanBytes(fileBytes, compiledRules);
+				_timingMetrics.Stop(TimingMetric.YaraScanning);
+				compiledRules = null;
 			}
+			CancellationHelper.ThrowIfCancelled();
 
 			if (parameters.CalculateEntropy)
 			{
