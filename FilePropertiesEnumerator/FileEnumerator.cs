@@ -120,6 +120,7 @@ namespace FilePropertiesEnumerator
 				}
 
 				dataPersistenceLayer.Dispose();
+				FileProperties.CleanUp();
 			}
 			catch (OperationCanceledException)
 			{ }

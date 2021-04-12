@@ -8,12 +8,19 @@ namespace FilePropertiesDataObject.Helpers
 {
 	public static class YaraHelper
 	{
-		public static List<string> ScanBytes(byte[] fileBytes, string rulesPath)
+		private static Scanner _scanner;
+
+		static YaraHelper()
+		{
+			_scanner = new Scanner();
+		}
+
+		public static List<string> ScanBytes(byte[] fileBytes, Rules compiledRules)
 		{
 			List<string> result = new List<string>();
 			try
 			{
-				List<ScanResult> scanResults = QuickScan.Memory(fileBytes, rulesPath);
+				List<ScanResult> scanResults = _scanner.ScanMemory(fileBytes, compiledRules);
 				if (scanResults.Any())
 				{
 					result = scanResults.Select(res => res.MatchingRule.Identifier).ToList();
@@ -21,18 +28,17 @@ namespace FilePropertiesDataObject.Helpers
 			}
 			catch
 			{
-
 			}
 
 			return result;
 		}
 
-		public static List<string> ScanFile(string filePath, string rulesPath)
+		public static List<string> ScanFile(string filePath, Rules compiledRules)
 		{
 			List<string> result = new List<string>();
 			try
 			{
-				List<ScanResult> scanResults = QuickScan.File(filePath, rulesPath);
+				List<ScanResult> scanResults = _scanner.ScanFile(filePath, compiledRules);
 				if (scanResults.Any())
 				{
 					result = scanResults.Select(res => res.MatchingRule.Identifier).ToList();
@@ -40,15 +46,9 @@ namespace FilePropertiesDataObject.Helpers
 			}
 			catch
 			{
-
 			}
 
 			return result;
-		}
-
-		public static string MakeYaraIndexFile(List<string> yaraRuleFiles)
-		{
-			return string.Join(Environment.NewLine, yaraRuleFiles.Select(s => $"include \"{s}\""));
 		}
 
 		public static string FormatDelimitedRulesString(List<string> rules)
