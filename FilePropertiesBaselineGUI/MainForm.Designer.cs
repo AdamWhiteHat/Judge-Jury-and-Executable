@@ -62,7 +62,7 @@
 			this.removeTreeFilterToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
 			this.flowLayoutPanelTop = new System.Windows.Forms.FlowLayoutPanel();
 			this.panelSearchButton = new System.Windows.Forms.Panel();
-			this.panel1 = new System.Windows.Forms.Panel();
+			this.panelPersistenceOptions = new System.Windows.Forms.Panel();
 			this.labelTextBoxDescription = new System.Windows.Forms.Label();
 			this.label2 = new System.Windows.Forms.Label();
 			this.btnPersistenceBrowse = new System.Windows.Forms.Button();
@@ -86,7 +86,7 @@
 			this.contextMenuYaraTreeView.SuspendLayout();
 			this.flowLayoutPanelTop.SuspendLayout();
 			this.panelSearchButton.SuspendLayout();
-			this.panel1.SuspendLayout();
+			this.panelPersistenceOptions.SuspendLayout();
 			this.panelBottom.SuspendLayout();
 			this.tableLayoutPanel1.SuspendLayout();
 			this.panelTop.SuspendLayout();
@@ -470,7 +470,7 @@
 			// 
 			this.panelSearchButton.AutoSize = true;
 			this.panelSearchButton.BackColor = System.Drawing.SystemColors.Control;
-			this.panelSearchButton.Controls.Add(this.panel1);
+			this.panelSearchButton.Controls.Add(this.panelPersistenceOptions);
 			this.panelSearchButton.Controls.Add(this.linkGitHub);
 			this.panelSearchButton.Controls.Add(this.btnSearch);
 			this.panelSearchButton.Location = new System.Drawing.Point(0, 261);
@@ -480,24 +480,24 @@
 			this.panelSearchButton.Size = new System.Drawing.Size(757, 130);
 			this.panelSearchButton.TabIndex = 1;
 			// 
-			// panel1
+			// panelPersistenceOptions
 			// 
-			this.panel1.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+			this.panelPersistenceOptions.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-			this.panel1.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-			this.panel1.Controls.Add(this.labelTextBoxDescription);
-			this.panel1.Controls.Add(this.label2);
-			this.panel1.Controls.Add(this.btnPersistenceBrowse);
-			this.panel1.Controls.Add(this.tbPersistenceParameter);
-			this.panel1.Controls.Add(this.radioPersistenceCSV);
-			this.panel1.Controls.Add(this.radioPersistenceSqlite);
-			this.panel1.Controls.Add(this.radioPersistenceSqlServer);
-			this.panel1.Location = new System.Drawing.Point(1, 0);
-			this.panel1.Margin = new System.Windows.Forms.Padding(0);
-			this.panel1.Name = "panel1";
-			this.panel1.Size = new System.Drawing.Size(756, 96);
-			this.panel1.TabIndex = 0;
+			this.panelPersistenceOptions.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+			this.panelPersistenceOptions.Controls.Add(this.labelTextBoxDescription);
+			this.panelPersistenceOptions.Controls.Add(this.label2);
+			this.panelPersistenceOptions.Controls.Add(this.btnPersistenceBrowse);
+			this.panelPersistenceOptions.Controls.Add(this.tbPersistenceParameter);
+			this.panelPersistenceOptions.Controls.Add(this.radioPersistenceCSV);
+			this.panelPersistenceOptions.Controls.Add(this.radioPersistenceSqlite);
+			this.panelPersistenceOptions.Controls.Add(this.radioPersistenceSqlServer);
+			this.panelPersistenceOptions.Location = new System.Drawing.Point(1, 0);
+			this.panelPersistenceOptions.Margin = new System.Windows.Forms.Padding(0);
+			this.panelPersistenceOptions.Name = "panelPersistenceOptions";
+			this.panelPersistenceOptions.Size = new System.Drawing.Size(756, 96);
+			this.panelPersistenceOptions.TabIndex = 0;
 			// 
 			// labelTextBoxDescription
 			// 
@@ -657,8 +657,8 @@
 			this.flowLayoutPanelTop.PerformLayout();
 			this.panelSearchButton.ResumeLayout(false);
 			this.panelSearchButton.PerformLayout();
-			this.panel1.ResumeLayout(false);
-			this.panel1.PerformLayout();
+			this.panelPersistenceOptions.ResumeLayout(false);
+			this.panelPersistenceOptions.PerformLayout();
 			this.panelBottom.ResumeLayout(false);
 			this.panelBottom.PerformLayout();
 			this.tableLayoutPanel1.ResumeLayout(false);
@@ -690,7 +690,7 @@
 		private System.Windows.Forms.Panel panelTop;
 		private System.Windows.Forms.Panel panelSearchButton;
 		private System.Windows.Forms.LinkLabel linkGitHub;
-		private System.Windows.Forms.Panel panel1;
+		private System.Windows.Forms.Panel panelPersistenceOptions;
 		private System.Windows.Forms.Label labelTextBoxDescription;
 		private System.Windows.Forms.Label label2;
 		private System.Windows.Forms.Button btnPersistenceBrowse;

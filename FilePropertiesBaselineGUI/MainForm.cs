@@ -329,8 +329,10 @@ namespace FilePropertiesBaselineGUI
 				if (checkBoxYaraRules.Checked)
 				{
 					panelYaraParameters.Enabled = true;
+					splitContainerYara.Panel1.Show();
 				}
 				panelParameters.Enabled = true;
+				panelPersistenceOptions.Enabled = true;
 				btnSearch.Text = "Scan";
 				btnSearch.Enabled = true;
 			}
@@ -347,8 +349,10 @@ namespace FilePropertiesBaselineGUI
 				if (checkBoxYaraRules.Checked)
 				{
 					panelYaraParameters.Enabled = false;
+					splitContainerYara.Panel1.Hide();
 				}
 				panelParameters.Enabled = false;
+				panelPersistenceOptions.Enabled = false;
 				btnSearch.Text = "Cancel";
 				btnSearch.Enabled = true;
 			}
