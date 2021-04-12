@@ -39,15 +39,15 @@ You start with a disk or disk images that are potentially dirty with malware, vi
 
 
 ## Forensics-level scanning.
-Firstly, the tool creates an entry in the database for each record found in the MFT (master file table--its how NTFS does its record keeping). This bypasses file security permissions, file hiding, stealth or obfuscation techniques, file deletion, or timestamp tampering. These techniques will not prevent the file from being scanned and catalogued.
+Firstly, the tool creates an entry in the database for each record found in the MFT (master file table--its how NTFS does its record keeping). This bypasses file security permissions, file hiding, stealth or obfuscation techniques, file deletion, or timestamp tampering. These techniques will not prevent the file from being scanned and catalogued. The bytes of the file are read from the MFT and as many data points as possible are taken from the bytes of the file read from the MFT before attempting to access any data points using the higher-level OS API calls.
 
 
 ## Rich, high-level data analytics.
-Then all operating-system-level properties, data and meta-data available about each file is collected and augments each entry. As a result of this, even if the file properties from the Framework/Operating System API cannot be accessed due to permissions, file locks (is in use), disk corruption, a zero-byte-length file, or various other reasons, the file will still be recorded, logged and tracked. The entry, however, will simply not contain the information about it that was not accessible to the operating system. Up to 51 different properties may be collected for every file.
+After the MFT and forensics-level data is secured, operating-system-level properties, data and meta-data available about each file is collected and augments each entry created from the MFT entry. As a result of this, even if the file or its properties from the Operating System API or the dotnet framework cannot be accessed due to file permissions (ACL), file locks (is in use), disk corruption, a zero-byte-length file, or any of the various other reasons, the file's existence will still be recorded, logged and tracked. The entry, however, will simply not contain the information about it that was not accessible to the operating system. Up to 51 different data points may be collected for every file.
   
 
 ## 
-![Screenshot](https://github.com/AdamWhiteHat/Judge-Jury-and-Executable/blob/master/Judge-Jury-and-Executable.PNG "Judge Jury and Executable Application Screenshot")
+![Screenshot](https://github.com/AdamWhiteHat/Judge-Jury-and-Executable/blob/master/Judge-Jury-and-Executable.png "Judge Jury and Executable Application Screenshot")
   
  
 ## For each file, information collected includes:
@@ -63,8 +63,8 @@ Then all operating-system-level properties, data and meta-data available about e
  - Does the X.509 certificate chain verify?
  - Custom YARA rules (Lists the rule names that match)
  - File entropy
- - VirusTotal score
-
+ - File entropy
+ - Up to 51 different data points in total
 
 
 ## Example data row:
