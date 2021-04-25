@@ -47,7 +47,7 @@ After the MFT and forensics-level data is secured, operating-system-level proper
   
 
 ## 
-![Screenshot](https://github.com/AdamWhiteHat/Judge-Jury-and-Executable/blob/master/Judge-Jury-and-Executable.png "Judge Jury and Executable Application Screenshot")
+![Screenshot](https://raw.githubusercontent.com/AdamWhiteHat/Judge-Jury-and-Executable/master/Judge-Jury-and-Executable.PNG "Judge Jury and Executable Application Screenshot")
   
  
 ## For each file, information collected includes:
