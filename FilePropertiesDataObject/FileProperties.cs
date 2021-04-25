@@ -404,7 +404,7 @@ namespace FilePropertiesDataObject
 
 			distinctRulesToRun = distinctRulesToRun.OrderBy(s => s).ToList();
 
-			_timingMetrics.Start(TimingMetric.YaraIndexBuilding);
+			_timingMetrics.Start(TimingMetric.YaraRuleCompiling);
 			string uniqueRuleCollectionToken = string.Join("|", distinctRulesToRun);
 			string ruleCollectionHash = Hash.ByteArray.Sha256(Encoding.UTF8.GetBytes(uniqueRuleCollectionToken));
 
@@ -419,7 +419,7 @@ namespace FilePropertiesDataObject
 				results = CompileRules(distinctRulesToRun);
 				_yaraCompiledRulesDictionary.Add(ruleCollectionHash, results);
 			}
-			_timingMetrics.Stop(TimingMetric.YaraIndexBuilding);
+			_timingMetrics.Stop(TimingMetric.YaraRuleCompiling);
 
 			return results;
 		}

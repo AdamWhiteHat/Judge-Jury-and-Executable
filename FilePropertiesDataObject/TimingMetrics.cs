@@ -9,7 +9,7 @@ namespace FilePropertiesDataObject
 	{
 		FileHashing,
 		YaraScanning,
-		YaraIndexBuilding,
+		YaraRuleCompiling,
 		CalculatingEntropy,
 		GettingShellInfo
 	}
