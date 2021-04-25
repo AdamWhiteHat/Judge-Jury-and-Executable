@@ -703,30 +703,33 @@ namespace FilePropertiesBaselineGUI
 
 		private void treeView_RemoveSelected()
 		{
-			TreeNode selectedNode = treeViewYaraFilters.SelectedNode;
-			int level = selectedNode.Level;
-
-			if (level == 1)
+			if (treeViewYaraFilters.GetNodeCount(false) > 0)
 			{
-				TreeNode parent = selectedNode.Parent;
-				YaraFilter filter = (YaraFilter)parent.Tag;
+				TreeNode selectedNode = treeViewYaraFilters.SelectedNode;
+				int level = selectedNode.Level;
 
-				filter.OnMatchRules.Remove(selectedNode.ToolTipText);
-				selectedNode.Remove();
-
-				if (!filter.OnMatchRules.Any())
+				if (level == 1)
 				{
-					currentYaraFilters.Remove(filter);
-					parent.Remove();
-				}
+					TreeNode parent = selectedNode.Parent;
+					YaraFilter filter = (YaraFilter)parent.Tag;
 
-				return;
-			}
-			else
-			{
-				YaraFilter filter = (YaraFilter)selectedNode.Tag;
-				currentYaraFilters.Remove(filter);
-				selectedNode.Remove();
+					filter.OnMatchRules.Remove(selectedNode.ToolTipText);
+					selectedNode.Remove();
+
+					if (!filter.OnMatchRules.Any())
+					{
+						currentYaraFilters.Remove(filter);
+						parent.Remove();
+					}
+
+					return;
+				}
+				else
+				{
+					YaraFilter filter = (YaraFilter)selectedNode.Tag;
+					currentYaraFilters.Remove(filter);
+					selectedNode.Remove();
+				}
 			}
 		}
 
