@@ -72,7 +72,7 @@ namespace Logging
 
 			string toLog = string.Join(Environment.NewLine, lines);
 			ToFile(toLog);
-			ToUI($"Exception logged to: {RuntimeLogFilename}");
+			ToUI($"{exTypeName}: {exMessage}. Stack trace and further information logged to: {RuntimeLogFilename}");
 		}
 
 		public static void ToAll(string message = "")
@@ -81,7 +81,7 @@ namespace Logging
 			ToUI(message);
 		}
 
-		public static void ToFile(string message)
+		public static void ToFile(string message = "")
 		{
 			File.AppendAllText(RuntimeLogFilename, message + Environment.NewLine);
 		}

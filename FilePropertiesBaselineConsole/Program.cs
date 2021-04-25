@@ -34,13 +34,19 @@ namespace FilePropertiesBaselineConsole
 		{
 			ReportOutput("Usage:");
 			ReportOutput();
+			ReportOutput("[REQUIRED]:");
 			ReportOutput("-p:C:\\Windows             -  Search [p]ath");
 			ReportOutput("-m:*.exe                  -  Search [m]ask");
-			ReportOutput("-e                        -  Enable calculate [e]ntropy");
-			ReportOutput("-y:\"C:\\Yara Filters.json\" -  [Y]ara filters file");
+			ReportOutput();
+			ReportOutput("[REQUIRED (Pick one)]:");
+			ReportOutput($"-s                        -  Output to [S]QL server (supply connection string in file: {_thisExecutableFilename}.config");
 			ReportOutput("-l:C:\\scan001.db          -  Output a Sq[l]ite database");
 			ReportOutput("-c:C:\\scan001.csv         -  Output a [C]SV file");
-			ReportOutput($"-s                        -  Output to [S]QL server (supply connection string in file: {_thisExecutableFilename}.config");
+			ReportOutput();
+			ReportOutput("[OPTIONAL]:");
+			ReportOutput("-v                        -  Verbose. Print every file scanned to console output (stdout).");
+			ReportOutput("-e                        -  Enable calculating [e]ntropy");
+			ReportOutput("-y:\"C:\\Yara Filters.json\" -  [Y]ara filters file");
 			ReportOutput();
 			ReportOutput("RULES:");
 			ReportOutput(" - All arguments must start with a dash.");
@@ -77,11 +83,13 @@ namespace FilePropertiesBaselineConsole
 			bool isSqlServerEnabled = false;
 			bool isSqliteEnabled = false;
 			bool isCsvEnabled = false;
+			bool isVerbose = false;
 			string sqliteDbFile = "";
 			string csvFile = "";
 			string sqlConnectionString = (Settings.Database_ConnectionString == "SetMe") ? "" : Settings.Database_ConnectionString;
 			string yaraFiltersFile = "";
 			List<YaraFilter> yaraFilters = new List<YaraFilter>();
+			Action<string> reportOutputFunction = new Action<string>((s) => { return; });
 
 			foreach (Tuple<string, string> flagTuple in flags)
 			{
@@ -90,6 +98,10 @@ namespace FilePropertiesBaselineConsole
 
 				switch (flag)
 				{
+					case "v":
+						isVerbose = true;
+						reportOutputFunction = ReportOutput;
+						break;
 					case "e":
 						isEntropyEnabled = true;
 						break;
@@ -116,31 +128,6 @@ namespace FilePropertiesBaselineConsole
 						break;
 				}
 			}
-
-			ReportOutput();
-			ReportOutput("Running with these parameters:");
-			ReportOutput($"   Search [P]ath:       \"{searchPath}\"");
-			ReportOutput($"   Search [M]ask:        {searchMask}");
-			ReportOutput($"   Calulate [E]ntropy:   {isEntropyEnabled}");
-			if (isYaraEnabled)
-			{
-				ReportOutput($"   [Y]ara filters file: \"{yaraFiltersFile}\"");
-			}
-
-			if (isSqlServerEnabled)
-			{
-				ReportOutput($"   [S]QL connection: \"{sqlConnectionString}\"");
-			}
-			else if (isSqliteEnabled)
-			{
-				ReportOutput($"   Sq[l]ite DB: \"{sqliteDbFile}\"");
-			}
-			else if (isCsvEnabled)
-			{
-				ReportOutput($"   [C]SV file: \"{csvFile}\"");
-			}
-
-			ReportOutput();
 
 			if (string.IsNullOrWhiteSpace(searchPath))
 			{
@@ -210,6 +197,35 @@ namespace FilePropertiesBaselineConsole
 				}
 			}
 
+			ReportOutput();
+			ReportOutput("Running with these parameters:");
+			ReportOutput($"   Search [P]ath:       \"{searchPath}\"");
+			ReportOutput($"   Search [M]ask:        {searchMask}");
+			ReportOutput($"   Calulate [E]ntropy:   {isEntropyEnabled}");
+			if (isVerbose)
+			{
+				ReportOutput("   [V]erbose mode enabled.");
+			}
+			if (isYaraEnabled)
+			{
+				ReportOutput($"   [Y]ara filters file: \"{yaraFiltersFile}\"");
+			}
+
+			if (isSqlServerEnabled)
+			{
+				ReportOutput($"   [S]QL connection: \"{sqlConnectionString}\"");
+			}
+			else if (isSqliteEnabled)
+			{
+				ReportOutput($"   Sq[l]ite DB: \"{sqliteDbFile}\"");
+			}
+			else if (isCsvEnabled)
+			{
+				ReportOutput($"   [C]SV file: \"{csvFile}\"");
+			}
+			
+			ReportOutput();
+
 			FileEnumeratorParameters parameters =
 					new FileEnumeratorParameters(
 						CancellationToken.None,
@@ -219,10 +235,10 @@ namespace FilePropertiesBaselineConsole
 						isEntropyEnabled,
 						yaraFilters,
 						dataPersistenceLayer,
-						ReportOutput,
-						Log.LogOutputAction,
-						ReportResults,
-						Log.ExceptionMessage
+						reportOutputFunction, // reportOutputFunction
+						Log.ToFile, // logOutputFunction
+						ReportResults, // reportResultsFunction
+						Log.ExceptionMessage // reportExceptionFunction
 					);
 
 			parameters.ThrowIfAnyParametersInvalid();
