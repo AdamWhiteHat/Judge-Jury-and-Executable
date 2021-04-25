@@ -138,6 +138,14 @@ namespace FilePropertiesBaselineConsole
 				ReportOutput("Aborting...");
 				return;
 			}
+			if (!Directory.Exists(searchPath))
+			{
+				ReportOutput("Search path directory does not exist!");
+				ReportOutput($"Path provided: {searchPath}");
+				ReportOutput();
+				ReportOutput("Aborting...");
+				return;
+			}
 
 			if (isYaraEnabled)
 			{
@@ -223,7 +231,7 @@ namespace FilePropertiesBaselineConsole
 			{
 				ReportOutput($"   [C]SV file: \"{csvFile}\"");
 			}
-			
+
 			ReportOutput();
 
 			FileEnumeratorParameters parameters =
