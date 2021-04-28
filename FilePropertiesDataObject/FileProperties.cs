@@ -10,7 +10,7 @@ using System.Security.AccessControl;
 using Microsoft.WindowsAPICodePack.Shell;
 using Microsoft.WindowsAPICodePack.Shell.PropertySystem;
 using System.IO.Filesystem.Ntfs;
-using libyaraNET;
+using YaraSharp;
 
 namespace FilePropertiesDataObject
 {
@@ -93,16 +93,13 @@ namespace FilePropertiesDataObject
 		// Max number of bytes for a file size before reading a file in chunks
 		private UInt64 MaxLength = (ulong)NtfsReader.MaxClustersToRead * (ulong)4096;
 
-		private static Dictionary<string, Rules> _yaraCompiledRulesDictionary;
-
-		private static YaraContext _yaraContext;
+		private static Dictionary<string, YSRules> _yaraCompiledRulesDictionary;
 
 		#endregion
 
 		static FileProperties()
 		{
-			_yaraContext = new YaraContext();
-			_yaraCompiledRulesDictionary = new Dictionary<string, Rules>();
+			_yaraCompiledRulesDictionary = new Dictionary<string, YSRules>();
 		}
 
 		public FileProperties()
@@ -117,22 +114,18 @@ namespace FilePropertiesDataObject
 		{
 			if (_yaraCompiledRulesDictionary.Any())
 			{
-				List<Rules> rules = _yaraCompiledRulesDictionary.Values.ToList();
+				List<YSRules> rules = _yaraCompiledRulesDictionary.Values.ToList();
 
-				foreach (Rules r in rules)
+				foreach (YSRules rule in rules)
 				{
-					r.Dispose();
+					rule.Dispose();
 				}
 
 				_yaraCompiledRulesDictionary.Clear();
 				_yaraCompiledRulesDictionary = null;
 			}
 
-			if (_yaraContext != null)
-			{
-				_yaraContext.Dispose();
-				_yaraContext = null;
-			}
+			YaraHelper.CleanUp();
 		}
 
 		public void PopulateFileProperties(FileEnumeratorParameters parameters, char driveLetter, INode node, TimingMetrics timingMetrics)
@@ -248,13 +241,12 @@ namespace FilePropertiesDataObject
 
 			if (hasFileReadPermissions)
 			{
-				Rules compiledRules = GetCompiledYaraRules(parameters.YaraParameters);
+				YSRules compiledRules = GetCompiledYaraRules(parameters);
 				if (compiledRules != null)
 				{
 					_timingMetrics.Start(TimingMetric.YaraScanning);
-					this._yaraRulesMatched = YaraHelper.ScanFile(FullPath, compiledRules);
+					_yaraRulesMatched = YaraHelper.ScanFile(FullPath, compiledRules);
 					_timingMetrics.Stop(TimingMetric.YaraScanning);
-					compiledRules = null;
 				}
 
 				CancellationHelper.ThrowIfCancelled();
@@ -333,9 +325,9 @@ namespace FilePropertiesDataObject
 			}
 			_timingMetrics.Stop(TimingMetric.FileHashing);
 
-			if (this._peData != null)
+			if (_peData != null)
 			{
-				this._authenticode = AuthenticodeData.GetAuthenticodeData(this._peData.Certificate);
+				_authenticode = AuthenticodeData.GetAuthenticodeData(_peData.Certificate);
 			}
 
 			CancellationHelper.ThrowIfCancelled();
@@ -347,20 +339,19 @@ namespace FilePropertiesDataObject
 				CancellationHelper.ThrowIfCancelled();
 			}
 
-			Rules compiledRules = GetCompiledYaraRules(parameters.YaraParameters);
+			YSRules compiledRules = GetCompiledYaraRules(parameters);
 			if (compiledRules != null)
 			{
 				_timingMetrics.Start(TimingMetric.YaraScanning);
-				this._yaraRulesMatched = YaraHelper.ScanBytes(fileBytes, compiledRules);
+				_yaraRulesMatched = YaraHelper.ScanBytes(fileBytes, compiledRules);
 				_timingMetrics.Stop(TimingMetric.YaraScanning);
-				compiledRules = null;
 			}
 			CancellationHelper.ThrowIfCancelled();
 
 			if (parameters.CalculateEntropy)
 			{
 				_timingMetrics.Start(TimingMetric.CalculatingEntropy);
-				this.Entropy = EntropyHelper.CalculateFileEntropy(fileBytes);
+				Entropy = EntropyHelper.CalculateFileEntropy(fileBytes);
 				_timingMetrics.Stop(TimingMetric.CalculatingEntropy);
 				CancellationHelper.ThrowIfCancelled();
 			}
@@ -379,8 +370,10 @@ namespace FilePropertiesDataObject
 			this.IsTrusted = result;
 		}
 
-		private Rules GetCompiledYaraRules(List<YaraFilter> yaraFilters)
+		private YSRules GetCompiledYaraRules(FileEnumeratorParameters parameters)
 		{
+			List<YaraFilter> yaraFilters = parameters.YaraParameters;
+
 			List<string> distinctRulesToRun =
 				yaraFilters
 				.SelectMany(yf => yf.ProcessRule(this))
@@ -408,7 +401,7 @@ namespace FilePropertiesDataObject
 			string uniqueRuleCollectionToken = string.Join("|", distinctRulesToRun);
 			string ruleCollectionHash = Hash.ByteArray.Sha256(Encoding.UTF8.GetBytes(uniqueRuleCollectionToken));
 
-			Rules results = null;
+			YSRules results = null;
 
 			if (_yaraCompiledRulesDictionary.ContainsKey(ruleCollectionHash))
 			{
@@ -416,7 +409,7 @@ namespace FilePropertiesDataObject
 			}
 			else
 			{
-				results = CompileRules(distinctRulesToRun);
+				results = YaraHelper.CompileRules(distinctRulesToRun, parameters.ReportAndLogOutputFunction);
 				_yaraCompiledRulesDictionary.Add(ruleCollectionHash, results);
 			}
 			_timingMetrics.Stop(TimingMetric.YaraRuleCompiling);
@@ -424,23 +417,7 @@ namespace FilePropertiesDataObject
 			return results;
 		}
 
-		private Rules CompileRules(List<string> yaraRuleFiles)
-		{
-			Rules result = null;
 
-			Compiler compiler = new Compiler();
-
-			foreach (string file in yaraRuleFiles)
-			{
-				compiler.AddRuleFile(file);
-			}
-
-			result = compiler.GetRules();
-
-			compiler.Dispose();
-
-			return result;
-		}
 
 		private void PopulateFileInfoProperties(string fullPath)
 		{

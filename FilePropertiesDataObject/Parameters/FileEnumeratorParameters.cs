@@ -22,6 +22,20 @@ namespace FilePropertiesDataObject.Parameters
 		public Action<FileEnumeratorReport> ReportResultsFunction { get; set; }
 		public Action<string, string, Exception> ReportExceptionFunction { get; set; }
 
+		public Action<string> ReportAndLogOutputFunction
+		{
+			get
+			{
+				return new Action<string>(
+					(msg) =>
+					{
+						if (LogOutputFunction != null) LogOutputFunction.Invoke(msg);
+						if (ReportOutputFunction != null) ReportOutputFunction.Invoke(msg);
+					}
+				);
+			}
+		}
+
 		public IDataPersistenceLayer DataPersistenceLayer { get; set; }
 
 		public FileEnumeratorParameters(CancellationToken cancelToken,

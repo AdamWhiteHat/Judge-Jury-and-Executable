@@ -97,8 +97,7 @@ namespace FilePropertiesEnumerator
 				{
 					string message = $"MFT#: {node.MFTRecordNumber.ToString().PadRight(7)} Seq.#: {node.SequenceNumber.ToString().PadRight(4)} Path: {node.FullName}";
 
-					if (parameters.LogOutputFunction != null) parameters.LogOutputFunction.Invoke(message);
-					if (parameters.ReportOutputFunction != null) parameters.ReportOutputFunction.Invoke(message);
+					parameters.ReportAndLogOutputFunction.Invoke(message);
 
 					fileEnumCount.IncrementSucceededCount();
 

@@ -427,7 +427,11 @@
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
 			this.treeViewYaraFilters.ContextMenuStrip = this.contextMenuYaraTreeView;
+			this.treeViewYaraFilters.FullRowSelect = true;
 			this.treeViewYaraFilters.HideSelection = false;
+			this.yaraErrorProvider.SetIconAlignment(this.treeViewYaraFilters, System.Windows.Forms.ErrorIconAlignment.MiddleLeft);
+			this.treeViewYaraFilters.Indent = 12;
+			this.treeViewYaraFilters.ItemHeight = 15;
 			this.treeViewYaraFilters.Location = new System.Drawing.Point(0, 0);
 			this.treeViewYaraFilters.Name = "treeViewYaraFilters";
 			this.treeViewYaraFilters.ShowNodeToolTips = true;
