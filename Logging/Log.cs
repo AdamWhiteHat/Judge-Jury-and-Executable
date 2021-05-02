@@ -83,7 +83,7 @@ namespace Logging
 			}
 
 			ToFile(toLog.ToString());
-			ToUI();
+			ToUI(toUiMessage);
 		}
 
 		public static void ToAll(string message = "")

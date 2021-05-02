@@ -3,6 +3,8 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Collections.Generic;
+using FilePropertiesDataObject.Helpers;
+using YaraSharp;
 
 namespace FilePropertiesDataObject.Parameters
 {
@@ -81,9 +83,10 @@ namespace FilePropertiesDataObject.Parameters
 		public void ThrowIfAnyParametersInvalid()
 		{
 			ThrowIfAnyParametersInvalid(this);
+			YaraRulesCompileTest(this);
 		}
 
-		public static void ThrowIfAnyParametersInvalid(FileEnumeratorParameters parameters)
+		private static void ThrowIfAnyParametersInvalid(FileEnumeratorParameters parameters)
 		{
 			if (parameters == null) { throw new ArgumentNullException(nameof(parameters)); }
 			if (parameters.DataPersistenceLayer == null) { throw new ArgumentException(nameof(DataPersistenceLayer)); }
@@ -109,6 +112,35 @@ namespace FilePropertiesDataObject.Parameters
 
 			if (parameters.CancelToken == null) { throw new ArgumentNullException(nameof(parameters.CancelToken), "If you do not want to pass a CancellationToken, then pass 'CancellationToken.None'"); }
 			parameters.CancelToken.ThrowIfCancellationRequested();
+		}
+
+		private static void YaraRulesCompileTest(FileEnumeratorParameters parameters)
+		{
+			if (!parameters.YaraParameters.Any())
+			{
+				return;
+			}
+
+			foreach (YaraFilter filter in parameters.YaraParameters)
+			{
+				YSRules compiledRule = null;
+				try
+				{
+					compiledRule = YaraHelper.CompileRules(filter.OnMatchRules, parameters.ReportAndLogOutputFunction);
+				}
+				catch (Exception ex)
+				{
+					parameters.ReportExceptionFunction.Invoke(nameof(YaraRulesCompileTest), string.Empty, ex);
+					throw;
+				}
+				finally
+				{
+					if (compiledRule != null)
+					{
+						compiledRule.Dispose();
+					}
+				}
+			}
 		}
 	}
 }

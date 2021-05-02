@@ -44,9 +44,10 @@ namespace FilePropertiesBaselineGUI
 		private int yaraPanelHeight_Expanded = 0;
 		private int yaraPanelHeightDifference = 0;
 
-		private static int yaraPanelHeight_Collapsed = 10;
-		private static TextBox OutputTextBox;
 
+		private static TextBox OutputTextBox;
+		private static string MsgBox_TitleBarText = MsgBox_TitleBarText;
+		private static int yaraPanelHeight_Collapsed = 10;
 		private static AutoCompleteStringCollection AutoComplete_FileExtensions;
 		private static AutoCompleteStringCollection AutoComplete_MimeTypes;
 
@@ -126,6 +127,49 @@ namespace FilePropertiesBaselineGUI
 
 		private void btnSearch_Click(object sender, EventArgs e)
 		{
+			dialogErrorProvider.Clear();
+
+			if (string.IsNullOrWhiteSpace(tbPath.Text))
+			{
+				string message = "You must supply a path to the root folder to scan.";
+
+				dialogErrorProvider.SetError(tbPath, message);
+				dialogErrorProvider.SetIconAlignment(tbPath, ErrorIconAlignment.MiddleLeft);
+
+				return;
+			}
+
+			if (!Directory.Exists(tbPath.Text))
+			{
+				string message = "Supplied directory path does not exist.";
+
+				dialogErrorProvider.SetError(tbPath, message);
+				dialogErrorProvider.SetIconAlignment(tbPath, ErrorIconAlignment.MiddleLeft);
+
+				return;
+			}
+
+			if (string.IsNullOrWhiteSpace(tbSearchPatterns.Text))
+			{
+				string message = "You must supply a search pattern. If you want to search for everything, try entering '*'.";
+
+				dialogErrorProvider.SetError(tbSearchPatterns, message);
+				dialogErrorProvider.SetIconAlignment(tbSearchPatterns, ErrorIconAlignment.MiddleRight);
+
+				return;
+			}
+
+			if (checkBoxYaraRules.Checked && panelYaraCondition.Visible)
+			{
+				string message = "Finish composing this YARA filter by clicking 'OK' or 'Cancel'.";
+
+				dialogErrorProvider.SetError(panelYaraFilter_Buttons, message);
+				dialogErrorProvider.SetIconAlignment(panelYaraFilter_Buttons, ErrorIconAlignment.MiddleLeft);
+
+				string msgboxMessage = "It looks like you are still composing a YARA filter.\nPlease either finish composing the filter and click 'OK', or click 'Cancel' to discard the filter, and then try scanning again.";
+				MessageBox.Show(msgboxMessage, MsgBox_TitleBarText, MessageBoxButtons.OK, MessageBoxIcon.Warning);
+				return;
+			}
 
 			if (string.IsNullOrWhiteSpace(tbPersistenceParameter.Text))
 			{
@@ -139,23 +183,38 @@ namespace FilePropertiesBaselineGUI
 					message = "You must select a SQL server or supply a SQL connection string.";
 				}
 
-				MessageBox.Show(message, "Judge, Jury, and Executable", MessageBoxButtons.OK, MessageBoxIcon.Information);
-				BrowseForPersistenceMethod();
-				if (string.IsNullOrWhiteSpace(tbPersistenceParameter.Text))
-				{
-					return;
-				}
+				dialogErrorProvider.SetError(tbPersistenceParameter, message);
+				dialogErrorProvider.SetIconAlignment(tbPersistenceParameter, ErrorIconAlignment.TopLeft);
+
+				return;
 			}
 
 			if (radioPersistenceCSV.Checked || radioPersistenceSqlite.Checked)
 			{
+				if (!File.Exists(tbPersistenceParameter.Text) && Directory.Exists(tbPersistenceParameter.Text))
+				{
+					string message = "Must supply a path to a file, not a directory.";
+
+					dialogErrorProvider.SetError(tbPersistenceParameter, message);
+					dialogErrorProvider.SetIconAlignment(tbPersistenceParameter, ErrorIconAlignment.TopLeft);
+
+					return;
+				}
+
 				try
 				{
 					Directory.CreateDirectory(Path.GetDirectoryName(tbPersistenceParameter.Text));
 				}
 				catch
 				{
-					MessageBox.Show("Could not create folder path: \"" + tbPersistenceParameter.Text + "\"" + "\n\nPlease update the " + char.ToLower(labelTextBoxDescription.Text[0]) + labelTextBoxDescription.Text.Substring(1, labelTextBoxDescription.Text.Length - 2) + " to a valid location that this application can write to.", "Judge, Jury, and Executable", MessageBoxButtons.OK, MessageBoxIcon.Error);
+					string message = $"Could not create folder path: \"{tbPersistenceParameter.Text}\"" +
+						Environment.NewLine +
+						$"Please update the {labelTextBoxDescription.Text.ToLower()} to a valid location that this application can write to.";
+
+					dialogErrorProvider.SetError(tbPersistenceParameter, message);
+					dialogErrorProvider.SetIconAlignment(tbPersistenceParameter, ErrorIconAlignment.TopLeft);
+
+					MessageBox.Show(message, MsgBox_TitleBarText, MessageBoxButtons.OK, MessageBoxIcon.Error);
 					tbPersistenceParameter.Select();
 					return;
 				}
@@ -231,7 +290,12 @@ namespace FilePropertiesBaselineGUI
 				catch (Exception ex)
 				{
 					didThrow = true;
-					MessageBox.Show(ex.ToString().Split(new char[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries).FirstOrDefault(), "", MessageBoxButtons.OK, MessageBoxIcon.Error);
+					MessageBox.Show(
+						ex.ToString().Split(new char[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries).FirstOrDefault(),
+						MsgBox_TitleBarText,
+						MessageBoxButtons.OK,
+						MessageBoxIcon.Error
+					);
 				}
 
 				if (didThrow)
@@ -693,7 +757,7 @@ namespace FilePropertiesBaselineGUI
 			treeView_RemoveSelected();
 		}
 
-		private void treeViewYaraFilters_KeyUp(object sender, KeyEventArgs e)
+		private void treeViewYaraFilters_KeyDown(object sender, KeyEventArgs e)
 		{
 			if (e.KeyCode == Keys.Delete)
 			{
@@ -759,7 +823,6 @@ namespace FilePropertiesBaselineGUI
 			if (!yaraMatchFiles.Any())
 			{
 				yaraErrorProvider.SetError(listYaraMatchFiles, "Missing rule file(s)");
-				//MessageBox.Show($"You must select at least 1 rule file.\n\nFilter not added.", AddYaraRuleErrorCaption, MessageBoxButtons.OK, MessageBoxIcon.Error);
 				return;
 			}
 
@@ -780,7 +843,6 @@ namespace FilePropertiesBaselineGUI
 				if (string.IsNullOrWhiteSpace(tbYaraConditionValue.Text))
 				{
 					yaraErrorProvider.SetError(tbYaraConditionValue, "Missing file extension");
-					//MessageBox.Show($"You forgot to enter a file extension to filter by in the text box.\n\nFilter not added.", AddYaraRuleErrorCaption, MessageBoxButtons.OK, MessageBoxIcon.Error);
 					return;
 				}
 
@@ -800,7 +862,6 @@ namespace FilePropertiesBaselineGUI
 					else
 					{
 						yaraErrorProvider.SetError(tbYaraConditionValue, "File extensions should start with a period ('.')");
-						//MessageBox.Show($"You are attempting to add a FILE EXTENSION filter, yet the YARA filter value does not contain the required character '.'.\n\nFilter not added.", AddYaraRuleErrorCaption, MessageBoxButtons.OK, MessageBoxIcon.Error);
 						return;
 					}
 				}
@@ -811,7 +872,6 @@ namespace FilePropertiesBaselineGUI
 				if (string.IsNullOrWhiteSpace(tbYaraConditionValue.Text))
 				{
 					yaraErrorProvider.SetError(tbYaraConditionValue, "Missing MIME type");
-					//MessageBox.Show($"You forgot to enter a MIME type to filter by in the text box.\n\nFilter not added.", AddYaraRuleErrorCaption, MessageBoxButtons.OK, MessageBoxIcon.Error);
 					return;
 				}
 
@@ -831,7 +891,6 @@ namespace FilePropertiesBaselineGUI
 					else
 					{
 						yaraErrorProvider.SetError(tbYaraConditionValue, "MIME types contain a slash ('/')");
-						//MessageBox.Show($"You are attempting to add a MIME type filter, yet the YARA filter value does not contain the required character '/'.\n\nFilter not added.", AddYaraRuleErrorCaption, MessageBoxButtons.OK, MessageBoxIcon.Error);
 						return;
 					}
 				}

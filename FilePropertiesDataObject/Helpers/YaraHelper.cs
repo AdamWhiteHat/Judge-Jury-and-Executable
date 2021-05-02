@@ -43,17 +43,19 @@ namespace FilePropertiesDataObject.Helpers
 						warnings.Dump().Select(kvp => $"{kvp.Key}:" + Environment.NewLine + string.Join(Environment.NewLine + "\t", kvp.Value)));
 				}
 
+				if (!string.IsNullOrWhiteSpace(yaraWarnings))
+				{
+					loggingFunction.Invoke("YARA reported warnings.");
+					loggingFunction.Invoke(yaraWarnings);
+					loggingFunction.Invoke("");
+				}
+
 				YSReport errors = compiler.GetErrors();
 				if (!errors.IsEmpty())
 				{
 					yaraErrors = string.Join(Environment.NewLine,
 						errors.Dump().Select(kvp => $"{kvp.Key}:" + Environment.NewLine + string.Join(Environment.NewLine + "\t", kvp.Value)));
-				}
-
-				if (!string.IsNullOrWhiteSpace(yaraWarnings))
-				{
-					loggingFunction.Invoke("YARA reported warnings.");
-					loggingFunction.Invoke(yaraWarnings);
+					yaraErrors += Environment.NewLine;
 				}
 
 				if (!string.IsNullOrWhiteSpace(yaraErrors))
