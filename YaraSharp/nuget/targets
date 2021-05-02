@@ -1,0 +1,43 @@
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <!--Based on SQLite .targets file-->
+  <!--Library Build Items-->
+  <ItemGroup>
+    <PROJECTNAMEFiles Condition="'$(MSBuildThisFileDirectory)' != '' And HasTrailingSlash('$(MSBuildThisFileDirectory)')"
+                        Include="$(MSBuildThisFileDirectory)**\PROJECTNAME.*" />
+  </ItemGroup>
+
+  <!--Library Content Items-->
+  <ItemGroup Condition="'$(ContentPROJECTNAMEFiles)' != '' And '$(ContentPROJECTNAMEFiles)' != 'false' And '@(PROJECTNAMEFiles)' != ''">
+    <Content Include="@(PROJECTNAMEFiles)">
+      <Link>%(RecursiveDir)%(FileName)%(Extension)</Link>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+  <!--Library Build Targets-->
+  <Target Name="CopyPROJECTNAMEFiles" Condition="'$(CopyPROJECTNAMEFiles)' != 'false' And '$(OutDir)' != '' And HasTrailingSlash('$(OutDir)') And Exists('$(OutDir)')"
+          Inputs="@(PROJECTNAMEFiles)" Outputs="@(PROJECTNAMEFiles -> '$(OutDir)%(RecursiveDir)%(Filename)%(Extension)')">
+    <Copy SourceFiles="@(PROJECTNAMEFiles)" DestinationFiles="@(PROJECTNAMEFiles -> '$(OutDir)lib\%(RecursiveDir)%(Filename)%(Extension)')" />
+  </Target>
+
+  <Target Name="CleanPROJECTNAMEFiles" Condition="'$(CleanPROJECTNAMEFiles)' != 'false' And '$(OutDir)' != '' And HasTrailingSlash('$(OutDir)') And Exists('$(OutDir)')">
+    <Delete Files="@(PROJECTNAMEFiles -> '$(OutDir)lib\%(RecursiveDir)%(Filename)%(Extension)')" />
+  </Target>
+
+
+  <!--Library Build Properties-->
+  <PropertyGroup>
+    <PostBuildEventDependsOn>
+      $(PostBuildEventDependsOn);
+      CopyPROJECTNAMEFiles;
+    </PostBuildEventDependsOn>
+    <BuildDependsOn>
+      $(BuildDependsOn);
+      CopyPROJECTNAMEFiles;
+    </BuildDependsOn>
+    <CleanDependsOn>
+      $(CleanDependsOn);
+      CleanPROJECTNAMEFiles;
+    </CleanDependsOn>
+  </PropertyGroup>
+</Project>
