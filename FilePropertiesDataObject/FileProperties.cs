@@ -245,7 +245,14 @@ namespace FilePropertiesDataObject
 				if (compiledRules != null)
 				{
 					_timingMetrics.Start(TimingMetric.YaraScanning);
-					_yaraRulesMatched = YaraHelper.ScanFile(FullPath, compiledRules);
+					try
+					{
+						_yaraRulesMatched = YaraHelper.ScanFile(FullPath, compiledRules);
+					}
+					catch (Exception ex)
+					{
+						parameters.ReportExceptionFunction.Invoke(nameof(PopulateLargeFile), string.Empty, ex);
+					}
 					_timingMetrics.Stop(TimingMetric.YaraScanning);
 				}
 
@@ -343,7 +350,15 @@ namespace FilePropertiesDataObject
 			if (compiledRules != null)
 			{
 				_timingMetrics.Start(TimingMetric.YaraScanning);
-				_yaraRulesMatched = YaraHelper.ScanBytes(fileBytes, compiledRules);
+				try
+				{
+					_yaraRulesMatched = YaraHelper.ScanBytes(fileBytes, compiledRules);
+				}
+				catch (Exception ex)
+				{
+					parameters.ReportExceptionFunction.Invoke(nameof(PopulateSmallFile), string.Empty, ex);
+
+				}
 				_timingMetrics.Stop(TimingMetric.YaraScanning);
 			}
 			CancellationHelper.ThrowIfCancelled();
@@ -409,7 +424,15 @@ namespace FilePropertiesDataObject
 			}
 			else
 			{
-				results = YaraHelper.CompileRules(distinctRulesToRun, parameters.ReportAndLogOutputFunction);
+				try
+				{
+					results = YaraHelper.CompileRules(distinctRulesToRun, parameters.ReportAndLogOutputFunction);
+				}
+				catch (Exception ex)
+				{
+					parameters.ReportExceptionFunction.Invoke(nameof(GetCompiledYaraRules), string.Empty, ex);
+				}
+
 				_yaraCompiledRulesDictionary.Add(ruleCollectionHash, results);
 			}
 			_timingMetrics.Stop(TimingMetric.YaraRuleCompiling);

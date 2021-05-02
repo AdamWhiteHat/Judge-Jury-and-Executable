@@ -39,13 +39,15 @@ namespace FilePropertiesDataObject.Helpers
 				YSReport warnings = compiler.GetWarnings();
 				if (!warnings.IsEmpty())
 				{
-					yaraWarnings = string.Join(Environment.NewLine, warnings.Dump().Select(kvp => $"{kvp.Key}: {kvp.Value}"));
+					yaraWarnings = string.Join(Environment.NewLine,
+						warnings.Dump().Select(kvp => $"{kvp.Key}:" + Environment.NewLine + string.Join(Environment.NewLine + "\t", kvp.Value)));
 				}
 
 				YSReport errors = compiler.GetErrors();
 				if (!errors.IsEmpty())
 				{
-					yaraErrors = string.Join(Environment.NewLine, errors.Dump().Select(kvp => $"{kvp.Key}: {kvp.Value}"));
+					yaraErrors = string.Join(Environment.NewLine,
+						errors.Dump().Select(kvp => $"{kvp.Key}:" + Environment.NewLine + string.Join(Environment.NewLine + "\t", kvp.Value)));
 				}
 
 				if (!string.IsNullOrWhiteSpace(yaraWarnings))
@@ -68,7 +70,8 @@ namespace FilePropertiesDataObject.Helpers
 		public static List<string> ScanBytes(byte[] fileBytes, YSRules compiledRules)
 		{
 			List<string> result = new List<string>();
-			List<YSMatches> scanResults = _yaraInstance.ScanMemory(fileBytes, compiledRules, null, 0);
+			List<YSMatches> scanResults = new List<YSMatches>();
+			scanResults = _yaraInstance.ScanMemory(fileBytes, compiledRules, null, 0);
 			if (scanResults.Any())
 			{
 				result = scanResults.SelectMany(res => res.Matches.Keys).ToList();
