@@ -77,6 +77,7 @@
 			this.panelTop = new System.Windows.Forms.Panel();
 			this.yaraErrorProvider = new System.Windows.Forms.ErrorProvider(this.components);
 			this.dialogErrorProvider = new System.Windows.Forms.ErrorProvider(this.components);
+			this.toolTipDialog = new System.Windows.Forms.ToolTip(this.components);
 			this.panelParameters.SuspendLayout();
 			this.panelYaraParameters.SuspendLayout();
 			((System.ComponentModel.ISupportInitialize)(this.splitContainerYara)).BeginInit();
@@ -105,6 +106,7 @@
 			this.btnBrowse.Size = new System.Drawing.Size(95, 23);
 			this.btnBrowse.TabIndex = 1;
 			this.btnBrowse.Text = "Browse...";
+			this.toolTipDialog.SetToolTip(this.btnBrowse, "Select base search folder");
 			this.btnBrowse.UseVisualStyleBackColor = true;
 			this.btnBrowse.Click += new System.EventHandler(this.btnBrowse_Click);
 			// 
@@ -117,6 +119,8 @@
 			this.tbPath.Size = new System.Drawing.Size(632, 20);
 			this.tbPath.TabIndex = 0;
 			this.tbPath.Text = "C:\\";
+			this.toolTipDialog.SetToolTip(this.tbPath, "Search this folder and all subfolders.");
+			this.tbPath.TextChanged += new System.EventHandler(this.tbPath_TextChanged);
 			this.tbPath.KeyDown += new System.Windows.Forms.KeyEventHandler(this.textbox_KeyDown);
 			// 
 			// tbOutput
@@ -141,6 +145,8 @@
 			this.checkboxCalculateEntropy.Size = new System.Drawing.Size(109, 17);
 			this.checkboxCalculateEntropy.TabIndex = 3;
 			this.checkboxCalculateEntropy.Text = "Calculate Entropy";
+			this.toolTipDialog.SetToolTip(this.checkboxCalculateEntropy, "Calculate the entropy of every file scanned. CAUTION: Slowish and disk-write inte" +
+        "nsive.");
 			this.checkboxCalculateEntropy.UseVisualStyleBackColor = true;
 			// 
 			// tbSearchPatterns
@@ -152,6 +158,9 @@
 			this.tbSearchPatterns.Size = new System.Drawing.Size(523, 20);
 			this.tbSearchPatterns.TabIndex = 2;
 			this.tbSearchPatterns.Text = "*.exe|*.dll|*.drv";
+			this.toolTipDialog.SetToolTip(this.tbSearchPatterns, "Scan only files matching this pipe delimited list of file matching pattern(s). i." +
+        "e. \"*.exe|*.dll\"");
+			this.tbSearchPatterns.TextChanged += new System.EventHandler(this.tbSearchPatterns_TextChanged);
 			this.tbSearchPatterns.KeyDown += new System.Windows.Forms.KeyEventHandler(this.textbox_KeyDown);
 			// 
 			// label1
@@ -171,6 +180,7 @@
 			this.btnSearch.Size = new System.Drawing.Size(198, 27);
 			this.btnSearch.TabIndex = 0;
 			this.btnSearch.Text = "Scan";
+			this.toolTipDialog.SetToolTip(this.btnSearch, "Start/Stop the scanning procedure");
 			this.btnSearch.UseVisualStyleBackColor = true;
 			this.btnSearch.Click += new System.EventHandler(this.btnSearch_Click);
 			// 
@@ -200,6 +210,7 @@
 			this.checkBoxYaraRules.Size = new System.Drawing.Size(108, 17);
 			this.checkBoxYaraRules.TabIndex = 4;
 			this.checkBoxYaraRules.Text = "Run YARA Rules";
+			this.toolTipDialog.SetToolTip(this.checkBoxYaraRules, "Run a set of YARA rules against each file, or files matching a criteria filter.");
 			this.checkBoxYaraRules.UseVisualStyleBackColor = true;
 			this.checkBoxYaraRules.CheckedChanged += new System.EventHandler(this.checkBoxYaraRules_CheckedChanged);
 			// 
@@ -259,7 +270,7 @@
 			this.panelYaraCondition.Location = new System.Drawing.Point(-1, 0);
 			this.panelYaraCondition.MinimumSize = new System.Drawing.Size(400, 100);
 			this.panelYaraCondition.Name = "panelYaraCondition";
-			this.panelYaraCondition.Size = new System.Drawing.Size(620, 154);
+			this.panelYaraCondition.Size = new System.Drawing.Size(621, 154);
 			this.panelYaraCondition.TabIndex = 0;
 			// 
 			// panelYaraFilter_Buttons
@@ -267,7 +278,7 @@
 			this.panelYaraFilter_Buttons.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
 			this.panelYaraFilter_Buttons.Controls.Add(this.btnCancelAddYaraCondition);
 			this.panelYaraFilter_Buttons.Controls.Add(this.btnOkAddYaraCondition);
-			this.panelYaraFilter_Buttons.Location = new System.Drawing.Point(464, 118);
+			this.panelYaraFilter_Buttons.Location = new System.Drawing.Point(465, 118);
 			this.panelYaraFilter_Buttons.Name = "panelYaraFilter_Buttons";
 			this.panelYaraFilter_Buttons.Size = new System.Drawing.Size(154, 33);
 			this.panelYaraFilter_Buttons.TabIndex = 36;
@@ -280,6 +291,7 @@
 			this.btnCancelAddYaraCondition.Size = new System.Drawing.Size(54, 23);
 			this.btnCancelAddYaraCondition.TabIndex = 5;
 			this.btnCancelAddYaraCondition.Text = "Cancel";
+			this.toolTipDialog.SetToolTip(this.btnCancelAddYaraCondition, "Discard this filter");
 			this.btnCancelAddYaraCondition.UseVisualStyleBackColor = true;
 			this.btnCancelAddYaraCondition.Click += new System.EventHandler(this.btnCancelAddYaraCondition_Click);
 			// 
@@ -291,6 +303,7 @@
 			this.btnOkAddYaraCondition.Size = new System.Drawing.Size(81, 23);
 			this.btnOkAddYaraCondition.TabIndex = 4;
 			this.btnOkAddYaraCondition.Text = "OK";
+			this.toolTipDialog.SetToolTip(this.btnOkAddYaraCondition, "Add this filter to the list of active filters.");
 			this.btnOkAddYaraCondition.UseVisualStyleBackColor = true;
 			this.btnOkAddYaraCondition.Click += new System.EventHandler(this.btnOkAddYaraCondition_Click);
 			// 
@@ -303,8 +316,9 @@
 			this.listYaraMatchFiles.HideSelection = false;
 			this.listYaraMatchFiles.Location = new System.Drawing.Point(107, 40);
 			this.listYaraMatchFiles.Name = "listYaraMatchFiles";
-			this.listYaraMatchFiles.Size = new System.Drawing.Size(425, 77);
+			this.listYaraMatchFiles.Size = new System.Drawing.Size(426, 77);
 			this.listYaraMatchFiles.TabIndex = 2;
+			this.toolTipDialog.SetToolTip(this.listYaraMatchFiles, "The YARA rules that are run against a file that matches the above condition.");
 			this.listYaraMatchFiles.UseCompatibleStateImageBehavior = false;
 			this.listYaraMatchFiles.View = System.Windows.Forms.View.List;
 			this.listYaraMatchFiles.KeyUp += new System.Windows.Forms.KeyEventHandler(this.listYaraMatchFiles_KeyUp);
@@ -369,11 +383,12 @@
 			// btnBrowseYaraMatch
 			// 
 			this.btnBrowseYaraMatch.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-			this.btnBrowseYaraMatch.Location = new System.Drawing.Point(538, 40);
+			this.btnBrowseYaraMatch.Location = new System.Drawing.Point(539, 40);
 			this.btnBrowseYaraMatch.Name = "btnBrowseYaraMatch";
 			this.btnBrowseYaraMatch.Size = new System.Drawing.Size(74, 23);
 			this.btnBrowseYaraMatch.TabIndex = 3;
 			this.btnBrowseYaraMatch.Text = "Browse...";
+			this.toolTipDialog.SetToolTip(this.btnBrowseYaraMatch, "Select YARA rule files");
 			this.btnBrowseYaraMatch.UseVisualStyleBackColor = true;
 			this.btnBrowseYaraMatch.Click += new System.EventHandler(this.btnBrowseYaraMatch_Click);
 			// 
@@ -398,7 +413,7 @@
             | System.Windows.Forms.AnchorStyles.Right)));
 			this.tbYaraConditionValue.Location = new System.Drawing.Point(233, 12);
 			this.tbYaraConditionValue.Name = "tbYaraConditionValue";
-			this.tbYaraConditionValue.Size = new System.Drawing.Size(363, 20);
+			this.tbYaraConditionValue.Size = new System.Drawing.Size(364, 20);
 			this.tbYaraConditionValue.TabIndex = 1;
 			// 
 			// btnNewAddYaraCondition
@@ -420,6 +435,7 @@
 			this.btnYaraSave.Size = new System.Drawing.Size(99, 22);
 			this.btnYaraSave.TabIndex = 1;
 			this.btnYaraSave.Text = "Save filters...";
+			this.toolTipDialog.SetToolTip(this.btnYaraSave, "Save filters tree to a .json");
 			this.btnYaraSave.UseVisualStyleBackColor = true;
 			this.btnYaraSave.Click += new System.EventHandler(this.btnYaraSave_Click);
 			// 
@@ -431,6 +447,7 @@
 			this.btnYaraLoad.Size = new System.Drawing.Size(99, 22);
 			this.btnYaraLoad.TabIndex = 2;
 			this.btnYaraLoad.Text = "Load filters...";
+			this.toolTipDialog.SetToolTip(this.btnYaraLoad, "Load a .json of filters to tree");
 			this.btnYaraLoad.UseVisualStyleBackColor = true;
 			this.btnYaraLoad.Click += new System.EventHandler(this.btnYaraLoad_Click);
 			// 
@@ -564,6 +581,7 @@
 			this.radioPersistenceCSV.Size = new System.Drawing.Size(65, 17);
 			this.radioPersistenceCSV.TabIndex = 0;
 			this.radioPersistenceCSV.Text = "CSV File";
+			this.toolTipDialog.SetToolTip(this.radioPersistenceCSV, "A comma seperated value output file");
 			this.radioPersistenceCSV.UseVisualStyleBackColor = true;
 			this.radioPersistenceCSV.CheckedChanged += new System.EventHandler(this.radioPersistenceCSV_CheckedChanged);
 			// 
@@ -575,6 +593,7 @@
 			this.radioPersistenceSqlite.Size = new System.Drawing.Size(75, 17);
 			this.radioPersistenceSqlite.TabIndex = 1;
 			this.radioPersistenceSqlite.Text = "SQLite DB";
+			this.toolTipDialog.SetToolTip(this.radioPersistenceSqlite, "A SQLite DB output file");
 			this.radioPersistenceSqlite.UseVisualStyleBackColor = true;
 			this.radioPersistenceSqlite.CheckedChanged += new System.EventHandler(this.radioPersistenceSqlite_CheckedChanged);
 			// 
@@ -586,6 +605,7 @@
 			this.radioPersistenceSqlServer.Size = new System.Drawing.Size(98, 17);
 			this.radioPersistenceSqlServer.TabIndex = 2;
 			this.radioPersistenceSqlServer.Text = "SQL Server DB";
+			this.toolTipDialog.SetToolTip(this.radioPersistenceSqlServer, "Output goes into a SQL server table (FileProperties)");
 			this.radioPersistenceSqlServer.UseVisualStyleBackColor = true;
 			this.radioPersistenceSqlServer.CheckedChanged += new System.EventHandler(this.radioPersistenceSqlServer_CheckedChanged);
 			// 
@@ -599,6 +619,8 @@
 			this.linkGitHub.TabIndex = 1;
 			this.linkGitHub.TabStop = true;
 			this.linkGitHub.Text = "https://github.com/AdamWhiteHat/Judge-Jury-and-Executable";
+			this.toolTipDialog.SetToolTip(this.linkGitHub, "Visit  this project\'s GitHub to submit a bug, feature request or inspect the sour" +
+        "ce.");
 			this.linkGitHub.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.linkGitHub_LinkClicked);
 			// 
 			// panelBottom
@@ -649,6 +671,13 @@
 			// dialogErrorProvider
 			// 
 			this.dialogErrorProvider.ContainerControl = this;
+			// 
+			// toolTipDialog
+			// 
+			this.toolTipDialog.AutomaticDelay = 200;
+			this.toolTipDialog.AutoPopDelay = 10000;
+			this.toolTipDialog.InitialDelay = 200;
+			this.toolTipDialog.ReshowDelay = 40;
 			// 
 			// MainForm
 			// 
@@ -742,6 +771,7 @@
 		private System.Windows.Forms.SplitContainer splitContainerYara;
 		private System.Windows.Forms.ErrorProvider dialogErrorProvider;
 		private System.Windows.Forms.Panel panelYaraFilter_Buttons;
+		private System.Windows.Forms.ToolTip toolTipDialog;
 	}
 }
 

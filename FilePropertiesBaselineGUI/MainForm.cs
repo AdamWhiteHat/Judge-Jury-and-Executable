@@ -990,6 +990,7 @@ namespace FilePropertiesBaselineGUI
 		{
 			if (!string.IsNullOrWhiteSpace(tbPersistenceParameter.Text))
 			{
+				dialogErrorProvider.SetError(tbPersistenceParameter, string.Empty);
 				if (File.Exists(tbPersistenceParameter.Text))
 				{
 					DialogResult mbResut =
@@ -1006,6 +1007,16 @@ namespace FilePropertiesBaselineGUI
 					}
 				}
 			}
+		}
+
+		private void tbPath_TextChanged(object sender, EventArgs e)
+		{
+			dialogErrorProvider.SetError(tbPath, string.Empty);
+		}
+
+		private void tbSearchPatterns_TextChanged(object sender, EventArgs e)
+		{
+			dialogErrorProvider.SetError(tbSearchPatterns, string.Empty);
 		}
 
 		private void btnPersistenceBrowse_Click(object sender, EventArgs e)
