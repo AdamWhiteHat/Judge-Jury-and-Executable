@@ -7,11 +7,15 @@ namespace FilePropertiesDataObject
 {
 	public enum TimingMetric
 	{
+		ParsingMFT,
+		ReadingMFTBytes,
 		FileHashing,
 		YaraScanning,
 		YaraRuleCompiling,
 		CalculatingEntropy,
-		GettingShellInfo
+		GettingShellInfo,
+		MiscFileProperties,
+		PersistingFileProperties
 	}
 
 	/// <summary>
@@ -89,8 +93,22 @@ namespace FilePropertiesDataObject
 		{
 			StopAll();
 			var nonzeroKeyValuePairs = _timingDictionary.Where(kvp => kvp.Value.ElapsedTicks > 0);
+
+			int rightPadding = nonzeroKeyValuePairs.Select(kvp => $"Metric '{Enum.GetName(typeof(TimingMetric), kvp.Key)}' took ".Length).Max();
+			int leftPadding = nonzeroKeyValuePairs.Select(kvp => $"{FormatTimeSpan(kvp.Value.Elapsed)}.".Length).Max();
+
 			// e.g. YaraFiltering took 2h:30m:5s:1023ms.
-			IEnumerable<string> results = nonzeroKeyValuePairs.Select(kvp => $"{Enum.GetName(typeof(TimingMetric), kvp.Key)} took {FormatTimeSpan(kvp.Value.Elapsed)}.");
+			List<string> results = nonzeroKeyValuePairs.Select(kvp => $"Metric '{Enum.GetName(typeof(TimingMetric), kvp.Key)}' took".PadRight(rightPadding) + $"{FormatTimeSpan(kvp.Value.Elapsed)}.".PadLeft(leftPadding)).ToList();
+
+			TimeSpan sum = TimeSpan.Zero;
+			foreach (TimeSpan value in nonzeroKeyValuePairs.Select(kvp => kvp.Value.Elapsed))
+			{
+				sum = sum.Add(value);
+			}
+
+			results.Add(new string(Enumerable.Repeat('-', rightPadding + leftPadding).ToArray()));
+			results.Add("Metrics Total:".PadRight(rightPadding) + $"{FormatTimeSpan(sum)}".PadLeft(leftPadding));
+
 			return results.ToArray();
 		}
 

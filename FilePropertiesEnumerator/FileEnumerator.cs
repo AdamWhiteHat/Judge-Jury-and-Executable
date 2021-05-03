@@ -68,6 +68,8 @@ namespace FilePropertiesEnumerator
 
 				string drive = parameters.SelectedFolder[0].ToString().ToUpper();
 
+				timingMetrics.Start(TimingMetric.ParsingMFT);
+
 				List<DriveInfo> ntfsDrives = DriveInfo.GetDrives().Where(d => d.IsReady && d.DriveFormat == "NTFS").ToList();
 
 				DriveInfo driveToAnalyze = ntfsDrives.Where(dr => dr.Name.ToUpper().Contains(drive)).Single();
@@ -91,6 +93,8 @@ namespace FilePropertiesEnumerator
 					mftNodes = mftNodes.Where(node => node.FullName.ToUpperInvariant().Contains(selectedFolderUppercase));
 				}
 
+				timingMetrics.Stop(TimingMetric.ParsingMFT);
+
 				IDataPersistenceLayer dataPersistenceLayer = parameters.DataPersistenceLayer;
 
 				foreach (INode node in mftNodes)
@@ -105,6 +109,7 @@ namespace FilePropertiesEnumerator
 					prop.PopulateFileProperties(parameters, parameters.SelectedFolder[0], node, timingMetrics);
 
 					// INSERT file properties into _DATABASE_
+					timingMetrics.Start(TimingMetric.PersistingFileProperties);
 					bool insertResult = dataPersistenceLayer.PersistFileProperties(prop);
 					if (insertResult)
 					{
@@ -114,6 +119,7 @@ namespace FilePropertiesEnumerator
 					{
 						databaseInsertCount.IncrementFailedCount();
 					}
+					timingMetrics.Stop(TimingMetric.PersistingFileProperties);
 
 					parameters.CancelToken.ThrowIfCancellationRequested();
 				}

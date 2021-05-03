@@ -46,7 +46,7 @@ namespace FilePropertiesBaselineGUI
 
 
 		private static TextBox OutputTextBox;
-		private static string MsgBox_TitleBarText = MsgBox_TitleBarText;
+		private static string MsgBox_TitleBarText = "Judge, Jury, and Executable";
 		private static int yaraPanelHeight_Collapsed = 10;
 		private static AutoCompleteStringCollection AutoComplete_FileExtensions;
 		private static AutoCompleteStringCollection AutoComplete_MimeTypes;
@@ -118,7 +118,7 @@ namespace FilePropertiesBaselineGUI
 			panelYaraCondition.Visible = false;
 
 			#endregion
-
+					
 		}
 
 		#endregion

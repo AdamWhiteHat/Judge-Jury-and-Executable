@@ -138,6 +138,8 @@ namespace FilePropertiesDataObject
 			CancellationHelper.SetCancellationToken(parameters.CancelToken);
 			CancellationHelper.ThrowIfCancelled();
 
+			_timingMetrics.Start(TimingMetric.MiscFileProperties);
+
 			MFTNumber = node.MFTRecordNumber;
 			SequenceNumber = node.SequenceNumber;
 
@@ -177,6 +179,8 @@ namespace FilePropertiesDataObject
 				hasFileReadPermissions = true;
 			}
 
+			_timingMetrics.Stop(TimingMetric.MiscFileProperties);
+
 			if (this.Length != 0)
 			{
 				// Some entries in the MFT are greater than int.MaxValue !! That or the size is corrupt. Either way, we handle that here.
@@ -196,16 +200,21 @@ namespace FilePropertiesDataObject
 				this.MD5 = "D41D8CD98F00B204E9800998ECF8427E";
 			}
 
+			_timingMetrics.Start(TimingMetric.MiscFileProperties);
+
 			PopulateIsTrusted();
 			CancellationHelper.ThrowIfCancelled();
 
 			this._attributes = new Attributes(node);
+			_timingMetrics.Stop(TimingMetric.MiscFileProperties);
 			CancellationHelper.ThrowIfCancelled();
 		}
 
 		private void PopulateLargeFile(FileEnumeratorParameters parameters, INode node, bool hasFileReadPermissions)
 		{
+			_timingMetrics.Start(TimingMetric.ReadingMFTBytes);
 			IEnumerable<byte[]> fileChunks = node.GetBytes();
+			_timingMetrics.Stop(TimingMetric.ReadingMFTBytes);
 
 			_timingMetrics.Start(TimingMetric.FileHashing);
 			this.Sha256 = Hash.ByteEnumerable.Sha256(fileChunks);
@@ -225,6 +234,7 @@ namespace FilePropertiesDataObject
 			}
 			_timingMetrics.Stop(TimingMetric.FileHashing);
 
+			_timingMetrics.Start(TimingMetric.MiscFileProperties);
 			if (_peData != null)
 			{
 				this._authenticode = AuthenticodeData.GetAuthenticodeData(this._peData.Certificate);
@@ -235,6 +245,11 @@ namespace FilePropertiesDataObject
 			if (hasFileReadPermissions)
 			{
 				PopulateFileInfoProperties(FullPath);
+			}
+			_timingMetrics.Stop(TimingMetric.MiscFileProperties);
+
+			if (hasFileReadPermissions)
+			{
 				PopulateShellFileInfo(FullPath);
 				CancellationHelper.ThrowIfCancelled();
 			}
@@ -270,6 +285,7 @@ namespace FilePropertiesDataObject
 
 		private void PopulateSmallFile(FileEnumeratorParameters parameters, INode node, bool hasFileReadPermissions)
 		{
+			_timingMetrics.Start(TimingMetric.ReadingMFTBytes);
 			byte[] fileBytes = new byte[0];
 			if (!node.Streams.Any()) //workaround for no file stream such as with hard links
 			{
@@ -314,6 +330,7 @@ namespace FilePropertiesDataObject
 			{
 				fileBytes = node.GetBytes().SelectMany(chunk => chunk).ToArray();
 			}
+			_timingMetrics.Stop(TimingMetric.ReadingMFTBytes);
 
 			_timingMetrics.Start(TimingMetric.FileHashing);
 			this._peData = PeDataObject.TryGetPeDataObject(fileBytes);
@@ -332,6 +349,7 @@ namespace FilePropertiesDataObject
 			}
 			_timingMetrics.Stop(TimingMetric.FileHashing);
 
+			_timingMetrics.Start(TimingMetric.MiscFileProperties);
 			if (_peData != null)
 			{
 				_authenticode = AuthenticodeData.GetAuthenticodeData(_peData.Certificate);
@@ -342,6 +360,11 @@ namespace FilePropertiesDataObject
 			if (hasFileReadPermissions)
 			{
 				PopulateFileInfoProperties(FullPath);
+			}
+			_timingMetrics.Stop(TimingMetric.MiscFileProperties);
+
+			if (hasFileReadPermissions)
+			{
 				PopulateShellFileInfo(FullPath);
 				CancellationHelper.ThrowIfCancelled();
 			}
@@ -387,6 +410,8 @@ namespace FilePropertiesDataObject
 
 		private YSRules GetCompiledYaraRules(FileEnumeratorParameters parameters)
 		{
+			_timingMetrics.Start(TimingMetric.YaraRuleCompiling);
+
 			List<YaraFilter> yaraFilters = parameters.YaraParameters;
 
 			List<string> distinctRulesToRun =
@@ -412,7 +437,6 @@ namespace FilePropertiesDataObject
 
 			distinctRulesToRun = distinctRulesToRun.OrderBy(s => s).ToList();
 
-			_timingMetrics.Start(TimingMetric.YaraRuleCompiling);
 			string uniqueRuleCollectionToken = string.Join("|", distinctRulesToRun);
 			string ruleCollectionHash = Hash.ByteArray.Sha256(Encoding.UTF8.GetBytes(uniqueRuleCollectionToken));
 
@@ -439,8 +463,6 @@ namespace FilePropertiesDataObject
 
 			return results;
 		}
-
-
 
 		private void PopulateFileInfoProperties(string fullPath)
 		{

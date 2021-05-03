@@ -76,7 +76,7 @@ namespace FilePropertiesDataObject.Helpers
 			scanResults = _yaraInstance.ScanMemory(fileBytes, compiledRules, null, 0);
 			if (scanResults.Any())
 			{
-				result = scanResults.SelectMany(res => res.Matches.Keys).ToList();
+				result = scanResults.Select(match => match.Rule.Identifier).ToList();
 			}
 
 			return result;
@@ -88,7 +88,7 @@ namespace FilePropertiesDataObject.Helpers
 			List<YSMatches> scanResults = _yaraInstance.ScanFile(filePath, compiledRules, null, 0);
 			if (scanResults.Any())
 			{
-				result = scanResults.SelectMany(res => res.Matches.Keys).ToList();
+				result = scanResults.Select(match => match.Rule.Identifier).ToList();
 			}
 
 			return result;
