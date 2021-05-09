@@ -118,7 +118,7 @@ namespace FilePropertiesBaselineGUI
 			panelYaraCondition.Visible = false;
 
 			#endregion
-					
+
 		}
 
 		#endregion
@@ -440,9 +440,9 @@ namespace FilePropertiesBaselineGUI
 				{
 					if (!string.IsNullOrWhiteSpace(message))
 					{
-						if (OutputTextBox.Lines.Length > 200)
+						if (OutputTextBox.Lines.Length > 600)
 						{
-							string[] lines = OutputTextBox.Lines.Skip(OutputTextBox.Lines.Length - 50).ToArray();
+							string[] lines = OutputTextBox.Lines.Skip(OutputTextBox.Lines.Length - 300).ToArray();
 							OutputTextBox.Lines = lines;
 						}
 						OutputTextBox.AppendText($"[{DateTime.Now.TimeOfDay.ToString()}] - " + message);

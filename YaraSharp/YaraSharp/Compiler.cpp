@@ -37,6 +37,7 @@ namespace YaraSharp
 	{
 		BindFileToCompiler(this->compiler, filePath);
 	}
+
 	void YSCompiler::TryAddFile(String^ filePath, Dictionary<String^, Object^>^ externalVariables)
 	{
 		YSCompiler^ testCompiler = gcnew YSCompiler(externalVariables);
@@ -58,10 +59,13 @@ namespace YaraSharp
 
 		delete testCompiler;
 	}
+
 	void YSCompiler::AddFiles(List<String^>^ filePathList, Dictionary<String^, Object^>^ externalVariables)
 	{
 		for each (auto filePath in filePathList)
+		{
 			TryAddFile(filePath, externalVariables);
+		}
 	}
 
 	YSRules^ YSCompiler::GetRules()
@@ -72,10 +76,12 @@ namespace YaraSharp
 
 		return gcnew YSRules(ysRules);
 	}
+
 	YSReport^ YSCompiler::GetErrors()
 	{
 		return this->errors;
 	}
+
 	YSReport^ YSCompiler::GetWarnings()
 	{
 		return this->warnings;
@@ -91,7 +97,9 @@ namespace YaraSharp
 		auto FileOpenError = fopen_s(&File, NativePath.c_str(), "r");
 
 		if (FileOpenError)
+		{
 			YSException::ThrowOnError(String::Format("Error opening file: {0}", filePath));
+		}
 
 		auto errors = yr_compiler_add_file(compiler, File, nullptr, NativePath.c_str());
 
@@ -115,18 +123,30 @@ namespace YaraSharp
 				int ExternalError = ERROR_SUCCESS;
 
 				if (VariableType == Boolean::typeid)
+				{
 					ExternalError = yr_compiler_define_boolean_variable(compiler, VariablePointer, (bool)externalVariable.Value);
+				}
 				else if (VariableType == Double::typeid)
+				{
 					ExternalError = yr_compiler_define_float_variable(compiler, VariablePointer, (double)externalVariable.Value);
+				}
 				else if (VariableType == Int64::typeid || VariableType == Int32::typeid)
+				{
 					ExternalError = yr_compiler_define_integer_variable(compiler, VariablePointer, (Int64)externalVariable.Value);
+				}
 				else if (VariableType == String::typeid)
+				{
 					ExternalError = yr_compiler_define_string_variable(compiler, VariablePointer, CTX.marshal_as<const char*>((String^)externalVariable.Value));
+				}
 				else
+				{
 					throw gcnew NotSupportedException(String::Format("Unsupported external variable: '{0}'", VariableType->Name));
+				}
 
 				if (ExternalError != ERROR_SUCCESS)
+				{
 					YSException::ThrowOnError("(Compiler) Error during external variable initialization");
+				}
 			}
 		}
 	}
@@ -147,10 +167,10 @@ namespace YaraSharp
 
 		String^ file = filename ? marshal_as<String^>(filename) : "[unknown]";
 
-		auto msg = String::Format("{0} on line {1}",
-			marshal_as<String^>(message), lineNumber);
+		auto msg = String::Format("{0} on line {1}", marshal_as<String^>(message), lineNumber);
 
-		switch (errorLevel) {
+		switch (errorLevel)
+		{
 		case YARA_ERROR_LEVEL_WARNING:
 			warnings->AddReport(file, msg);
 			break;

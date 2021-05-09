@@ -77,7 +77,6 @@ namespace FilePropertiesDataObject.Parameters
 			}
 
 			return patterns;
-
 		}
 
 		public void ThrowIfAnyParametersInvalid()
@@ -123,7 +122,7 @@ namespace FilePropertiesDataObject.Parameters
 
 			foreach (YaraFilter filter in parameters.YaraParameters)
 			{
-				YSRules compiledRule = null;
+				YSScanner compiledRule = null;
 				try
 				{
 					compiledRule = YaraHelper.CompileRules(filter.OnMatchRules, parameters.ReportAndLogOutputFunction);

@@ -41,576 +41,550 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "exception.h"
 
 
-static int _yr_scanner_scan_mem_block(
-    YR_SCANNER* scanner,
-    const uint8_t* block_data,
-    YR_MEMORY_BLOCK* block)
+static int _yr_scanner_scan_mem_block(YR_SCANNER* scanner, const uint8_t* block_data, YR_MEMORY_BLOCK* block)
 {
-  YR_RULES* rules = scanner->rules;
-  YR_AC_TRANSITION_TABLE transition_table = rules->ac_transition_table;
-  YR_AC_MATCH_TABLE match_table = rules->ac_match_table;
+	YR_RULES* rules = scanner->rules;
+	YR_AC_TRANSITION_TABLE transition_table = rules->ac_transition_table;
+	YR_AC_MATCH_TABLE match_table = rules->ac_match_table;
 
-  YR_AC_MATCH* match;
-  YR_AC_TRANSITION transition;
+	YR_AC_MATCH* match;
+	YR_AC_TRANSITION transition;
 
-  size_t i = 0;
-  uint32_t state = YR_AC_ROOT_STATE;
-  uint16_t index;
+	size_t i = 0;
+	uint32_t state = YR_AC_ROOT_STATE;
+	uint16_t index;
 
-  while (i < block->size)
-  {
-    match = match_table[state].match;
+	while (i < block->size)
+	{
+		match = match_table[state].match;
 
-    if (i % 4096 == 0 && scanner->timeout > 0)
-    {
-      if (yr_stopwatch_elapsed_us(&scanner->stopwatch) > scanner->timeout)
-        return ERROR_SCAN_TIMEOUT;
-    }
+		if (i % 4096 == 0 && scanner->timeout > 0)
+		{
+			if (yr_stopwatch_elapsed_us(&scanner->stopwatch) > scanner->timeout)
+				return ERROR_SCAN_TIMEOUT;
+		}
 
-    while (match != NULL)
-    {
-      if (match->backtrack <= i)
-      {
-        FAIL_ON_ERROR(yr_scan_verify_match(
-            scanner,
-            match,
-            block_data,
-            block->size,
-            block->base,
-            i - match->backtrack));
-      }
+		while (match != NULL)
+		{
+			if (match->backtrack <= i)
+			{
+				FAIL_ON_ERROR(yr_scan_verify_match(
+					scanner,
+					match,
+					block_data,
+					block->size,
+					block->base,
+					i - match->backtrack));
+			}
 
-      match = match->next;
-    }
+			match = match->next;
+		}
 
-    index = block_data[i++] + 1;
-    transition = transition_table[state + index];
+		index = block_data[i++] + 1;
+		transition = transition_table[state + index];
 
-    while (YR_AC_INVALID_TRANSITION(transition, index))
-    {
-      if (state != YR_AC_ROOT_STATE)
-      {
-        state = YR_AC_NEXT_STATE(transition_table[state]);
-        transition = transition_table[state + index];
-      }
-      else
-      {
-        transition = 0;
-        break;
-      }
-    }
+		while (YR_AC_INVALID_TRANSITION(transition, index))
+		{
+			if (state != YR_AC_ROOT_STATE)
+			{
+				state = YR_AC_NEXT_STATE(transition_table[state]);
+				transition = transition_table[state + index];
+			}
+			else
+			{
+				transition = 0;
+				break;
+			}
+		}
 
-    state = YR_AC_NEXT_STATE(transition);
-  }
+		state = YR_AC_NEXT_STATE(transition);
+	}
 
-  match = match_table[state].match;
+	match = match_table[state].match;
 
-  while (match != NULL)
-  {
-    if (match->backtrack <= i)
-    {
-      FAIL_ON_ERROR(yr_scan_verify_match(
-          scanner,
-          match,
-          block_data,
-          block->size,
-          block->base,
-          i - match->backtrack));
-    }
+	while (match != NULL)
+	{
+		if (match->backtrack <= i)
+		{
+			FAIL_ON_ERROR(yr_scan_verify_match(
+				scanner,
+				match,
+				block_data,
+				block->size,
+				block->base,
+				i - match->backtrack));
+		}
 
-    match = match->next;
-  }
+		match = match->next;
+	}
 
-  return ERROR_SUCCESS;
+	return ERROR_SUCCESS;
 }
 
 
-static void _yr_scanner_clean_matches(
-    YR_SCANNER* scanner)
+static void _yr_scanner_clean_matches(YR_SCANNER* scanner)
 {
-  YR_RULE* rule;
-  YR_STRING** string;
+	YR_RULE* rule;
+	YR_STRING** string;
 
-  int tidx = scanner->tidx;
+	int tidx = scanner->tidx;
 
-  yr_rules_foreach(scanner->rules, rule)
-  {
-    rule->t_flags[tidx] &= ~RULE_TFLAGS_MATCH;
-    rule->ns->t_flags[tidx] &= ~NAMESPACE_TFLAGS_UNSATISFIED_GLOBAL;
-  }
+	yr_rules_foreach(scanner->rules, rule)
+	{
+		rule->t_flags[tidx] &= ~RULE_TFLAGS_MATCH;
+		rule->ns->t_flags[tidx] &= ~NAMESPACE_TFLAGS_UNSATISFIED_GLOBAL;
+	}
 
-  if (scanner->matching_strings_arena != NULL)
-  {
-    string = (YR_STRING**) yr_arena_base_address(
-        scanner->matching_strings_arena);
+	if (scanner->matching_strings_arena != NULL)
+	{
+		string = (YR_STRING**)yr_arena_base_address(
+			scanner->matching_strings_arena);
 
-    while (string != NULL)
-    {
-      (*string)->matches[tidx].count = 0;
-      (*string)->matches[tidx].head = NULL;
-      (*string)->matches[tidx].tail = NULL;
-      (*string)->unconfirmed_matches[tidx].count = 0;
-      (*string)->unconfirmed_matches[tidx].head = NULL;
-      (*string)->unconfirmed_matches[tidx].tail = NULL;
+		while (string != NULL)
+		{
+			(*string)->matches[tidx].count = 0;
+			(*string)->matches[tidx].head = NULL;
+			(*string)->matches[tidx].tail = NULL;
+			(*string)->unconfirmed_matches[tidx].count = 0;
+			(*string)->unconfirmed_matches[tidx].head = NULL;
+			(*string)->unconfirmed_matches[tidx].tail = NULL;
 
-      string = (YR_STRING**) yr_arena_next_address(
-          scanner->matching_strings_arena,
-          string,
-          sizeof(YR_STRING*));
-    }
-  }
+			string = (YR_STRING**)yr_arena_next_address(
+				scanner->matching_strings_arena,
+				string,
+				sizeof(YR_STRING*));
+		}
+	}
 }
 
 
-YR_API int yr_scanner_create(
-    YR_RULES* rules,
-    YR_SCANNER** scanner)
+YR_API int yr_scanner_create(YR_RULES* rules, YR_SCANNER** scanner)
 {
-  YR_EXTERNAL_VARIABLE* external;
-  YR_SCANNER* new_scanner;
+	YR_EXTERNAL_VARIABLE* external;
+	YR_SCANNER* new_scanner;
 
-  new_scanner = (YR_SCANNER*) yr_calloc(1, sizeof(YR_SCANNER));
+	new_scanner = (YR_SCANNER*)yr_calloc(1, sizeof(YR_SCANNER));
 
-  if (new_scanner == NULL)
-    return ERROR_INSUFFICIENT_MEMORY;
+	if (new_scanner == NULL)
+		return ERROR_INSUFFICIENT_MEMORY;
 
-  FAIL_ON_ERROR_WITH_CLEANUP(
-      yr_hash_table_create(64, &new_scanner->objects_table),
-      yr_scanner_destroy(new_scanner));
+	FAIL_ON_ERROR_WITH_CLEANUP(
+		yr_hash_table_create(64, &new_scanner->objects_table),
+		yr_scanner_destroy(new_scanner));
 
-  external = rules->externals_list_head;
+	external = rules->externals_list_head;
 
-  while (!EXTERNAL_VARIABLE_IS_NULL(external))
-  {
-    YR_OBJECT* object;
+	while (!EXTERNAL_VARIABLE_IS_NULL(external))
+	{
+		YR_OBJECT* object;
 
-    FAIL_ON_ERROR_WITH_CLEANUP(
-        yr_object_from_external_variable(external, &object),
-        yr_scanner_destroy(new_scanner));
+		FAIL_ON_ERROR_WITH_CLEANUP(
+			yr_object_from_external_variable(external, &object),
+			yr_scanner_destroy(new_scanner));
 
-    FAIL_ON_ERROR_WITH_CLEANUP(
-        yr_hash_table_add(
-            new_scanner->objects_table,
-            external->identifier,
-            NULL,
-            (void*) object),
-        yr_scanner_destroy(new_scanner));
+		FAIL_ON_ERROR_WITH_CLEANUP(
+			yr_hash_table_add(
+				new_scanner->objects_table,
+				external->identifier,
+				NULL,
+				(void*)object),
+			yr_scanner_destroy(new_scanner));
 
-    external++;
-  }
+		external++;
+	}
 
-  new_scanner->rules = rules;
-  new_scanner->tidx = -1;
-  new_scanner->entry_point = UNDEFINED;
+	new_scanner->rules = rules;
+	new_scanner->tidx = -1;
+	new_scanner->entry_point = UNDEFINED;
 
-  *scanner = new_scanner;
+	*scanner = new_scanner;
 
-  return ERROR_SUCCESS;
+	return ERROR_SUCCESS;
 }
 
 
-YR_API void yr_scanner_destroy(
-    YR_SCANNER* scanner)
+YR_API void yr_scanner_destroy(YR_SCANNER* scanner)
 {
-  RE_FIBER* fiber;
-  RE_FIBER* next_fiber;
+	RE_FIBER* fiber;
+	RE_FIBER* next_fiber;
 
-  fiber = scanner->re_fiber_pool.fibers.head;
+	fiber = scanner->re_fiber_pool.fibers.head;
 
-  while (fiber != NULL)
-  {
-    next_fiber = fiber->next;
-    yr_free(fiber);
-    fiber = next_fiber;
-  }
+	while (fiber != NULL)
+	{
+		next_fiber = fiber->next;
+		yr_free(fiber);
+		fiber = next_fiber;
+	}
 
-  if (scanner->objects_table != NULL)
-  {
-    yr_hash_table_destroy(
-        scanner->objects_table,
-        (YR_HASH_TABLE_FREE_VALUE_FUNC) yr_object_destroy);
-  }
+	if (scanner->objects_table != NULL)
+	{
+		yr_hash_table_destroy(
+			scanner->objects_table,
+			(YR_HASH_TABLE_FREE_VALUE_FUNC)yr_object_destroy);
+	}
 
-  yr_free(scanner);
+	yr_free(scanner);
 }
 
 
-YR_API void yr_scanner_set_callback(
-    YR_SCANNER* scanner,
-    YR_CALLBACK_FUNC callback,
-    void* user_data)
+YR_API void yr_scanner_set_callback(YR_SCANNER* scanner, YR_CALLBACK_FUNC callback, void* user_data)
 {
-  scanner->callback = callback;
-  scanner->user_data = user_data;
+	scanner->callback = callback;
+	scanner->user_data = user_data;
 }
 
 
-YR_API void yr_scanner_set_timeout(
-    YR_SCANNER* scanner,
-    int timeout)
+YR_API void yr_scanner_set_timeout(YR_SCANNER* scanner, int timeout)
 {
-  scanner->timeout = timeout * 1000000L;  // convert timeout to microseconds.
+	scanner->timeout = timeout * 1000000L;  // convert timeout to microseconds.
 }
 
 
-YR_API void yr_scanner_set_flags(
-    YR_SCANNER* scanner,
-    int flags)
+YR_API void yr_scanner_set_flags(YR_SCANNER* scanner, int flags)
 {
-  scanner->flags = flags;
+	scanner->flags = flags;
+}
+
+YR_API int yr_scanner_define_integer_variable(YR_SCANNER* scanner, const char* identifier, int64_t value)
+{
+	YR_OBJECT* obj = (YR_OBJECT*)yr_hash_table_lookup(
+		scanner->objects_table,
+		identifier,
+		NULL);
+
+	if (obj == NULL)
+		return ERROR_INVALID_ARGUMENT;
+
+	if (obj->type != OBJECT_TYPE_INTEGER)
+		return ERROR_INVALID_EXTERNAL_VARIABLE_TYPE;
+
+	return yr_object_set_integer(value, obj, NULL);
 }
 
 
-YR_API int yr_scanner_define_integer_variable(
-    YR_SCANNER* scanner,
-    const char* identifier,
-    int64_t value)
+YR_API int yr_scanner_define_boolean_variable(YR_SCANNER* scanner, const char* identifier, int value)
 {
-  YR_OBJECT* obj = (YR_OBJECT*) yr_hash_table_lookup(
-      scanner->objects_table,
-      identifier,
-      NULL);
-
-  if (obj == NULL)
-    return ERROR_INVALID_ARGUMENT;
-
-  if (obj->type != OBJECT_TYPE_INTEGER)
-    return ERROR_INVALID_EXTERNAL_VARIABLE_TYPE;
-
-  return yr_object_set_integer(value, obj, NULL);
+	return yr_scanner_define_integer_variable(scanner, identifier, value);
 }
 
 
-YR_API int yr_scanner_define_boolean_variable(
-    YR_SCANNER* scanner,
-    const char* identifier,
-    int value)
+YR_API int yr_scanner_define_float_variable(YR_SCANNER* scanner, const char* identifier, double value)
 {
-  return yr_scanner_define_integer_variable(scanner, identifier, value);
+	YR_OBJECT* obj = (YR_OBJECT*)yr_hash_table_lookup(
+		scanner->objects_table,
+		identifier,
+		NULL);
+
+	if (obj == NULL)
+		return ERROR_INVALID_ARGUMENT;
+
+	if (obj->type != OBJECT_TYPE_FLOAT)
+		return ERROR_INVALID_EXTERNAL_VARIABLE_TYPE;
+
+	return yr_object_set_float(value, obj, NULL);
 }
 
 
-YR_API int yr_scanner_define_float_variable(
-    YR_SCANNER* scanner,
-    const char* identifier,
-    double value)
+YR_API int yr_scanner_define_string_variable(YR_SCANNER* scanner, const char* identifier, const char* value)
 {
-  YR_OBJECT* obj = (YR_OBJECT*) yr_hash_table_lookup(
-      scanner->objects_table,
-      identifier,
-      NULL);
+	YR_OBJECT* obj = (YR_OBJECT*)yr_hash_table_lookup(
+		scanner->objects_table,
+		identifier,
+		NULL);
 
-  if (obj == NULL)
-    return ERROR_INVALID_ARGUMENT;
+	if (obj == NULL)
+		return ERROR_INVALID_ARGUMENT;
 
-  if (obj->type != OBJECT_TYPE_FLOAT)
-    return ERROR_INVALID_EXTERNAL_VARIABLE_TYPE;
+	if (obj->type != OBJECT_TYPE_STRING)
+		return ERROR_INVALID_EXTERNAL_VARIABLE_TYPE;
 
-  return yr_object_set_float(value, obj, NULL);
+	return yr_object_set_string(value, strlen(value), obj, NULL);
 }
 
 
-YR_API int yr_scanner_define_string_variable(
-    YR_SCANNER* scanner,
-    const char* identifier,
-    const char* value)
+YR_API int yr_scanner_scan_mem_blocks(YR_SCANNER* scanner, YR_MEMORY_BLOCK_ITERATOR* iterator)
 {
-  YR_OBJECT* obj = (YR_OBJECT*) yr_hash_table_lookup(
-      scanner->objects_table,
-      identifier,
-      NULL);
+	YR_RULES* rules;
+	YR_RULE* rule;
+	YR_MEMORY_BLOCK* block;
 
-  if (obj == NULL)
-    return ERROR_INVALID_ARGUMENT;
+	int tidx = 0;
+	int result = ERROR_SUCCESS;
 
-  if (obj->type != OBJECT_TYPE_STRING)
-    return ERROR_INVALID_EXTERNAL_VARIABLE_TYPE;
+	if (scanner->callback == NULL)
+	{
+		return ERROR_CALLBACK_REQUIRED;
+	}
 
-  return yr_object_set_string(value, strlen(value), obj, NULL);
-}
+	scanner->iterator = iterator;
+	rules = scanner->rules;
+	block = iterator->first(iterator);
 
+	if (block == NULL)
+	{
+		return ERROR_SUCCESS;
+	}
 
-YR_API int yr_scanner_scan_mem_blocks(
-    YR_SCANNER* scanner,
-    YR_MEMORY_BLOCK_ITERATOR* iterator)
-{
-  YR_RULES* rules;
-  YR_RULE* rule;
-  YR_MEMORY_BLOCK* block;
+	yr_mutex_lock(&rules->mutex);
 
-  int tidx = 0;
-  int result = ERROR_SUCCESS;
+	while (tidx < YR_MAX_THREADS && YR_BITARRAY_TEST(rules->tidx_mask, tidx))
+	{
+		tidx++;
+	}
 
-  if (scanner->callback == NULL)
-    return ERROR_CALLBACK_REQUIRED;
+	if (tidx < YR_MAX_THREADS)
+	{
+		YR_BITARRAY_SET(rules->tidx_mask, tidx);
+	}
+	else
+	{
+		result = ERROR_TOO_MANY_SCAN_THREADS;
+	}
 
-  scanner->iterator = iterator;
-  rules = scanner->rules;
-  block = iterator->first(iterator);
+	yr_mutex_unlock(&rules->mutex);
 
-  if (block == NULL)
-    return ERROR_SUCCESS;
+	if (result != ERROR_SUCCESS)
+	{
+		return result;
+	}
 
-  yr_mutex_lock(&rules->mutex);
+	scanner->tidx = tidx;
+	scanner->file_size = block->size;
 
-  while (tidx < YR_MAX_THREADS && YR_BITARRAY_TEST(rules->tidx_mask, tidx))
-  {
-    tidx++;
-  }
+	yr_set_tidx(tidx);
 
-  if (tidx < YR_MAX_THREADS)
-    YR_BITARRAY_SET(rules->tidx_mask, tidx);
-  else
-    result = ERROR_TOO_MANY_SCAN_THREADS;
+	result = yr_arena_create(1048576, 0, &scanner->matches_arena);
 
-  yr_mutex_unlock(&rules->mutex);
+	if (result != ERROR_SUCCESS)
+	{
+		goto _exit;
+	}
 
-  if (result != ERROR_SUCCESS)
-    return result;
+	result = yr_arena_create(4096, 0, &scanner->matching_strings_arena);
 
-  scanner->tidx = tidx;
-  scanner->file_size = block->size;
+	if (result != ERROR_SUCCESS)
+	{
+		goto _exit;
+	}
 
-  yr_set_tidx(tidx);
+	yr_stopwatch_start(&scanner->stopwatch);
 
-  result = yr_arena_create(1048576, 0, &scanner->matches_arena);
+	while (block != NULL)
+	{
+		const uint8_t* data = block->fetch_data(block);
 
-  if (result != ERROR_SUCCESS)
-    goto _exit;
+		// fetch may fail
+		if (data == NULL)
+		{
+			block = iterator->next(iterator);
+			continue;
+		}
 
-  result = yr_arena_create(4096, 0, &scanner->matching_strings_arena);
+		if (scanner->entry_point == UNDEFINED)
+		{
+			YR_TRYCATCH(
+				!(scanner->flags & SCAN_FLAGS_NO_TRYCATCH),
+				{
+				  if (scanner->flags & SCAN_FLAGS_PROCESS_MEMORY)
+				  {
+					scanner->entry_point = yr_get_entry_point_address(
+						data,
+						block->size,
+						block->base);
+					}
+				  else
+				  {
+					scanner->entry_point = yr_get_entry_point_offset(
+						data,
+						block->size);
+					}
+				}, {});
+		}
 
-  if (result != ERROR_SUCCESS)
-    goto _exit;
+		YR_TRYCATCH(
+			!(scanner->flags & SCAN_FLAGS_NO_TRYCATCH),
+			{
+			  result = _yr_scanner_scan_mem_block(
+				  scanner,
+				  data,
+				  block);
+			}, {
+			  result = ERROR_COULD_NOT_MAP_FILE;
+			});
 
-  yr_stopwatch_start(&scanner->stopwatch);
+		if (result != ERROR_SUCCESS)
+			goto _exit;
 
-  while (block != NULL)
-  {
-    const uint8_t* data = block->fetch_data(block);
+		block = iterator->next(iterator);
+	}
 
-    // fetch may fail
-    if (data == NULL)
-    {
-      block = iterator->next(iterator);
-      continue;
-    }
+	YR_TRYCATCH(
+		!(scanner->flags& SCAN_FLAGS_NO_TRYCATCH),
+		{
+		  result = yr_execute_code(scanner);
+		}, {
+		  result = ERROR_COULD_NOT_MAP_FILE;
+		});
 
-    if (scanner->entry_point == UNDEFINED)
-    {
-      YR_TRYCATCH(
-        !(scanner->flags & SCAN_FLAGS_NO_TRYCATCH),
-        {
-          if (scanner->flags & SCAN_FLAGS_PROCESS_MEMORY)
-            scanner->entry_point = yr_get_entry_point_address(
-                data,
-                block->size,
-                block->base);
-          else
-            scanner->entry_point = yr_get_entry_point_offset(
-                data,
-                block->size);
-        },{});
-    }
+	if (result != ERROR_SUCCESS)
+		goto _exit;
 
-    YR_TRYCATCH(
-      !(scanner->flags & SCAN_FLAGS_NO_TRYCATCH),
-      {
-        result = _yr_scanner_scan_mem_block(
-            scanner,
-            data,
-            block);
-      },{
-        result = ERROR_COULD_NOT_MAP_FILE;
-      });
+	yr_rules_foreach(rules, rule)
+	{
+		int message;
 
-    if (result != ERROR_SUCCESS)
-      goto _exit;
+		if (rule->t_flags[tidx] & RULE_TFLAGS_MATCH && !(rule->ns->t_flags[tidx] & NAMESPACE_TFLAGS_UNSATISFIED_GLOBAL))
+		{
+			message = CALLBACK_MSG_RULE_MATCHING;
+		}
+		else
+		{
+			message = CALLBACK_MSG_RULE_NOT_MATCHING;
+		}
 
-    block = iterator->next(iterator);
-  }
+		if (!RULE_IS_PRIVATE(rule))
+		{
+			switch (scanner->callback(message, rule, scanner->user_data))
+			{
+			case CALLBACK_ABORT:
+				result = ERROR_SUCCESS;
+				goto _exit;
 
-  YR_TRYCATCH(
-    !(scanner->flags & SCAN_FLAGS_NO_TRYCATCH),
-    {
-      result = yr_execute_code(scanner);
-    },{
-      result = ERROR_COULD_NOT_MAP_FILE;
-    });
+			case CALLBACK_ERROR:
+				result = ERROR_CALLBACK_ERROR;
+				goto _exit;
+			}
+		}
+	}
 
-  if (result != ERROR_SUCCESS)
-    goto _exit;
-
-  yr_rules_foreach(rules, rule)
-  {
-    int message;
-
-    if (rule->t_flags[tidx] & RULE_TFLAGS_MATCH &&
-        !(rule->ns->t_flags[tidx] & NAMESPACE_TFLAGS_UNSATISFIED_GLOBAL))
-    {
-      message = CALLBACK_MSG_RULE_MATCHING;
-    }
-    else
-    {
-      message = CALLBACK_MSG_RULE_NOT_MATCHING;
-    }
-
-    if (!RULE_IS_PRIVATE(rule))
-    {
-      switch (scanner->callback(message, rule, scanner->user_data))
-      {
-        case CALLBACK_ABORT:
-          result = ERROR_SUCCESS;
-          goto _exit;
-
-        case CALLBACK_ERROR:
-          result = ERROR_CALLBACK_ERROR;
-          goto _exit;
-      }
-    }
-  }
-
-  scanner->callback(CALLBACK_MSG_SCAN_FINISHED, NULL, scanner->user_data);
+	scanner->callback(CALLBACK_MSG_SCAN_FINISHED, NULL, scanner->user_data);
 
 _exit:
 
-  scanner->rules->time_cost += yr_stopwatch_elapsed_us(&scanner->stopwatch);
+	scanner->rules->time_cost += yr_stopwatch_elapsed_us(&scanner->stopwatch);
 
-  _yr_scanner_clean_matches(scanner);
+	_yr_scanner_clean_matches(scanner);
 
-  if (scanner->matches_arena != NULL)
-  {
-    yr_arena_destroy(scanner->matches_arena);
-    scanner->matches_arena = NULL;
-  }
+	if (scanner->matches_arena != NULL)
+	{
+		yr_arena_destroy(scanner->matches_arena);
+		scanner->matches_arena = NULL;
+	}
 
-  if (scanner->matching_strings_arena != NULL)
-  {
-    yr_arena_destroy(scanner->matching_strings_arena);
-    scanner->matching_strings_arena = NULL;
-  }
+	if (scanner->matching_strings_arena != NULL)
+	{
+		yr_arena_destroy(scanner->matching_strings_arena);
+		scanner->matching_strings_arena = NULL;
+	}
 
-  yr_mutex_lock(&rules->mutex);
-  YR_BITARRAY_UNSET(rules->tidx_mask, tidx);
-  yr_mutex_unlock(&rules->mutex);
+	yr_mutex_lock(&rules->mutex);
+	YR_BITARRAY_UNSET(rules->tidx_mask, tidx);
+	yr_mutex_unlock(&rules->mutex);
 
-  yr_set_tidx(-1);
+	yr_set_tidx(-1);
 
-  return result;
+	return result;
 }
 
 
-static YR_MEMORY_BLOCK* _yr_get_first_block(
-    YR_MEMORY_BLOCK_ITERATOR* iterator)
+static YR_MEMORY_BLOCK* _yr_get_first_block(YR_MEMORY_BLOCK_ITERATOR* iterator)
 {
-  return (YR_MEMORY_BLOCK*) iterator->context;
+	return (YR_MEMORY_BLOCK*)iterator->context;
 }
 
 
-static YR_MEMORY_BLOCK* _yr_get_next_block(
-    YR_MEMORY_BLOCK_ITERATOR* iterator)
+static YR_MEMORY_BLOCK* _yr_get_next_block(YR_MEMORY_BLOCK_ITERATOR* iterator)
 {
-  return NULL;
+	return NULL;
 }
 
 
-static const uint8_t* _yr_fetch_block_data(
-    YR_MEMORY_BLOCK* block)
+static const uint8_t* _yr_fetch_block_data(YR_MEMORY_BLOCK* block)
 {
-  return (const uint8_t*) block->context;
+	return (const uint8_t*)block->context;
 }
 
 
-YR_API int yr_scanner_scan_mem(
-    YR_SCANNER* scanner,
-    const uint8_t* buffer,
-    size_t buffer_size)
+YR_API int yr_scanner_scan_mem(YR_SCANNER* scanner, const uint8_t* buffer, size_t buffer_size)
 {
-  YR_MEMORY_BLOCK block;
-  YR_MEMORY_BLOCK_ITERATOR iterator;
+	YR_MEMORY_BLOCK block;
+	YR_MEMORY_BLOCK_ITERATOR iterator;
 
-  block.size = buffer_size;
-  block.base = 0;
-  block.fetch_data = _yr_fetch_block_data;
-  block.context = (void*) buffer;
+	block.size = buffer_size;
+	block.base = 0;
+	block.fetch_data = _yr_fetch_block_data;
+	block.context = (void*)buffer;
 
-  iterator.context = &block;
-  iterator.first = _yr_get_first_block;
-  iterator.next = _yr_get_next_block;
+	iterator.context = &block;
+	iterator.first = _yr_get_first_block;
+	iterator.next = _yr_get_next_block;
 
-  return yr_scanner_scan_mem_blocks(scanner, &iterator);
+	return yr_scanner_scan_mem_blocks(scanner, &iterator);
 }
 
 
-YR_API int yr_scanner_scan_file(
-    YR_SCANNER* scanner,
-    const wchar_t* filename)
+YR_API int yr_scanner_scan_file(YR_SCANNER* scanner, const wchar_t* filename)
 {
-  YR_MAPPED_FILE mfile;
+	YR_MAPPED_FILE mfile;
 
-  int result = yr_filemap_map(filename, &mfile);
+	int result = yr_filemap_map(filename, &mfile);
 
-  if (result == ERROR_SUCCESS)
-  {
-    result = yr_scanner_scan_mem(scanner, mfile.data, mfile.size);
-    yr_filemap_unmap(&mfile);
-  }
+	if (result == ERROR_SUCCESS)
+	{
+		result = yr_scanner_scan_mem(scanner, mfile.data, mfile.size);
+		yr_filemap_unmap(&mfile);
+	}
 
-  return result;
+	return result;
 }
 
 
-YR_API int yr_scanner_scan_fd(
-    YR_SCANNER* scanner,
-    YR_FILE_DESCRIPTOR fd)
+YR_API int yr_scanner_scan_fd(YR_SCANNER* scanner, YR_FILE_DESCRIPTOR fd)
 {
-  YR_MAPPED_FILE mfile;
+	YR_MAPPED_FILE mfile;
 
-  int result = yr_filemap_map_fd(fd, 0, 0, &mfile);
+	int result = yr_filemap_map_fd(fd, 0, 0, &mfile);
 
-  if (result == ERROR_SUCCESS)
-  {
-    result = yr_scanner_scan_mem(scanner, mfile.data, mfile.size);
-    yr_filemap_unmap_fd(&mfile);
-  }
+	if (result == ERROR_SUCCESS)
+	{
+		result = yr_scanner_scan_mem(scanner, mfile.data, mfile.size);
+		yr_filemap_unmap_fd(&mfile);
+	}
 
-  return result;
+	return result;
 }
 
 
-YR_API int yr_scanner_scan_proc(
-    YR_SCANNER* scanner,
-    int pid)
+YR_API int yr_scanner_scan_proc(YR_SCANNER* scanner, int pid)
 {
-  YR_MEMORY_BLOCK_ITERATOR iterator;
+	YR_MEMORY_BLOCK_ITERATOR iterator;
 
-  int result = yr_process_open_iterator(pid, &iterator);
+	int result = yr_process_open_iterator(pid, &iterator);
 
-  if (result == ERROR_SUCCESS)
-  {
-    int prev_flags = scanner->flags;
-    scanner->flags |= SCAN_FLAGS_PROCESS_MEMORY;
-    result = yr_scanner_scan_mem_blocks(scanner, &iterator);
-    scanner->flags = prev_flags;
-    yr_process_close_iterator(&iterator);
-  }
+	if (result == ERROR_SUCCESS)
+	{
+		int prev_flags = scanner->flags;
+		scanner->flags |= SCAN_FLAGS_PROCESS_MEMORY;
+		result = yr_scanner_scan_mem_blocks(scanner, &iterator);
+		scanner->flags = prev_flags;
+		yr_process_close_iterator(&iterator);
+	}
 
-  return result;
+	return result;
 }
 
 
-YR_API YR_STRING* yr_scanner_last_error_string(
-    YR_SCANNER* scanner)
+YR_API YR_STRING* yr_scanner_last_error_string(YR_SCANNER* scanner)
 {
-  return scanner->last_error_string;
+	return scanner->last_error_string;
 }
 
 
-YR_API YR_RULE* yr_scanner_last_error_rule(
-    YR_SCANNER* scanner)
+YR_API YR_RULE* yr_scanner_last_error_rule(YR_SCANNER* scanner)
 {
-  if (scanner->last_error_string == NULL)
-    return NULL;
+	if (scanner->last_error_string == NULL)
+		return NULL;
 
-  return scanner->last_error_string->rule;
+	return scanner->last_error_string->rule;
 }

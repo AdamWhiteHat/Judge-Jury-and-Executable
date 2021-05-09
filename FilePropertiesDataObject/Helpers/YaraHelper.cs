@@ -27,7 +27,7 @@ namespace FilePropertiesDataObject.Helpers
 			_yaraInstance = null;
 		}
 
-		public static YSRules CompileRules(List<string> yaraRuleFiles, Action<string> loggingFunction)
+		public static YSScanner CompileRules(List<string> yaraRuleFiles, Action<string> loggingFunction)
 		{
 			YSRules result = null;
 
@@ -66,14 +66,20 @@ namespace FilePropertiesDataObject.Helpers
 				result = compiler.GetRules();
 			}
 
-			return result;
+			return new YSScanner(result, null);
 		}
 
-		public static List<string> ScanBytes(byte[] fileBytes, YSRules compiledRules)
+		public static List<string> ScanBytes(byte[] fileBytes, YSScanner scanner)
 		{
+			if (fileBytes == null || fileBytes.Length == 0)
+			{
+				return new List<string>();
+			}
+
 			List<string> result = new List<string>();
 			List<YSMatches> scanResults = new List<YSMatches>();
-			scanResults = _yaraInstance.ScanMemory(fileBytes, compiledRules, null, 0);
+
+			scanResults = scanner.ScanMemory(fileBytes);
 			if (scanResults.Any())
 			{
 				result = scanResults.Select(match => match.Rule.Identifier).ToList();
@@ -82,10 +88,10 @@ namespace FilePropertiesDataObject.Helpers
 			return result;
 		}
 
-		public static List<string> ScanFile(string filePath, YSRules compiledRules)
+		public static List<string> ScanFile(string filePath, YSScanner scanner)
 		{
 			List<string> result = new List<string>();
-			List<YSMatches> scanResults = _yaraInstance.ScanFile(filePath, compiledRules, null, 0);
+			List<YSMatches> scanResults = scanner.ScanFile(filePath);
 			if (scanResults.Any())
 			{
 				result = scanResults.Select(match => match.Rule.Identifier).ToList();

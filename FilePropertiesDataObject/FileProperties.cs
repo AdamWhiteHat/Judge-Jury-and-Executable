@@ -93,13 +93,13 @@ namespace FilePropertiesDataObject
 		// Max number of bytes for a file size before reading a file in chunks
 		private UInt64 MaxLength = (ulong)NtfsReader.MaxClustersToRead * (ulong)4096;
 
-		private static Dictionary<string, YSRules> _yaraCompiledRulesDictionary;
+		private static Dictionary<string, YSScanner> _yaraCompiledRulesDictionary;
 
 		#endregion
 
 		static FileProperties()
 		{
-			_yaraCompiledRulesDictionary = new Dictionary<string, YSRules>();
+			_yaraCompiledRulesDictionary = new Dictionary<string, YSScanner>();
 		}
 
 		public FileProperties()
@@ -114,11 +114,11 @@ namespace FilePropertiesDataObject
 		{
 			if (_yaraCompiledRulesDictionary.Any())
 			{
-				List<YSRules> rules = _yaraCompiledRulesDictionary.Values.ToList();
+				List<YSScanner> rules = _yaraCompiledRulesDictionary.Values.ToList();
 
-				foreach (YSRules rule in rules)
+				foreach (YSScanner scanner in rules)
 				{
-					rule.Dispose();
+					scanner.Dispose();
 				}
 
 				_yaraCompiledRulesDictionary.Clear();
@@ -256,7 +256,7 @@ namespace FilePropertiesDataObject
 
 			if (hasFileReadPermissions)
 			{
-				YSRules compiledRules = GetCompiledYaraRules(parameters);
+				YSScanner compiledRules = GetCompiledYaraRules(parameters);
 				if (compiledRules != null)
 				{
 					_timingMetrics.Start(TimingMetric.YaraScanning);
@@ -369,7 +369,7 @@ namespace FilePropertiesDataObject
 				CancellationHelper.ThrowIfCancelled();
 			}
 
-			YSRules compiledRules = GetCompiledYaraRules(parameters);
+			YSScanner compiledRules = GetCompiledYaraRules(parameters);
 			if (compiledRules != null)
 			{
 				_timingMetrics.Start(TimingMetric.YaraScanning);
@@ -408,7 +408,7 @@ namespace FilePropertiesDataObject
 			this.IsTrusted = result;
 		}
 
-		private YSRules GetCompiledYaraRules(FileEnumeratorParameters parameters)
+		private YSScanner GetCompiledYaraRules(FileEnumeratorParameters parameters)
 		{
 			_timingMetrics.Start(TimingMetric.YaraRuleCompiling);
 
@@ -440,7 +440,7 @@ namespace FilePropertiesDataObject
 			string uniqueRuleCollectionToken = string.Join("|", distinctRulesToRun);
 			string ruleCollectionHash = Hash.ByteArray.Sha256(Encoding.UTF8.GetBytes(uniqueRuleCollectionToken));
 
-			YSRules results = null;
+			YSScanner results = null;
 
 			if (_yaraCompiledRulesDictionary.ContainsKey(ruleCollectionHash))
 			{

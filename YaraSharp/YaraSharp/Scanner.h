@@ -18,6 +18,7 @@ namespace YaraSharp
 		List<YSMatches^>^ ScanProcess(int pID);
 		List<YSMatches^>^ ScanFile(String^ path);
 		List<YSMatches^>^ ScanMemory(uint8_t* buffer, int length);
+		List<YSMatches^>^ ScanMemory(array<uint8_t>^ buffer);
 		int HandleScannerCallback(int message, void* data, void* context);
 	private:
 		void SetScannerCallback();
