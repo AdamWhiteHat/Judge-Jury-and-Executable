@@ -25,6 +25,9 @@ namespace FilePropertiesDataObject.Helpers
 				_yaraContext = null;
 			}
 			_yaraInstance = null;
+
+			_yaraInstance = new YSInstance();
+			_yaraContext = new YSContext();
 		}
 
 		public static YSScanner CompileRules(List<string> yaraRuleFiles, Action<string> loggingFunction)

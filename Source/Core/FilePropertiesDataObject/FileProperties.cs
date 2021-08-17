@@ -126,6 +126,8 @@ namespace FilePropertiesDataObject
 				_yaraCompiledRulesDictionary = null;
 			}
 
+			_yaraCompiledRulesDictionary = new Dictionary<string, YSScanner>();
+
 			YaraHelper.CleanUp();
 		}
 
