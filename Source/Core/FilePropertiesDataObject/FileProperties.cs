@@ -440,6 +440,7 @@ namespace FilePropertiesDataObject
 
 			if (!distinctRulesToRun.Any())
 			{
+				_timingMetrics.Stop(TimingMetric.YaraRuleCompiling);
 				return null;
 			}
 
