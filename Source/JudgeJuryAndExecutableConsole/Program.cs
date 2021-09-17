@@ -314,7 +314,7 @@ namespace JudgeJuryAndExecutableConsole
 				count.ToStrings().ForEach(s => Log.ToAll(s));
 			}
 			Log.ToAll();
-			foreach (string line in report.Timings.GetReport())
+			foreach (string line in report.Timings)
 			{
 				Log.ToAll(line);
 			}

@@ -21,30 +21,29 @@ namespace FilePropertiesDataObject
 	/// <summary>
 	/// Contains a Dictionary of Stopwatch(es) to track Timing Metrics for the application
 	/// </summary>
-	public class TimingMetrics
+	public class TimingMetrics : IDisposable
 	{
-		private Dictionary<TimingMetric, Stopwatch> _timingDictionary;
 
-		public TimingMetrics()
+		#region Static Members
+
+		private static Dictionary<TimingMetric, Stopwatch> _timingDictionary;
+
+		static TimingMetrics()
 		{
-			_timingDictionary = new Dictionary<TimingMetric, Stopwatch>();
-			foreach (TimingMetric section in Enum.GetValues(typeof(TimingMetric)))
-			{
-				_timingDictionary.Add(section, new Stopwatch());
-			}
+			ResetMetrics();
 		}
 
-		public void Start(TimingMetric section)
+		private static void StartTimer(TimingMetric section)
 		{
 			_timingDictionary[section].Start();
 		}
 
-		public void Stop(TimingMetric section)
+		private static void StopTimer(TimingMetric section)
 		{
 			_timingDictionary[section].Stop();
 		}
 
-		public void StopAll()
+		private static void StopAllTimers()
 		{
 			foreach (var kvp in _timingDictionary)
 			{
@@ -55,7 +54,21 @@ namespace FilePropertiesDataObject
 			}
 		}
 
-		public Stopwatch GetMetric(TimingMetric section)
+		public static void ResetMetrics()
+		{
+			if (_timingDictionary != null && _timingDictionary.Any())
+			{
+				_timingDictionary.Clear();
+			}
+
+			_timingDictionary = new Dictionary<TimingMetric, Stopwatch>();
+			foreach (TimingMetric section in Enum.GetValues(typeof(TimingMetric)))
+			{
+				_timingDictionary.Add(section, new Stopwatch());
+			}
+		}
+
+		public static Stopwatch GetTimer(TimingMetric section)
 		{
 			return _timingDictionary[section];
 		}
@@ -89,9 +102,9 @@ namespace FilePropertiesDataObject
 			return string.Join(":", elapsedString); // 1d:2h:30m:5s:1023ms
 		}
 
-		public string[] GetReport()
+		public static string[] GetReport()
 		{
-			StopAll();
+			StopAllTimers();
 			var nonzeroKeyValuePairs = _timingDictionary.Where(kvp => kvp.Value.ElapsedTicks > 0);
 
 			int rightPadding = nonzeroKeyValuePairs.Select(kvp => $"Metric '{Enum.GetName(typeof(TimingMetric), kvp.Key)}' took ".Length).Max();
@@ -112,9 +125,29 @@ namespace FilePropertiesDataObject
 			return results.ToArray();
 		}
 
+		#endregion
+
+		#region Instance Members
+
+		private TimingMetric _section;
+
+		public TimingMetrics(TimingMetric section)
+		{
+			_section = section;
+			StartTimer(_section);
+		}
+
+		public void Dispose()
+		{
+			StopTimer(_section);
+		}
+
 		public override string ToString()
 		{
 			return string.Join(Environment.NewLine, GetReport());
 		}
+
+		#endregion
+
 	}
 }

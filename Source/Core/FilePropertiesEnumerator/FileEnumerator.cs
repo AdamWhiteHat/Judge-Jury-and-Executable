@@ -49,7 +49,7 @@ namespace FilePropertiesEnumerator
 
 		private static FileEnumeratorReport Worker(FileEnumeratorParameters parameters)
 		{
-			TimingMetrics timingMetrics = new TimingMetrics();
+			TimingMetrics.ResetMetrics();
 			FailSuccessCount fileEnumCount = new FailSuccessCount("OS files enumerated");
 			FailSuccessCount databaseInsertCount = new FailSuccessCount("OS database rows updated");
 
@@ -68,58 +68,61 @@ namespace FilePropertiesEnumerator
 
 				string drive = parameters.SelectedFolder[0].ToString().ToUpper();
 
-				timingMetrics.Start(TimingMetric.ParsingMFT);
+				List<DriveInfo> ntfsDrives = null;
+				DriveInfo driveToAnalyze = null;
+				NtfsReader ntfsReader = null;
+				IEnumerable<INode> mftNodes = null;
 
-				List<DriveInfo> ntfsDrives = DriveInfo.GetDrives().Where(d => d.IsReady && d.DriveFormat == "NTFS").ToList();
-
-				DriveInfo driveToAnalyze = ntfsDrives.Where(dr => dr.Name.ToUpper().Contains(drive)).Single();
-
-				NtfsReader ntfsReader = new NtfsReader(driveToAnalyze, RetrieveMode.All);
-
-				IEnumerable<INode> mftNodes =
-					ntfsReader.GetNodes(driveToAnalyze.Name)
-						.Where(node => (node.Attributes &
-									 (NtfsNodeAttributes.Device
-									  | NtfsNodeAttributes.Directory
-									  | NtfsNodeAttributes.ReparsePoint
-									  | NtfsNodeAttributes.SparseFile
-									 )) == 0) // This means that we DONT want any matches of the above NtfsNodeAttributes type
-						.Where(node => FileMatchesPattern(node.FullName, parameters.SearchPatterns));
-				//.OrderByDescending(n => n.Size);
-
-				if (parameters.SelectedFolder.ToCharArray().Length > 3)
+				using (var timer = new TimingMetrics(TimingMetric.ParsingMFT))
 				{
-					string selectedFolderUppercase = parameters.SelectedFolder.ToUpperInvariant().TrimEnd(new char[] { '\\' });
-					mftNodes = mftNodes.Where(node => node.FullName.ToUpperInvariant().Contains(selectedFolderUppercase));
+					ntfsDrives = DriveInfo.GetDrives().Where(d => d.IsReady && d.DriveFormat == "NTFS").ToList();
+
+					driveToAnalyze = ntfsDrives.Where(dr => dr.Name.ToUpper().Contains(drive)).Single();
+
+					ntfsReader = new NtfsReader(driveToAnalyze, RetrieveMode.All);
+
+					mftNodes = ntfsReader.GetNodes(driveToAnalyze.Name)
+								.Where(node => (node.Attributes &
+										 (NtfsNodeAttributes.Device
+										  | NtfsNodeAttributes.Directory
+										  | NtfsNodeAttributes.ReparsePoint
+										  | NtfsNodeAttributes.SparseFile
+										 )) == 0) // This means that we DONT want any matches of the above NtfsNodeAttributes type
+								.Where(node => FileMatchesPattern(node.FullName, parameters.SearchPatterns));
+					//.OrderByDescending(n => n.Size);
+
+					if (parameters.SelectedFolder.ToCharArray().Length > 3)
+					{
+						string selectedFolderUppercase = parameters.SelectedFolder.ToUpperInvariant().TrimEnd(new char[] { '\\' });
+						mftNodes = mftNodes.Where(node => node.FullName.ToUpperInvariant().Contains(selectedFolderUppercase));
+					}
+
 				}
 
-				timingMetrics.Stop(TimingMetric.ParsingMFT);
-
 				IDataPersistenceLayer dataPersistenceLayer = parameters.DataPersistenceLayer;
-
 				foreach (INode node in mftNodes)
 				{
 					string message = $"MFT#: {node.MFTRecordNumber.ToString().PadRight(7)} Seq.#: {node.SequenceNumber.ToString().PadRight(4)} Path: {node.FullName}";
-
 					parameters.ReportAndLogOutputFunction.Invoke(message);
 
 					fileEnumCount.IncrementSucceededCount();
 
 					FileProperties prop = new FileProperties();
-					prop.PopulateFileProperties(parameters, parameters.SelectedFolder[0], node, timingMetrics);
+					prop.PopulateFileProperties(parameters, parameters.SelectedFolder[0], node);
 
 					// INSERT file properties into _DATABASE_
-					timingMetrics.Start(TimingMetric.PersistingFileProperties);
-					bool insertResult = dataPersistenceLayer.PersistFileProperties(prop);
-					if (insertResult)
+					using (var timer = new TimingMetrics(TimingMetric.PersistingFileProperties))
 					{
-						databaseInsertCount.IncrementSucceededCount();
+						bool insertResult = dataPersistenceLayer.PersistFileProperties(prop);
+						if (insertResult)
+						{
+							databaseInsertCount.IncrementSucceededCount();
+						}
+						else
+						{
+							databaseInsertCount.IncrementFailedCount();
+						}
 					}
-					else
-					{
-						databaseInsertCount.IncrementFailedCount();
-					}
-					timingMetrics.Stop(TimingMetric.PersistingFileProperties);
 
 					parameters.CancelToken.ThrowIfCancellationRequested();
 				}
@@ -130,7 +133,7 @@ namespace FilePropertiesEnumerator
 			catch (OperationCanceledException)
 			{ }
 
-			return new FileEnumeratorReport(new List<FailSuccessCount> { fileEnumCount, databaseInsertCount }, timingMetrics);
+			return new FileEnumeratorReport(new List<FailSuccessCount> { fileEnumCount, databaseInsertCount });
 		}
 
 		private static bool FileMatchesPattern(string fullName, string[] searchPatterns)
