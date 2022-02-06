@@ -353,7 +353,7 @@ namespace JudgeJuryAndExecutableGUI
 
 			Log.ToAll($"Enumeration time: {enumerationTimeSpan.ToString()}");
 			Log.ToAll();
-			foreach (string line in report.Timings.GetReport())
+			foreach (string line in report.Timings)
 			{
 				Log.ToAll(line);
 			}

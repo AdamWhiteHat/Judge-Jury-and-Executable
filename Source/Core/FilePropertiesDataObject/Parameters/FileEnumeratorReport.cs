@@ -6,13 +6,14 @@ namespace FilePropertiesDataObject.Parameters
 {
 	public class FileEnumeratorReport
 	{
-		public List<FailSuccessCount> Counts { get; set; }
-		public TimingMetrics Timings { get; set; }
+		public List<FailSuccessCount> Counts { get; private set; }
 
-		public FileEnumeratorReport(List<FailSuccessCount> counts, TimingMetrics timings)
+		public string[] Timings { get; private set; }
+
+		public FileEnumeratorReport(List<FailSuccessCount> counts)
 		{
 			Counts = counts;
-			Timings = timings;
+			Timings = TimingMetrics.GetReport();
 		}
 	}
 }

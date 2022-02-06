@@ -89,7 +89,6 @@ namespace FilePropertiesDataObject
 		private Attributes _attributes { get; set; }
 		private PeDataObject _peData { get; set; }
 		private AuthenticodeData _authenticode { get; set; }
-		private TimingMetrics _timingMetrics = null;
 
 		// Max number of bytes for a file size before reading a file in chunks
 		private UInt64 MaxLength = (ulong)NtfsReader.MaxClustersToRead * (ulong)4096;
@@ -131,63 +130,62 @@ namespace FilePropertiesDataObject
 			YaraHelper.CleanUp();
 		}
 
-		public void PopulateFileProperties(FileEnumeratorParameters parameters, char driveLetter, INode node, TimingMetrics timingMetrics)
+		public void PopulateFileProperties(FileEnumeratorParameters parameters, char driveLetter, INode node)
 		{
 			if (parameters == null) return;
 			if (node == null) return;
 
-			_timingMetrics = timingMetrics;
-
 			CancellationHelper.SetCancellationToken(parameters.CancelToken);
 			CancellationHelper.ThrowIfCancelled();
 
-			_timingMetrics.Start(TimingMetric.MiscFileProperties);
+			bool hasFileReadPermissions = false;
 
-			MFTNumber = node.MFTRecordNumber;
-			SequenceNumber = node.SequenceNumber;
-
-			DriveLetter = driveLetter;
-			FileName = node.Name;
-
-			MftTimeAccessed = node.LastAccessTime;
-			MftTimeCreation = node.CreationTime;
-			MftTimeModified = node.LastChangeTime;
-			MftTimeMftModified = node.TimeMftModified;
-
-			DirectoryLocation = Path.GetDirectoryName(node.FullName);
-			Extension = Path.GetExtension(FileName);
-			FullPath = node.FullName;
-
-			this.Length = node.Size;
-
-			CancellationHelper.ThrowIfCancelled();
-
-			if (this.Length == 0) //Workaround for hard links
+			using (var timer = new TimingMetrics(TimingMetric.MiscFileProperties))
 			{
-				if (File.Exists(FullPath))
+				MFTNumber = node.MFTRecordNumber;
+				SequenceNumber = node.SequenceNumber;
+
+				DriveLetter = driveLetter;
+				FileName = node.Name;
+
+				MftTimeAccessed = node.LastAccessTime;
+				MftTimeCreation = node.CreationTime;
+				MftTimeModified = node.LastChangeTime;
+				MftTimeMftModified = node.TimeMftModified;
+
+				DirectoryLocation = Path.GetDirectoryName(node.FullName);
+				Extension = Path.GetExtension(FileName);
+				FullPath = node.FullName;
+
+				this.Length = node.Size;
+
+				CancellationHelper.ThrowIfCancelled();
+
+				if (this.Length == 0) //Workaround for hard links
 				{
-					long length = new FileInfo(FullPath).Length;
-					if (length > 0)
+					if (File.Exists(FullPath))
 					{
-						this.Length = (ulong)length;
-						node.Size = this.Length;
+						long length = new FileInfo(FullPath).Length;
+						if (length > 0)
+						{
+							this.Length = (ulong)length;
+							node.Size = this.Length;
+						}
 					}
 				}
-			}
 
-			bool hasFileReadPermissions = false;
-			var fileIOPermission = new FileIOPermission(FileIOPermissionAccess.Read, AccessControlActions.View, FullPath);
-			try
-			{
-				fileIOPermission.Demand();
-				hasFileReadPermissions = true;
-			}
-			catch (SecurityException)
-			{
-				hasFileReadPermissions = false;
-			}
+				var fileIOPermission = new FileIOPermission(FileIOPermissionAccess.Read, AccessControlActions.View, FullPath);
+				try
+				{
+					fileIOPermission.Demand();
+					hasFileReadPermissions = true;
+				}
+				catch (SecurityException)
+				{
+					hasFileReadPermissions = false;
+				}
 
-			_timingMetrics.Stop(TimingMetric.MiscFileProperties);
+			}
 
 			if (this.Length != 0)
 			{
@@ -208,53 +206,59 @@ namespace FilePropertiesDataObject
 				this.MD5 = "D41D8CD98F00B204E9800998ECF8427E";
 			}
 
-			_timingMetrics.Start(TimingMetric.MiscFileProperties);
+			using (var timer = new TimingMetrics(TimingMetric.MiscFileProperties))
+			{
 
-			PopulateIsTrusted();
-			CancellationHelper.ThrowIfCancelled();
+				PopulateIsTrusted();
+				CancellationHelper.ThrowIfCancelled();
 
-			this._attributes = new Attributes(node);
-			_timingMetrics.Stop(TimingMetric.MiscFileProperties);
+				this._attributes = new Attributes(node);
+			}
 			CancellationHelper.ThrowIfCancelled();
 		}
 
 		private void PopulateLargeFile(FileEnumeratorParameters parameters, INode node, bool hasFileReadPermissions)
 		{
-			_timingMetrics.Start(TimingMetric.ReadingMFTBytes);
-			IEnumerable<byte[]> fileChunks = node.GetBytes();
-			_timingMetrics.Stop(TimingMetric.ReadingMFTBytes);
 
-			_timingMetrics.Start(TimingMetric.FileHashing);
-			this.Sha256 = Hash.ByteEnumerable.Sha256(fileChunks);
-			if (hasFileReadPermissions)
+			IEnumerable<byte[]> fileChunks = null;
+			using (var timer = new TimingMetrics(TimingMetric.ReadingMFTBytes))
 			{
-				this._peData = PeDataObject.TryGetPeDataObject(FullPath);
+				fileChunks = node.GetBytes();
+			}
+
+			using (var timer = new TimingMetrics(TimingMetric.FileHashing))
+			{
+				this.Sha256 = Hash.ByteEnumerable.Sha256(fileChunks);
+				if (hasFileReadPermissions)
+				{
+					this._peData = PeDataObject.TryGetPeDataObject(FullPath);
+					if (_peData != null)
+					{
+						this.SHA1 = _peData.SHA1Hash;
+						this.MD5 = _peData.MD5Hash;
+					}
+					else
+					{
+						this.SHA1 = Hash.ByteEnumerable.Sha1(fileChunks);
+						this.MD5 = Hash.ByteEnumerable.MD5(fileChunks);
+					}
+				}
+			}
+
+			using (var timer = new TimingMetrics(TimingMetric.MiscFileProperties))
+			{
 				if (_peData != null)
 				{
-					this.SHA1 = _peData.SHA1Hash;
-					this.MD5 = _peData.MD5Hash;
+					this._authenticode = AuthenticodeData.GetAuthenticodeData(this._peData.Certificate);
 				}
-				else
+
+				CancellationHelper.ThrowIfCancelled();
+
+				if (hasFileReadPermissions)
 				{
-					this.SHA1 = Hash.ByteEnumerable.Sha1(fileChunks);
-					this.MD5 = Hash.ByteEnumerable.MD5(fileChunks);
+					PopulateFileInfoProperties(FullPath);
 				}
 			}
-			_timingMetrics.Stop(TimingMetric.FileHashing);
-
-			_timingMetrics.Start(TimingMetric.MiscFileProperties);
-			if (_peData != null)
-			{
-				this._authenticode = AuthenticodeData.GetAuthenticodeData(this._peData.Certificate);
-			}
-
-			CancellationHelper.ThrowIfCancelled();
-
-			if (hasFileReadPermissions)
-			{
-				PopulateFileInfoProperties(FullPath);
-			}
-			_timingMetrics.Stop(TimingMetric.MiscFileProperties);
 
 			if (hasFileReadPermissions)
 			{
@@ -267,16 +271,17 @@ namespace FilePropertiesDataObject
 				YSScanner compiledRules = GetCompiledYaraRules(parameters);
 				if (compiledRules != null)
 				{
-					_timingMetrics.Start(TimingMetric.YaraScanning);
-					try
+					using (var timer = new TimingMetrics(TimingMetric.YaraScanning))
 					{
-						_yaraRulesMatched = YaraHelper.ScanFile(FullPath, compiledRules);
+						try
+						{
+							_yaraRulesMatched = YaraHelper.ScanFile(FullPath, compiledRules);
+						}
+						catch (Exception ex)
+						{
+							parameters.ReportExceptionFunction.Invoke(nameof(PopulateLargeFile), string.Empty, ex);
+						}
 					}
-					catch (Exception ex)
-					{
-						parameters.ReportExceptionFunction.Invoke(nameof(PopulateLargeFile), string.Empty, ex);
-					}
-					_timingMetrics.Stop(TimingMetric.YaraScanning);
 				}
 
 				CancellationHelper.ThrowIfCancelled();
@@ -284,92 +289,96 @@ namespace FilePropertiesDataObject
 
 			if (parameters.CalculateEntropy) // Should we calculate entropy on really large files?
 			{
-				_timingMetrics.Start(TimingMetric.CalculatingEntropy);
-				this.Entropy = EntropyHelper.CalculateFileEntropy(fileChunks, this.Length);
-				_timingMetrics.Stop(TimingMetric.CalculatingEntropy);
+				using (var timer = new TimingMetrics(TimingMetric.CalculatingEntropy))
+				{
+					this.Entropy = EntropyHelper.CalculateFileEntropy(fileChunks, this.Length);
+				}
 				CancellationHelper.ThrowIfCancelled();
 			}
 		}
 
 		private void PopulateSmallFile(FileEnumeratorParameters parameters, INode node, bool hasFileReadPermissions)
 		{
-			_timingMetrics.Start(TimingMetric.ReadingMFTBytes);
 			byte[] fileBytes = new byte[0];
-			if (!node.Streams.Any()) //workaround for no file stream such as with hard links
+			using (var timer = new TimingMetrics(TimingMetric.ReadingMFTBytes))
 			{
-				try
+				if (!node.Streams.Any()) //workaround for no file stream such as with hard links
 				{
-					using (FileStream fsSource = new FileStream(FullPath, FileMode.Open, FileAccess.Read))
+					try
 					{
-						// Read the source file into a byte array.
-						fileBytes = new byte[fsSource.Length];
-						int numBytesToRead = (int)fsSource.Length;
-						int numBytesRead = 0;
-						while (numBytesToRead > 0)
+						using (FileStream fsSource = new FileStream(FullPath, FileMode.Open, FileAccess.Read))
 						{
-							// Read may return anything from 0 to numBytesToRead.
-							int n = fsSource.Read(fileBytes, numBytesRead, numBytesToRead);
+							// Read the source file into a byte array.
+							fileBytes = new byte[fsSource.Length];
+							int numBytesToRead = (int)fsSource.Length;
+							int numBytesRead = 0;
+							while (numBytesToRead > 0)
+							{
+								// Read may return anything from 0 to numBytesToRead.
+								int n = fsSource.Read(fileBytes, numBytesRead, numBytesToRead);
 
-							// Break when the end of the file is reached.
-							if (n == 0)
-							{ break; }
+								// Break when the end of the file is reached.
+								if (n == 0)
+								{ break; }
 
-							numBytesRead += n;
-							numBytesToRead -= n;
+								numBytesRead += n;
+								numBytesToRead -= n;
+							}
+							numBytesToRead = fileBytes.Length;
 						}
-						numBytesToRead = fileBytes.Length;
 					}
-				}
-				catch (System.IO.IOException ioException)
-				{
-					if (ioException.Message.Contains("contains a virus"))
+					catch (System.IO.IOException ioException)
 					{
-						string hash = "File access blocked by anti-virus program.";
-						this.Sha256 = hash;
-						this.SHA1 = hash;
-						this.MD5 = hash;
-						return;
+						if (ioException.Message.Contains("contains a virus"))
+						{
+							string hash = "File access blocked by anti-virus program.";
+							this.Sha256 = hash;
+							this.SHA1 = hash;
+							this.MD5 = hash;
+							return;
+						}
 					}
+					catch
+					{ }
 				}
-				catch
-				{ }
-			}
-			else
-			{
-				fileBytes = node.GetBytes().SelectMany(chunk => chunk).ToArray();
-			}
-			_timingMetrics.Stop(TimingMetric.ReadingMFTBytes);
-
-			_timingMetrics.Start(TimingMetric.FileHashing);
-			this._peData = PeDataObject.TryGetPeDataObject(fileBytes);
-			if (this._peData != null)
-			{
-				this.Sha256 = _peData.SHA256Hash;
-				this.SHA1 = _peData.SHA1Hash;
-				this.MD5 = _peData.MD5Hash;
+				else
+				{
+					fileBytes = node.GetBytes().SelectMany(chunk => chunk).ToArray();
+				}
 			}
 
-			if (this._peData == null || string.IsNullOrWhiteSpace(this.Sha256))
+			using (var timer = new TimingMetrics(TimingMetric.FileHashing))
 			{
-				this.Sha256 = Hash.ByteArray.Sha256(fileBytes);
-				this.SHA1 = Hash.ByteArray.Sha1(fileBytes);
-				this.MD5 = Hash.ByteArray.MD5(fileBytes);
-			}
-			_timingMetrics.Stop(TimingMetric.FileHashing);
+				this._peData = PeDataObject.TryGetPeDataObject(fileBytes);
+				if (this._peData != null)
+				{
+					this.Sha256 = _peData.SHA256Hash;
+					this.SHA1 = _peData.SHA1Hash;
+					this.MD5 = _peData.MD5Hash;
+				}
 
-			_timingMetrics.Start(TimingMetric.MiscFileProperties);
-			if (_peData != null)
+				if (this._peData == null || string.IsNullOrWhiteSpace(this.Sha256))
+				{
+					this.Sha256 = Hash.ByteArray.Sha256(fileBytes);
+					this.SHA1 = Hash.ByteArray.Sha1(fileBytes);
+					this.MD5 = Hash.ByteArray.MD5(fileBytes);
+				}
+			}
+
+			using (var timer = new TimingMetrics(TimingMetric.MiscFileProperties))
 			{
-				_authenticode = AuthenticodeData.GetAuthenticodeData(_peData.Certificate);
-			}
+				if (_peData != null)
+				{
+					_authenticode = AuthenticodeData.GetAuthenticodeData(_peData.Certificate);
+				}
 
-			CancellationHelper.ThrowIfCancelled();
+				CancellationHelper.ThrowIfCancelled();
 
-			if (hasFileReadPermissions)
-			{
-				PopulateFileInfoProperties(FullPath);
+				if (hasFileReadPermissions)
+				{
+					PopulateFileInfoProperties(FullPath);
+				}
 			}
-			_timingMetrics.Stop(TimingMetric.MiscFileProperties);
 
 			if (hasFileReadPermissions)
 			{
@@ -380,25 +389,27 @@ namespace FilePropertiesDataObject
 			YSScanner compiledRules = GetCompiledYaraRules(parameters);
 			if (compiledRules != null)
 			{
-				_timingMetrics.Start(TimingMetric.YaraScanning);
-				try
+				using (var timer = new TimingMetrics(TimingMetric.YaraScanning))
 				{
-					_yaraRulesMatched = YaraHelper.ScanBytes(fileBytes, compiledRules);
-				}
-				catch (Exception ex)
-				{
-					parameters.ReportExceptionFunction.Invoke(nameof(PopulateSmallFile), string.Empty, ex);
+					try
+					{
+						_yaraRulesMatched = YaraHelper.ScanBytes(fileBytes, compiledRules);
+					}
+					catch (Exception ex)
+					{
+						parameters.ReportExceptionFunction.Invoke(nameof(PopulateSmallFile), string.Empty, ex);
 
+					}
 				}
-				_timingMetrics.Stop(TimingMetric.YaraScanning);
 			}
 			CancellationHelper.ThrowIfCancelled();
 
 			if (parameters.CalculateEntropy)
 			{
-				_timingMetrics.Start(TimingMetric.CalculatingEntropy);
-				Entropy = EntropyHelper.CalculateFileEntropy(fileBytes);
-				_timingMetrics.Stop(TimingMetric.CalculatingEntropy);
+				using (var timer = new TimingMetrics(TimingMetric.CalculatingEntropy))
+				{
+					Entropy = EntropyHelper.CalculateFileEntropy(fileBytes);
+				}
 				CancellationHelper.ThrowIfCancelled();
 			}
 		}
@@ -418,57 +429,59 @@ namespace FilePropertiesDataObject
 
 		private YSScanner GetCompiledYaraRules(FileEnumeratorParameters parameters)
 		{
-			_timingMetrics.Start(TimingMetric.YaraRuleCompiling);
-
-			List<YaraFilter> yaraFilters = parameters.YaraParameters;
-
-			List<string> distinctRulesToRun =
-				yaraFilters
-				.SelectMany(yf => yf.ProcessRule(this))
-				.Distinct()
-				.ToList();
-
-			if (!distinctRulesToRun.Any())
-			{
-				distinctRulesToRun =
-					yaraFilters
-						.Where(yf => yf.FilterType == YaraFilterType.ElseNoMatch)
-						.SelectMany(yf => yf.OnMatchRules)
-						.Distinct()
-						.ToList();
-			}
-
-			if (!distinctRulesToRun.Any())
-			{
-				_timingMetrics.Stop(TimingMetric.YaraRuleCompiling);
-				return null;
-			}
-
-			distinctRulesToRun = distinctRulesToRun.OrderBy(s => s).ToList();
-
-			string uniqueRuleCollectionToken = string.Join("|", distinctRulesToRun);
-			string ruleCollectionHash = Hash.ByteArray.Sha256(Encoding.UTF8.GetBytes(uniqueRuleCollectionToken));
-
 			YSScanner results = null;
 
-			if (_yaraCompiledRulesDictionary.ContainsKey(ruleCollectionHash))
+			using (var timer = new TimingMetrics(TimingMetric.YaraRuleCompiling))
 			{
-				results = _yaraCompiledRulesDictionary[ruleCollectionHash];
-			}
-			else
-			{
-				try
+
+				List<YaraFilter> yaraFilters = parameters.YaraParameters;
+
+				List<string> distinctRulesToRun =
+					yaraFilters
+					.SelectMany(yf => yf.ProcessRule(this))
+					.Distinct()
+					.ToList();
+
+				if (!distinctRulesToRun.Any())
 				{
-					results = YaraHelper.CompileRules(distinctRulesToRun, parameters.ReportAndLogOutputFunction);
-				}
-				catch (Exception ex)
-				{
-					parameters.ReportExceptionFunction.Invoke(nameof(GetCompiledYaraRules), string.Empty, ex);
+					distinctRulesToRun =
+						yaraFilters
+							.Where(yf => yf.FilterType == YaraFilterType.ElseNoMatch)
+							.SelectMany(yf => yf.OnMatchRules)
+							.Distinct()
+							.ToList();
 				}
 
-				_yaraCompiledRulesDictionary.Add(ruleCollectionHash, results);
+				if (!distinctRulesToRun.Any())
+				{
+					return null;
+				}
+
+				distinctRulesToRun = distinctRulesToRun.OrderBy(s => s).ToList();
+
+				string uniqueRuleCollectionToken = string.Join("|", distinctRulesToRun);
+				string ruleCollectionHash = Hash.ByteArray.Sha256(Encoding.UTF8.GetBytes(uniqueRuleCollectionToken));
+
+
+
+				if (_yaraCompiledRulesDictionary.ContainsKey(ruleCollectionHash))
+				{
+					results = _yaraCompiledRulesDictionary[ruleCollectionHash];
+				}
+				else
+				{
+					try
+					{
+						results = YaraHelper.CompileRules(distinctRulesToRun, parameters.ReportAndLogOutputFunction);
+					}
+					catch (Exception ex)
+					{
+						parameters.ReportExceptionFunction.Invoke(nameof(GetCompiledYaraRules), string.Empty, ex);
+					}
+
+					_yaraCompiledRulesDictionary.Add(ruleCollectionHash, results);
+				}
 			}
-			_timingMetrics.Stop(TimingMetric.YaraRuleCompiling);
 
 			return results;
 		}
@@ -508,35 +521,36 @@ namespace FilePropertiesDataObject
 					return;
 				}
 
-				_timingMetrics.Start(TimingMetric.GettingShellInfo);
-				using (ShellFile file = ShellFile.FromFilePath(fullPath))
+				using (var timer = new TimingMetrics(TimingMetric.GettingShellInfo))
 				{
-					using (ShellProperties fileProperties = file.Properties)
+					using (ShellFile file = ShellFile.FromFilePath(fullPath))
 					{
-						ShellProperties.PropertySystem shellProperty = fileProperties.System;
+						using (ShellProperties fileProperties = file.Properties)
+						{
+							ShellProperties.PropertySystem shellProperty = fileProperties.System;
 
-						Project = shellProperty.Project.Value ?? "";
-						ProviderItemID = shellProperty.ProviderItemID.Value ?? "";
-						OriginalFileName = shellProperty.OriginalFileName.Value ?? "";
-						FileOwner = shellProperty.FileOwner.Value ?? "";
-						FileVersion = shellProperty.FileVersion.Value ?? "";
-						FileDescription = shellProperty.FileDescription.Value ?? "";
-						Trademarks = shellProperty.Trademarks.Value ?? "";
-						Link = shellProperty.Link.TargetUrl.Value ?? "";
-						Copyright = shellProperty.Copyright.Value ?? "";
-						Company = shellProperty.Company.Value ?? "";
-						ApplicationName = shellProperty.ApplicationName.Value ?? "";
-						Comment = shellProperty.Comment.Value ?? "";
-						Title = shellProperty.Title.Value ?? "";
-						CancellationHelper.ThrowIfCancelled();
-						MimeType = shellProperty.ContentType.Value ?? "";
-						InternalName = shellProperty.InternalName.Value ?? "";
-						ProductName = shellProperty.Software.ProductName.Value ?? "";
-						Language = shellProperty.Language.Value ?? "";
-						ComputerName = shellProperty.ComputerName.Value ?? "";
+							Project = shellProperty.Project.Value ?? "";
+							ProviderItemID = shellProperty.ProviderItemID.Value ?? "";
+							OriginalFileName = shellProperty.OriginalFileName.Value ?? "";
+							FileOwner = shellProperty.FileOwner.Value ?? "";
+							FileVersion = shellProperty.FileVersion.Value ?? "";
+							FileDescription = shellProperty.FileDescription.Value ?? "";
+							Trademarks = shellProperty.Trademarks.Value ?? "";
+							Link = shellProperty.Link.TargetUrl.Value ?? "";
+							Copyright = shellProperty.Copyright.Value ?? "";
+							Company = shellProperty.Company.Value ?? "";
+							ApplicationName = shellProperty.ApplicationName.Value ?? "";
+							Comment = shellProperty.Comment.Value ?? "";
+							Title = shellProperty.Title.Value ?? "";
+							CancellationHelper.ThrowIfCancelled();
+							MimeType = shellProperty.ContentType.Value ?? "";
+							InternalName = shellProperty.InternalName.Value ?? "";
+							ProductName = shellProperty.Software.ProductName.Value ?? "";
+							Language = shellProperty.Language.Value ?? "";
+							ComputerName = shellProperty.ComputerName.Value ?? "";
+						}
 					}
 				}
-				_timingMetrics.Stop(TimingMetric.GettingShellInfo);
 			}
 			catch
 			{ }
