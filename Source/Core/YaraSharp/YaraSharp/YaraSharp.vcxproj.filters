@@ -83,4 +83,7 @@
   <ItemGroup>
     <ResourceCompile Include="YaraSharp.rc" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
+  </ItemGroup>
 </Project>
