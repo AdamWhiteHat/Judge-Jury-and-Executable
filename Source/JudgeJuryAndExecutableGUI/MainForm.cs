@@ -256,13 +256,29 @@ namespace JudgeJuryAndExecutableGUI
 					yaraParameters = currentYaraFilters.ToList();
 				}
 
+				string fileExistsMessage = "The {0} file \"{1}\" already exists!\nOverwrite it?";
+
 				IDataPersistenceLayer dataPersistenceLayer = null;
 				if (radioPersistenceCSV.Checked)
 				{
+					if (File.Exists(tbPersistenceParameter.Text))
+					{
+						if (MessageBox.Show(string.Format(fileExistsMessage, "CSV", tbPersistenceParameter.Text), MsgBox_TitleBarText, MessageBoxButtons.YesNo, MessageBoxIcon.Warning) == DialogResult.No)
+						{
+							return;
+						}
+					}
 					dataPersistenceLayer = new CsvDataPersistenceLayer(tbPersistenceParameter.Text);
 				}
 				else if (radioPersistenceSqlite.Checked)
 				{
+					if (File.Exists(tbPersistenceParameter.Text))
+					{
+						if (MessageBox.Show(string.Format(fileExistsMessage, "SQLite", tbPersistenceParameter.Text), MsgBox_TitleBarText, MessageBoxButtons.YesNo, MessageBoxIcon.Warning) == DialogResult.No)
+						{
+							return;
+						}
+					}
 					dataPersistenceLayer = new SqliteDataPersistenceLayer(tbPersistenceParameter.Text);
 				}
 				else if (radioPersistenceSqlServer.Checked)
