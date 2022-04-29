@@ -18,6 +18,7 @@
 
 ## Requirements:
  - .NET Framework v4.8
+ - Microsoft Visual C++ 2015 Redistributable
  - Local or remote SQL database with read/write/create access.
  - Visual studio (if you wish to compile the C# code)
  - Access to the internet (or else how did you get this code??? Also for nuget packages...)
