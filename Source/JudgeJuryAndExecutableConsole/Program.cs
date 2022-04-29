@@ -174,11 +174,25 @@ namespace JudgeJuryAndExecutableConsole
 
 			if (isSqliteEnabled)
 			{
-				dataPersistenceLayer = new SqliteDataPersistenceLayer(sqliteDbFile);
+				string saveFilename = sqliteDbFile;
+				if (File.Exists(saveFilename))
+				{
+					saveFilename = MakeUniqueFilename(saveFilename);
+					ReportOutput($"A file already exists at the supplied output location. Output filename renamed to: {Path.GetFileName(saveFilename)}");
+				}
+
+				dataPersistenceLayer = new SqliteDataPersistenceLayer(saveFilename);
 			}
 			else if (isCsvEnabled)
 			{
-				dataPersistenceLayer = new CsvDataPersistenceLayer(csvFile);
+				string saveFilename = csvFile;
+				if (File.Exists(saveFilename))
+				{
+					saveFilename = MakeUniqueFilename(saveFilename);
+					ReportOutput($"A file already exists at the supplied output location. Output filename renamed to: {Path.GetFileName(saveFilename)}");
+				}
+
+				dataPersistenceLayer = new CsvDataPersistenceLayer(saveFilename);
 			}
 			else if (isSqlServerEnabled)
 			{
@@ -286,6 +300,26 @@ namespace JudgeJuryAndExecutableConsole
 			}
 
 			return results;
+		}
+
+		public static string MakeUniqueFilename(string filename)
+		{
+			string result = filename;
+			string fileDir = Path.GetDirectoryName(result); ;
+			string fileName = Path.GetFileNameWithoutExtension(result);
+			string fileExt = Path.GetExtension(result);
+
+			int counter = 1;
+			while (File.Exists(result))
+			{
+				result = Path.Combine(
+							fileDir,
+							$"{fileName}_{counter.ToString().PadLeft(3, '0')}{fileExt}"
+						);
+				counter++;
+			}
+
+			return result;
 		}
 
 		// Removes the first character from the string and returns it. The source string is modified to exclude the returned character.
