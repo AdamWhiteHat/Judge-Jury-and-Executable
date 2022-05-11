@@ -142,6 +142,22 @@ namespace SqliteDataAccessLayer
 
 			sqliteConnection.Open();
 
+			// TEMP_STORE - DEFAULT (0), FILE (1), MEMORY (2)
+			// When TEMP_STORE is MEMORY (2), temporary tables and indices are kept in as if they were pure in-memory databases memory.
+			ExecuteNonQuery(sqliteConnection, "PRAGMA TEMP_STORE = 2");
+
+			// SYNCHRONOUS - EXTRA (3), FULL (2), NORMAL (1), and OFF (0)
+			// When SYNCHRONOUS is NORMAL (1), the SQLite database engine will still sync at the most critical moments, but less often than in FULL mode.
+			ExecuteNonQuery(sqliteConnection, "PRAGMA SYNCHRONOUS = 1");
+
+			// JOURNAL_MODE - DELETE | TRUNCATE | PERSIST | MEMORY | WAL | OFF
+			// When JOURNAL_MODE is MEMORY, journaling mode stores the rollback journal in volatile RAM. If SQLite crashes in the middle of a transaction, then the database file will very likely go corrupt.
+			ExecuteNonQuery(sqliteConnection, "PRAGMA JOURNAL_MODE = MEMORY");
+
+			// LOCKING_MODE - NORMAL | EXCLUSIVE
+			// When LOCKING_MODE is EXCLUSIVE, the database file is used in exclusive mode. The number of system calls to implement file operations decreases in this case, which increases database performance.
+			ExecuteNonQuery(sqliteConnection, "PRAGMA LOCKING_MODE = EXCLUSIVE");
+
 			return sqliteConnection;
 		}
 
