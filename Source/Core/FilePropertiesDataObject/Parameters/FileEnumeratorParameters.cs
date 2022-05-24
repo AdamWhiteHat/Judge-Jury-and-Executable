@@ -66,19 +66,6 @@ namespace FilePropertiesDataObject.Parameters
 			this.SearchPatterns = ParseSearchPatterns(searchPatterns);
 		}
 
-		private string[] ParseSearchPatterns(string searchPattern)
-		{
-			string[] patterns = new string[] { ".exe", ".dll", ".sys", ".drv", ".ocx", ".com", ".scr" };
-
-			if (!string.IsNullOrWhiteSpace(searchPattern))
-			{
-				patterns = searchPattern.Split(new char[] { '|' }, StringSplitOptions.RemoveEmptyEntries);
-				patterns = patterns.Select(s => s.Contains(".") ? s.Replace("*", "") : s).ToArray();
-			}
-
-			return patterns;
-		}
-
 		public void ThrowIfAnyParametersInvalid()
 		{
 			ThrowIfAnyParametersInvalid(this);
@@ -111,6 +98,19 @@ namespace FilePropertiesDataObject.Parameters
 
 			if (parameters.CancelToken == null) { throw new ArgumentNullException(nameof(parameters.CancelToken), "If you do not want to pass a CancellationToken, then pass 'CancellationToken.None'"); }
 			parameters.CancelToken.ThrowIfCancellationRequested();
+		}
+
+		private string[] ParseSearchPatterns(string searchPattern)
+		{
+			string[] patterns = new string[] { ".exe", ".dll", ".sys", ".drv", ".ocx", ".com", ".scr" };
+
+			if (!string.IsNullOrWhiteSpace(searchPattern))
+			{
+				patterns = searchPattern.Split(new char[] { '|' }, StringSplitOptions.RemoveEmptyEntries);
+				patterns = patterns.Select(s => s.Contains(".") ? s.Replace("*", "") : s).ToArray();
+			}
+
+			return patterns;
 		}
 
 		private static void YaraRulesCompileTest(FileEnumeratorParameters parameters)

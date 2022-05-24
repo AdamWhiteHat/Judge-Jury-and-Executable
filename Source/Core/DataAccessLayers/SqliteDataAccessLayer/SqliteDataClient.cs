@@ -1,9 +1,9 @@
 ﻿using System;
+using System.IO;
 using System.Linq;
 using System.Data;
 using System.Data.SQLite;
 using System.Collections.Generic;
-using System.IO;
 using FilePropertiesDataObject.Helpers;
 
 namespace SqliteDataAccessLayer
@@ -20,6 +20,11 @@ namespace SqliteDataAccessLayer
 			_connectionString = BuildConnectionString(_dbFilePath);
 
 			PrepareDatabase();
+		}
+
+		private static string BuildConnectionString(string dbFilePath)
+		{
+			return $"Data Source=\"{dbFilePath}\";Version=3;";
 		}
 
 		public void Dispose()

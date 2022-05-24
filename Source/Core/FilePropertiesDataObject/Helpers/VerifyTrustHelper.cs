@@ -13,6 +13,9 @@ namespace FilePropertiesDataObject.Helpers
 		{
 			return WinVerifyTrust(fileName) == 0;
 		}
+
+		#region Private Members
+
 		private static uint WinVerifyTrust(string fileName)
 		{
 			Guid wintrust_action_generic_verify_v2 = new Guid("{00AAC56B-CD44-11d0-8CC2-00C04FC295EE}");
@@ -228,5 +231,8 @@ namespace FilePropertiesDataObject.Helpers
 				return ptr.m_ptr;
 			}
 		}
+
+		#endregion
+
 	}
 }

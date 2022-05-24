@@ -53,7 +53,7 @@ namespace JudgeJuryAndExecutableConsole
 			ReportOutput(" - For flags (the part before the ':'), letter casing is ignored.");
 			ReportOutput(" - For paths and other arguments after the ':', casing is retained.");
 			ReportOutput(" - Do not uses spaces between the dash, the flag and the colon.");
-			ReportOutput(" - If your path (or other arguments following the ':') contain a space, you must surround it in quotes (see the yara filters example above).");
+			ReportOutput(" - If your path (or other arguments following the ':') contain a space, you must surround it in quotes (see the YARA filters example above).");
 			ReportOutput(" - If no output parameter is suppled, it will default to a SQL server connection. In that case, a connection string MUST be suppled in this executable's config file.");
 			ReportOutput();
 			ReportOutput("Press any key to continue . . .");
@@ -151,7 +151,7 @@ namespace JudgeJuryAndExecutableConsole
 			{
 				if (!File.Exists(yaraFiltersFile))
 				{
-					ReportOutput($"The yara filters file path suppled does not exist: \"{yaraFiltersFile}\".");
+					ReportOutput($"The YARA filters file path suppled does not exist: \"{yaraFiltersFile}\".");
 					ReportOutput();
 					ReportOutput("Aborting...");
 					return;
@@ -163,7 +163,7 @@ namespace JudgeJuryAndExecutableConsole
 				}
 				catch
 				{
-					ReportOutput("The yara filters file must be a JSON file.");
+					ReportOutput("The YARA filters file must be a JSON file.");
 					ReportOutput();
 					ReportOutput("Aborting...");
 					return;
