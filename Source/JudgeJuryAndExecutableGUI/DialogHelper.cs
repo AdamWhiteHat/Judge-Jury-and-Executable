@@ -57,7 +57,7 @@ namespace JudgeJuryAndExecutableGUI
 			return result;
 		}
 
-		public static string SaveFileDialog(string filter = default(string), string initialDirectory = default(string))
+		public static string SaveFileDialog(string filter = default(string), bool overwritePrompt = true, string initialDirectory = default(string))
 		{
 			string result = string.Empty;
 
@@ -65,6 +65,7 @@ namespace JudgeJuryAndExecutableGUI
 			{
 				saveDialog.Filter = (!string.IsNullOrWhiteSpace(filter)) ? filter : Filters.AllFiles;
 				saveDialog.InitialDirectory = (!string.IsNullOrWhiteSpace(initialDirectory)) ? initialDirectory : _lastDirectory;
+				saveDialog.OverwritePrompt = overwritePrompt;
 
 				if (saveDialog.ShowDialog() == DialogResult.OK)
 				{
