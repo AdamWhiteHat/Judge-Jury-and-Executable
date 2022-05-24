@@ -12,10 +12,10 @@ using SqlDataAccessLayer;
 using SqliteDataAccessLayer;
 using FilePropertiesEnumerator;
 using FilePropertiesDataObject;
+using FilePropertiesDataObject.Helpers;
 using FilePropertiesDataObject.Parameters;
 using Microsoft.Data.ConnectionUI;
 using Microsoft.Win32;
-using System.Collections;
 
 namespace JudgeJuryAndExecutableGUI
 {
@@ -1004,23 +1004,38 @@ namespace JudgeJuryAndExecutableGUI
 
 		private void tbPersistenceParameter_TextChanged(object sender, EventArgs e)
 		{
-			if (!string.IsNullOrWhiteSpace(tbPersistenceParameter.Text))
+			if (string.IsNullOrWhiteSpace(tbPersistenceParameter.Text))
 			{
-				dialogErrorProvider.SetError(tbPersistenceParameter, string.Empty);
-				if (File.Exists(tbPersistenceParameter.Text))
-				{
-					DialogResult mbResut =
-						MessageBox.Show(
-							$"{Path.GetFileName(tbPersistenceParameter.Text)} already exists.\nDo you want to replace it?",
-							"Confirm Save File",
-							MessageBoxButtons.YesNo,
-							MessageBoxIcon.Warning);
+				return;
+			}
 
-					if (mbResut == DialogResult.No)
-					{
-						tbPersistenceParameter.Clear();
-						return;
-					}
+			dialogErrorProvider.SetError(tbPersistenceParameter, string.Empty);
+
+			if (!radioPersistenceSqlite.Checked)
+			{
+				return;
+			}
+
+			if (File.Exists(tbPersistenceParameter.Text))
+			{
+				string newProposedFilename = SequentialFilename.GetNextAvailable(tbPersistenceParameter.Text);
+
+				DialogResult mbResut =
+					MessageBox.Show(
+						$"You selected an existing SQLite DB, '{Path.GetFileName(tbPersistenceParameter.Text)}'.\nThis action will add scanned files to this DB.\nIs that okay?\nClick 'Yes' to use existing DB.\nClick 'No' to update selected filename to '{Path.GetFileName(newProposedFilename)}'.\nClick 'Cancel' cancel file browse selection.",
+						"Okay to append?",
+						MessageBoxButtons.YesNoCancel,
+						MessageBoxIcon.Warning);
+
+
+				if (mbResut == DialogResult.No)
+				{
+					tbPersistenceParameter.Clear();
+					tbPersistenceParameter.AppendText(newProposedFilename);
+				}
+				else if (mbResut == DialogResult.Cancel)
+				{
+					tbPersistenceParameter.Clear();
 				}
 			}
 		}
@@ -1046,7 +1061,7 @@ namespace JudgeJuryAndExecutableGUI
 			{
 				string filter = radioPersistenceCSV.Checked ? DialogHelper.Filters.CsvFiles : DialogHelper.Filters.SqliteFiles;
 				string initialDirectory = string.IsNullOrWhiteSpace(tbPersistenceParameter.Text) ? default(string) : tbPersistenceParameter.Text;
-				string selectedFile = DialogHelper.SaveFileDialog(filter, initialDirectory);
+				string selectedFile = DialogHelper.SaveFileDialog(filter, radioPersistenceCSV.Checked, initialDirectory);
 				if (!string.IsNullOrWhiteSpace(selectedFile))
 				{
 					tbPersistenceParameter.Text = selectedFile;
