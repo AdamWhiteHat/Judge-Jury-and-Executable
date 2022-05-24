@@ -49,6 +49,8 @@ namespace FilePropertiesDataObject.Helpers
 			}
 		}
 
+		#region Private Members
+
 		private static string GetHashFromByteArray<HASHER>(byte[] fileBytes) where HASHER : HashAlgorithm, new()
 		{
 			string result = string.Empty;
@@ -157,5 +159,8 @@ namespace FilePropertiesDataObject.Helpers
 				return result;
 			}
 		}
+
+		#endregion
+
 	}
 }

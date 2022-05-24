@@ -1,9 +1,9 @@
 ﻿using System;
+using System.IO;
 using System.Linq;
 using System.Data;
 using System.Data.SQLite;
 using System.Collections.Generic;
-using System.IO;
 using FilePropertiesDataObject.Helpers;
 
 namespace SqliteDataAccessLayer
@@ -22,15 +22,49 @@ namespace SqliteDataAccessLayer
 			PrepareDatabase();
 		}
 
+		private static string BuildConnectionString(string dbFilePath)
+		{
+			return $"Data Source=\"{dbFilePath}\";Version=3;";
+		}
+
+		private void PrepareDatabase()
+		{
+			if (!File.Exists(_dbFilePath))
+			{
+				SQLiteConnection.CreateFile(_dbFilePath);
+
+				try
+				{
+					using (SQLiteConnection conn = SqliteDataClient.OpenConnection(_connectionString))
+					{
+						ExecuteNonQuery(conn, SqlStrings.CreateTable);
+					}
+				}
+				catch
+				{
+					File.Delete(_dbFilePath);
+				}
+			}
+		}
+
+		private static SQLiteConnection OpenConnection(string connectionString)
+		{
+			SQLiteConnection sqliteConnection = new SQLiteConnection(connectionString);
+
+			sqliteConnection.Open();
+
+			return sqliteConnection;
+		}
+
 		public void Dispose()
 		{
 			if (_connection != null && _connection.IsValueCreated)
 			{
 				SQLiteConnection copy = _connection.Value;
+				_connection = null;
 				copy.Close();
 				copy.Dispose();
 				copy = null;
-				_connection = null;
 			}
 		}
 
@@ -114,48 +148,6 @@ namespace SqliteDataAccessLayer
 				result = cmd.ExecuteScalar();
 			}
 			return result;
-		}
-
-		private void PrepareDatabase()
-		{
-			if (!File.Exists(_dbFilePath))
-			{
-				SQLiteConnection.CreateFile(_dbFilePath);
-
-				try
-				{
-					using (SQLiteConnection conn = SqliteDataClient.OpenConnection(_connectionString))
-					{
-						ExecuteNonQuery(conn, SqlStrings.CreateTable);
-					}
-				}
-				catch
-				{
-					File.Delete(_dbFilePath);
-				}
-			}
-		}
-
-		private static SQLiteConnection OpenConnection(string connectionString)
-		{
-			SQLiteConnection sqliteConnection = new SQLiteConnection(connectionString);
-
-			sqliteConnection.Open();
-
-			return sqliteConnection;
-		}
-
-		private static string BuildConnectionString(string dbFilePath)
-		{
-			return $"Data Source=\"{dbFilePath}\";Version=3;";
-		}
-
-
-
-
-		public SqlKey GetTestSqlKeyObject()
-		{
-			return new SqlKey(33196, 2, "36C601D9AC7B26F47FCE9FAC47AE4B86C294EBBEE9378D286E52CC9EC6E56F69");
 		}
 	}
 }
