@@ -64,7 +64,6 @@ After the MFT and forensics-level data is secured, operating-system-level proper
  - Does the X.509 certificate chain verify?
  - Custom YARA rules (Lists the rule names that match)
  - File entropy
- - File entropy
  - Up to 51 different data points in total
 
 
