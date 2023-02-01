@@ -41,11 +41,11 @@ namespace JudgeJuryAndExecutableConsole
 			ReportOutput();
 			ReportOutput("[REQUIRED (Pick one)]:");
 			ReportOutput($"-s                        -  Output to [S]QL server (supply connection string in file: {_thisExecutableFilename}.config");
-			ReportOutput("-l:C:\\scan001.db          -  Output a Sq[l]ite database");
+			ReportOutput("-l:C:\\scan001.db          -  Output a SQ[L]ite database");
 			ReportOutput("-c:C:\\scan001.csv         -  Output a [C]SV file");
 			ReportOutput();
 			ReportOutput("[OPTIONAL]:");
-			ReportOutput("-v                        -  Verbose. Print every file scanned to console output (stdout).");
+			ReportOutput("-v                        -  [V]erbose. Print every file scanned to console output (stdout).");
 			ReportOutput("-e                        -  Enable calculating [e]ntropy");
 			ReportOutput("-y:\"C:\\Yara Filters.json\" -  [Y]ara filters file");
 			ReportOutput();
@@ -57,7 +57,7 @@ namespace JudgeJuryAndExecutableConsole
 			ReportOutput(" - If your path (or other arguments following the ':') contain a space, you must surround it in quotes (see the YARA filters example above).");
 			ReportOutput(" - If no output parameter is suppled, it will default to a SQL server connection. In that case, a connection string MUST be suppled in this executable's config file.");
 			ReportOutput();
-			ReportOutput("Press any key to continue . . .");
+			ReportOutput("Press any key to exit . . .");
 			Console.ReadKey(true);
 		}
 
