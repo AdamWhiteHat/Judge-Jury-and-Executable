@@ -66,7 +66,7 @@ namespace System.IO.Filesystem.Ntfs
 			DriveInfo tmpDriveInfo = driveInfo;
 
 			//try to find if the drive is mapped on a local volume
-			if (driveInfo.DriveType != DriveType.Fixed)
+			if (driveInfo.DriveType == DriveType.Network)
 			{
 				tmpDriveInfo = ResolveLocalMapDrive(driveInfo);
 			}

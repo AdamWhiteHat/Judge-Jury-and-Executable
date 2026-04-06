@@ -18,7 +18,9 @@ namespace FilePropertiesEnumerator
 
 		private static string[] IgnoreTheseRootDirectories = Properties.Settings.Default.IgnoreTheseRootDirectories.Cast<string>().ToArray();
 
-		private static char[] DirectorySeperatorChars = new char[]
+		private static NtfsNodeAttributes ExcludeAttributes = (NtfsNodeAttributes.Device | NtfsNodeAttributes.Directory | NtfsNodeAttributes.ReparsePoint | NtfsNodeAttributes.SparseFile);
+
+        private static char[] DirectorySeperatorChars = new char[]
 		{
 			Path.DirectorySeparatorChar,
 			Path.AltDirectorySeparatorChar
@@ -79,16 +81,20 @@ namespace FilePropertiesEnumerator
 
 					driveToAnalyze = ntfsDrives.Where(dr => dr.Name.ToUpper().Contains(drive)).Single();
 
+					if (driveToAnalyze.DriveFormat != "NTFS")
+					{
+						throw new BadImageFormatException("Drive not formatted as NTFS.");
+					}
+					if (!driveToAnalyze.IsReady)
+					{
+						throw new DriveNotFoundException("Drive not ready.");
+					}
+
 					ntfsReader = new NtfsReader(driveToAnalyze, RetrieveMode.All);
 
-					mftNodes = ntfsReader.GetNodes(driveToAnalyze.Name)
-								.Where(node => (node.Attributes &
-										 (NtfsNodeAttributes.Device
-										  | NtfsNodeAttributes.Directory
-										  | NtfsNodeAttributes.ReparsePoint
-										  | NtfsNodeAttributes.SparseFile
-										 )) == 0) // This means that we DONT want any matches of the above NtfsNodeAttributes type
-								.Where(node => FileMatchesPattern(node.FullName, parameters.SearchPatterns));
+					mftNodes = ntfsReader.GetNodes(driveToAnalyze.Name)										
+										.Where(node => (node.Attributes & ExcludeAttributes) == 0) // ExcludeAttributes = Device | Directory | ReparsePoint | SparseFile
+                                        .Where(node => FileMatchesPattern(node.FullName, parameters.SearchPatterns));
 					//.OrderByDescending(n => n.Size);
 
 					if (parameters.SelectedFolder.ToCharArray().Length > 3)
@@ -96,7 +102,6 @@ namespace FilePropertiesEnumerator
 						string selectedFolderUppercase = parameters.SelectedFolder.ToUpperInvariant().TrimEnd(new char[] { '\\' });
 						mftNodes = mftNodes.Where(node => node.FullName.ToUpperInvariant().Contains(selectedFolderUppercase));
 					}
-
 				}
 
 				IDataPersistenceLayer dataPersistenceLayer = parameters.DataPersistenceLayer;
