@@ -1,11 +1,10 @@
-﻿
-Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.28307.1300
+﻿Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.14.37012.4
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JudgeJuryAndExecutableGUI", "Source\JudgeJuryAndExecutableGUI\JudgeJuryAndExecutableGUI.csproj", "{115BB0F6-AA73-4D76-8563-54F6E2FCC1AE}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JudgeJuryAndExecutableGUI", "Source\JudgeJuryAndExecutableGUI\JudgeJuryAndExecutableGUI.csproj", "{EEDC05FF-57E1-3153-457E-83FED7941666}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JudgeJuryAndExecutableConsole", "Source\JudgeJuryAndExecutableConsole\JudgeJuryAndExecutableConsole.csproj", "{755E453F-B941-46AD-A6DC-574A79B78F63}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JudgeJuryAndExecutableConsole", "Source\JudgeJuryAndExecutableConsole\JudgeJuryAndExecutableConsole.csproj", "{7FBA197E-37BA-DB62-16D8-27595797D92E}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Core", "Core", "{4AE49219-7987-43B3-A865-E6F31F373937}"
 EndProject
@@ -31,14 +30,14 @@ Global
 		Release|x64 = Release|x64
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{115BB0F6-AA73-4D76-8563-54F6E2FCC1AE}.Debug|x64.ActiveCfg = Debug|x64
-		{115BB0F6-AA73-4D76-8563-54F6E2FCC1AE}.Debug|x64.Build.0 = Debug|x64
-		{115BB0F6-AA73-4D76-8563-54F6E2FCC1AE}.Release|x64.ActiveCfg = Release|x64
-		{115BB0F6-AA73-4D76-8563-54F6E2FCC1AE}.Release|x64.Build.0 = Release|x64
-		{755E453F-B941-46AD-A6DC-574A79B78F63}.Debug|x64.ActiveCfg = Debug|x64
-		{755E453F-B941-46AD-A6DC-574A79B78F63}.Debug|x64.Build.0 = Debug|x64
-		{755E453F-B941-46AD-A6DC-574A79B78F63}.Release|x64.ActiveCfg = Release|x64
-		{755E453F-B941-46AD-A6DC-574A79B78F63}.Release|x64.Build.0 = Release|x64
+		{EEDC05FF-57E1-3153-457E-83FED7941666}.Debug|x64.ActiveCfg = Debug|x64
+		{EEDC05FF-57E1-3153-457E-83FED7941666}.Debug|x64.Build.0 = Debug|x64
+		{EEDC05FF-57E1-3153-457E-83FED7941666}.Release|x64.ActiveCfg = Release|x64
+		{EEDC05FF-57E1-3153-457E-83FED7941666}.Release|x64.Build.0 = Release|x64
+		{7FBA197E-37BA-DB62-16D8-27595797D92E}.Debug|x64.ActiveCfg = Debug|x64
+		{7FBA197E-37BA-DB62-16D8-27595797D92E}.Debug|x64.Build.0 = Debug|x64
+		{7FBA197E-37BA-DB62-16D8-27595797D92E}.Release|x64.ActiveCfg = Release|x64
+		{7FBA197E-37BA-DB62-16D8-27595797D92E}.Release|x64.Build.0 = Release|x64
 		{F51A9FD6-C73D-4D41-9665-D2C181CEA82F}.Debug|x64.ActiveCfg = Debug|x64
 		{F51A9FD6-C73D-4D41-9665-D2C181CEA82F}.Debug|x64.Build.0 = Debug|x64
 		{F51A9FD6-C73D-4D41-9665-D2C181CEA82F}.Release|x64.ActiveCfg = Release|x64

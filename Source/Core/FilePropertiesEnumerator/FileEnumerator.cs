@@ -27,7 +27,7 @@ namespace FilePropertiesEnumerator
 		};
 
 		public static void LaunchFileEnumerator(FileEnumeratorParameters parameters)
-		{
+		{			
 			var fileEnumerationDelegate
 				= new Func<FileEnumeratorParameters, FileEnumeratorReport>((args) => Worker(args));
 

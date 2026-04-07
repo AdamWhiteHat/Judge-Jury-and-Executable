@@ -35,17 +35,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #define MODULE_NAME math
 
-#define PI 3.141592653589793
-
-// log2 is not defined by math.h in VC++
-
-#ifdef _MSC_VER
-double log2(double n)
-{
-  return log(n) / log(2.0);
-}
-#endif
-
+constexpr auto PI = 3.141592653589793;
 
 define_function(string_entropy)
 {

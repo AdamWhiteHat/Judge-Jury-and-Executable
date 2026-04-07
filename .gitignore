@@ -231,9 +231,8 @@ ModelManifest.xml
 *.nuspec
 
 # Build results
-[Dd]ebugPublic/
-[Rr]eleases/
 [Xx]86/
+[Xx]64/
 [Bb]uild/
 bld/
 [Bb]in/
