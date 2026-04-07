@@ -2,152 +2,164 @@
 using System.Linq;
 using System.Diagnostics;
 using System.Collections.Generic;
+using Logging;
 
 namespace FilePropertiesDataObject
 {
-	public enum TimingMetric
-	{
-		ParsingMFT,
-		ReadingMFTBytes,
-		FileHashing,
-		YaraScanning,
-		YaraRuleCompiling,
-		CalculatingEntropy,
-		GettingShellInfo,
-		MiscFileProperties,
-		PersistingFileProperties
-	}
+    public enum TimingMetric
+    {
+        ParsingMFT,
+        ReadingMFTBytes,
+        FileHashing,
+        YaraScanning,
+        YaraRuleCompiling,
+        CalculatingEntropy,
+        GettingShellInfo,
+        MiscFileProperties,
+        PersistingFileProperties
+    }
 
-	/// <summary>
-	/// Contains a Dictionary of Stopwatch(es) to track Timing Metrics for the application
-	/// </summary>
-	public class TimingMetrics : IDisposable
-	{
+    /// <summary>
+    /// Contains a Dictionary of Stopwatch(es) to track Timing Metrics for the application
+    /// </summary>
+    public class TimingMetrics : IDisposable
+    {
 
-		#region Static Members
+        #region Static Members
 
-		private static Dictionary<TimingMetric, Stopwatch> _timingDictionary;
+        public static LoggingVerbosity Verbosity;
 
-		static TimingMetrics()
-		{
-			ResetMetrics();
-		}
+        private static Dictionary<TimingMetric, Stopwatch> _timingDictionary;
 
-		private static void StartTimer(TimingMetric section)
-		{
-			_timingDictionary[section].Start();
-		}
+        static TimingMetrics()
+        {
+            Verbosity = LoggingVerbosity.Standard;
+            ResetMetrics();
+        }
 
-		private static void StopTimer(TimingMetric section)
-		{
-			_timingDictionary[section].Stop();
-		}
+        private static void StartTimer(TimingMetric section)
+        {
+            _timingDictionary[section].Start();
+        }
 
-		private static void StopAllTimers()
-		{
-			foreach (var kvp in _timingDictionary)
-			{
-				if (kvp.Value.IsRunning)
-				{
-					kvp.Value.Stop();
-				}
-			}
-		}
+        private static void StopTimer(TimingMetric section)
+        {
+            _timingDictionary[section].Stop();
+        }
 
-		public static void ResetMetrics()
-		{
-			if (_timingDictionary != null && _timingDictionary.Any())
-			{
-				_timingDictionary.Clear();
-			}
+        private static void StopAllTimers()
+        {
+            foreach (var kvp in _timingDictionary)
+            {
+                if (kvp.Value.IsRunning)
+                {
+                    kvp.Value.Stop();
+                }
+            }
+        }
 
-			_timingDictionary = new Dictionary<TimingMetric, Stopwatch>();
-			foreach (TimingMetric section in Enum.GetValues(typeof(TimingMetric)))
-			{
-				_timingDictionary.Add(section, new Stopwatch());
-			}
-		}
+        public static void ResetMetrics()
+        {
+            if (_timingDictionary != null && _timingDictionary.Any())
+            {
+                _timingDictionary.Clear();
+            }
 
-		public static Stopwatch GetTimer(TimingMetric section)
-		{
-			return _timingDictionary[section];
-		}
+            _timingDictionary = new Dictionary<TimingMetric, Stopwatch>();
+            foreach (TimingMetric section in Enum.GetValues(typeof(TimingMetric)))
+            {
+                _timingDictionary.Add(section, new Stopwatch());
+            }
+        }
 
-		/// <summary>
-		/// Formats a TimeSpan as such: 1d:2h:30m:5s:1023ms
-		/// </summary>
-		public static string FormatTimeSpan(TimeSpan timeSpan)
-		{
-			List<string> elapsedString = new List<string>();
-			if (timeSpan.Days > 0)
-			{
-				elapsedString.Add($"{timeSpan.Days}d");
-			}
-			if (timeSpan.Hours > 0)
-			{
-				elapsedString.Add($"{timeSpan.Hours}h");
-			}
-			if (timeSpan.Minutes > 0)
-			{
-				elapsedString.Add($"{timeSpan.Minutes}m");
-			}
-			if (timeSpan.Seconds > 0)
-			{
-				elapsedString.Add($"{timeSpan.Seconds}s");
-			}
-			if (timeSpan.Milliseconds > 0)
-			{
-				elapsedString.Add($"{timeSpan.Milliseconds}ms");
-			}
-			return string.Join(":", elapsedString); // 1d:2h:30m:5s:1023ms
-		}
+        public static Stopwatch GetTimer(TimingMetric section)
+        {
+            return _timingDictionary[section];
+        }
 
-		public static string[] GetReport()
-		{
-			StopAllTimers();
-			var nonzeroKeyValuePairs = _timingDictionary.Where(kvp => kvp.Value.ElapsedTicks > 0);
+        /// <summary>
+        /// Formats a TimeSpan as such: 1d:2h:30m:5s:1023ms
+        /// </summary>
+        public static string FormatTimeSpan(TimeSpan timeSpan)
+        {
+            List<string> elapsedString = new List<string>();
+            if (timeSpan.Days > 0)
+            {
+                elapsedString.Add($"{timeSpan.Days}d");
+            }
+            if (timeSpan.Hours > 0)
+            {
+                elapsedString.Add($"{timeSpan.Hours}h");
+            }
+            if (timeSpan.Minutes > 0)
+            {
+                elapsedString.Add($"{timeSpan.Minutes}m");
+            }
+            if (timeSpan.Seconds > 0)
+            {
+                elapsedString.Add($"{timeSpan.Seconds}s");
+            }
+            if (timeSpan.Milliseconds > 0)
+            {
+                elapsedString.Add($"{timeSpan.Milliseconds}ms");
+            }
+            return string.Join(":", elapsedString); // 1d:2h:30m:5s:1023ms
+        }
 
-			int rightPadding = nonzeroKeyValuePairs.Select(kvp => $"Metric '{Enum.GetName(typeof(TimingMetric), kvp.Key)}' took ".Length).Max();
-			int leftPadding = nonzeroKeyValuePairs.Select(kvp => $"{FormatTimeSpan(kvp.Value.Elapsed)}.".Length).Max();
+        public static string[] GetReport()
+        {
+            StopAllTimers();
+            var nonzeroKeyValuePairs = _timingDictionary.Where(kvp => kvp.Value.ElapsedTicks > 0);
 
-			// e.g. YaraFiltering took 2h:30m:5s:1023ms.
-			List<string> results = nonzeroKeyValuePairs.Select(kvp => $"Metric '{Enum.GetName(typeof(TimingMetric), kvp.Key)}' took".PadRight(rightPadding) + $"{FormatTimeSpan(kvp.Value.Elapsed)}.".PadLeft(leftPadding)).ToList();
+            int rightPadding = nonzeroKeyValuePairs.Select(kvp => $"Metric '{Enum.GetName(typeof(TimingMetric), kvp.Key)}' took ".Length).Max();
+            int leftPadding = nonzeroKeyValuePairs.Select(kvp => $"{FormatTimeSpan(kvp.Value.Elapsed)}.".Length).Max();
 
-			TimeSpan sum = TimeSpan.Zero;
-			foreach (TimeSpan value in nonzeroKeyValuePairs.Select(kvp => kvp.Value.Elapsed))
-			{
-				sum = sum.Add(value);
-			}
+            // e.g. YaraFiltering took 2h:30m:5s:1023ms.
+            List<string> results = nonzeroKeyValuePairs.Select(kvp => $"Metric '{Enum.GetName(typeof(TimingMetric), kvp.Key)}' took".PadRight(rightPadding) + $"{FormatTimeSpan(kvp.Value.Elapsed)}.".PadLeft(leftPadding)).ToList();
 
-			results.Add(new string(Enumerable.Repeat('-', rightPadding + leftPadding).ToArray()));
-			results.Add("Metrics Total:".PadRight(rightPadding) + $"{FormatTimeSpan(sum)}".PadLeft(leftPadding));
+            TimeSpan sum = TimeSpan.Zero;
+            foreach (TimeSpan value in nonzeroKeyValuePairs.Select(kvp => kvp.Value.Elapsed))
+            {
+                sum = sum.Add(value);
+            }
 
-			return results.ToArray();
-		}
+            results.Add(new string(Enumerable.Repeat('-', rightPadding + leftPadding).ToArray()));
+            results.Add("Metrics Total:".PadRight(rightPadding) + $"{FormatTimeSpan(sum)}".PadLeft(leftPadding));
 
-		#endregion
+            return results.ToArray();
+        }
 
-		#region Instance Members
+        #endregion
 
-		private TimingMetric _section;
+        #region Instance Members
 
-		public TimingMetrics(TimingMetric section)
-		{
-			_section = section;
-			StartTimer(_section);
-		}
+        private TimingMetric _section;
 
-		public void Dispose()
-		{
-			StopTimer(_section);
-		}
+        public TimingMetrics(TimingMetric section)
+        {
+            _section = section;
+            if (Verbosity == LoggingVerbosity.Verbose)
+            {
+                Log.ToAll($"Entering: {Enum.GetName(typeof(TimingMetric), _section)} ->");
+            }
+            StartTimer(_section);
+        }
 
-		public override string ToString()
-		{
-			return string.Join(Environment.NewLine, GetReport());
-		}
+        public void Dispose()
+        {
+            StopTimer(_section);
+            if (Verbosity == LoggingVerbosity.Verbose)
+            {
+                Log.ToAll($"Leaving: {Enum.GetName(typeof(TimingMetric), _section)} <-");
+            }
+        }
 
-		#endregion
+        public override string ToString()
+        {
+            return string.Join(Environment.NewLine, GetReport());
+        }
 
-	}
+        #endregion
+
+    }
 }

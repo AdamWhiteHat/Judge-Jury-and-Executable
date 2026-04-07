@@ -68,6 +68,7 @@ namespace JudgeJuryAndExecutableGUI
         {
             OutputTextBox = tbOutput;
             Log.LogOutputAction = LogOutput;
+            Log.LoggingVerbosity = LoggingVerbosity.Standard;
             SQLHelper.LogExceptionAction = Log.ExceptionMessage;
             ProcessingToggle = new Toggle(ActivationBehavior, DeactivationBehavior, ResetBehavior);
         }
@@ -94,6 +95,8 @@ namespace JudgeJuryAndExecutableGUI
             {
                 tbSearchPatterns.Text = Settings.GUI_SearchPattern;
             }
+
+            Log.LoggingVerbosity = Settings.Logging_Verbosity;
 
             AutoComplete_FileExtensions = new AutoCompleteStringCollection();
             AutoComplete_MimeTypes = new AutoCompleteStringCollection();
@@ -309,7 +312,7 @@ namespace JudgeJuryAndExecutableGUI
                                                 calculateEntropy,
                                                 yaraParameters,
                                                 dataPersistenceLayer,
-                                                Log.ToUI, Log.ToFile, ReportTotals, Log.ExceptionMessage);
+                                                Log.ToUI, Log.ToFile, ReportTotals, Log.ExceptionMessage, Log.LoggingVerbosity);
 
                 enumerationStart = DateTime.Now;
 
@@ -484,7 +487,7 @@ namespace JudgeJuryAndExecutableGUI
         }
 
         private void linkGitHub_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
-        {            
+        {
             Process.Start(new ProcessStartInfo(linkGitHub.Text) { UseShellExecute = true });
         }
 
@@ -946,7 +949,7 @@ namespace JudgeJuryAndExecutableGUI
 
         #endregion
 
-        #region Load/Save Yara Rules Filters
+        #region Load/Save YARA Rules Filters
 
         private void btnYaraSave_Click(object sender, EventArgs e)
         {

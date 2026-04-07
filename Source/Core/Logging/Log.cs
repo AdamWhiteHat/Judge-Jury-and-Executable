@@ -13,7 +13,9 @@ namespace Logging
 		public static string DebugLogFilename = "Debug.log";
 		public static string RuntimeLogFilename;
 
-		public static Action<string> LogOutputAction;
+		public static LoggingVerbosity LoggingVerbosity = LoggingVerbosity.Standard;
+
+        public static Action<string> LogOutputAction;
 
 		static Log()
 		{

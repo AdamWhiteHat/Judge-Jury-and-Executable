@@ -5,141 +5,145 @@ using System.Threading;
 using System.Collections.Generic;
 using FilePropertiesDataObject.Helpers;
 using YaraSharp;
+using Logging;
 
 namespace FilePropertiesDataObject.Parameters
 {
-	public class FileEnumeratorParameters
-	{
-		public CancellationToken CancelToken { get; set; }
+    public class FileEnumeratorParameters
+    {
+        public CancellationToken CancelToken { get; set; }
 
-		public bool DisableWorkerThread { get; set; }
-		public string SelectedFolder { get; set; }
-		public string[] SearchPatterns { get; set; }
+        public bool DisableWorkerThread { get; set; }
+        public string SelectedFolder { get; set; }
+        public string[] SearchPatterns { get; set; }
 
-		public bool CalculateEntropy { get; set; }
-		public List<YaraFilter> YaraParameters { get; set; }
+        public bool CalculateEntropy { get; set; }
+        public List<YaraFilter> YaraParameters { get; set; }
 
-		public Action<string> ReportOutputFunction { get; set; }
-		public Action<string> LogOutputFunction { get; set; }
-		public Action<FileEnumeratorReport> ReportResultsFunction { get; set; }
-		public Action<string, string, Exception> ReportExceptionFunction { get; set; }
+        public Action<string> ReportOutputFunction { get; set; }
+        public Action<string> LogOutputFunction { get; set; }
+        public Action<FileEnumeratorReport> ReportResultsFunction { get; set; }
+        public Action<string, string, Exception> ReportExceptionFunction { get; set; }
+        public LoggingVerbosity LoggingVerbosity { get; set; }
 
-		public Action<string> ReportAndLogOutputFunction
-		{
-			get
-			{
-				return new Action<string>(
-					(msg) =>
-					{
-						if (LogOutputFunction != null) LogOutputFunction.Invoke(msg);
-						if (ReportOutputFunction != null) ReportOutputFunction.Invoke(msg);
-					}
-				);
-			}
-		}
+        public Action<string> ReportAndLogOutputFunction
+        {
+            get
+            {
+                return new Action<string>(
+                    (msg) =>
+                    {
+                        if (LogOutputFunction != null) LogOutputFunction.Invoke(msg);
+                        if (ReportOutputFunction != null) ReportOutputFunction.Invoke(msg);
+                    }
+                );
+            }
+        }
 
-		public IDataPersistenceLayer DataPersistenceLayer { get; set; }
+        public IDataPersistenceLayer DataPersistenceLayer { get; set; }
 
-		public FileEnumeratorParameters(CancellationToken cancelToken,
-										bool disableWorkerThread,
-										string selectedFolder,
-										string searchPatterns,
-										bool calculateEntropy,
-										List<YaraFilter> yaraParameters,
-										IDataPersistenceLayer dataPersistenceLayerClass,
-										Action<string> reportOutputFunction,
-										Action<string> logOutputFunction,
-										Action<FileEnumeratorReport> reportResultsFunction,
-										Action<string, string, Exception> reportExceptionFunction
-										)
-		{
-			this.CancelToken = cancelToken;
-			this.DisableWorkerThread = disableWorkerThread;
-			this.SelectedFolder = selectedFolder;
-			this.CalculateEntropy = calculateEntropy;
-			this.YaraParameters = yaraParameters;
-			this.DataPersistenceLayer = dataPersistenceLayerClass;
-			this.ReportOutputFunction = reportOutputFunction;
-			this.LogOutputFunction = logOutputFunction;
-			this.ReportResultsFunction = reportResultsFunction;
-			this.ReportExceptionFunction = reportExceptionFunction;
-			this.SearchPatterns = ParseSearchPatterns(searchPatterns);
-		}
+        public FileEnumeratorParameters(CancellationToken cancelToken,
+                                        bool disableWorkerThread,
+                                        string selectedFolder,
+                                        string searchPatterns,
+                                        bool calculateEntropy,
+                                        List<YaraFilter> yaraParameters,
+                                        IDataPersistenceLayer dataPersistenceLayerClass,
+                                        Action<string> reportOutputFunction,
+                                        Action<string> logOutputFunction,
+                                        Action<FileEnumeratorReport> reportResultsFunction,
+                                        Action<string, string, Exception> reportExceptionFunction,
+                                        LoggingVerbosity loggingVerbosity = LoggingVerbosity.Standard
+                                        )
+        {
+            this.CancelToken = cancelToken;
+            this.DisableWorkerThread = disableWorkerThread;
+            this.SelectedFolder = selectedFolder;
+            this.CalculateEntropy = calculateEntropy;
+            this.YaraParameters = yaraParameters;
+            this.DataPersistenceLayer = dataPersistenceLayerClass;
+            this.ReportOutputFunction = reportOutputFunction;
+            this.LogOutputFunction = logOutputFunction;
+            this.ReportResultsFunction = reportResultsFunction;
+            this.ReportExceptionFunction = reportExceptionFunction;
+            this.LoggingVerbosity = loggingVerbosity;
+            this.SearchPatterns = ParseSearchPatterns(searchPatterns);
+        }
 
-		public void ThrowIfAnyParametersInvalid()
-		{
-			ThrowIfAnyParametersInvalid(this);
-			YaraRulesCompileTest(this);
-		}
+        public void ThrowIfAnyParametersInvalid()
+        {
+            ThrowIfAnyParametersInvalid(this);
+            YaraRulesCompileTest(this);
+        }
 
-		private static void ThrowIfAnyParametersInvalid(FileEnumeratorParameters parameters)
-		{
-			if (parameters == null) { throw new ArgumentNullException(nameof(parameters)); }
-			if (parameters.DataPersistenceLayer == null) { throw new ArgumentException(nameof(DataPersistenceLayer)); }
-			if (parameters.SearchPatterns == null) { throw new ArgumentNullException(nameof(parameters.SearchPatterns)); }
-			if (parameters.ReportExceptionFunction == null) { throw new ArgumentNullException(nameof(parameters.ReportExceptionFunction)); }
-			if (parameters.ReportOutputFunction == null) { throw new ArgumentNullException(nameof(parameters.ReportOutputFunction)); }
-			if (parameters.LogOutputFunction == null) { throw new ArgumentNullException(nameof(parameters.LogOutputFunction)); }
-			if (parameters.ReportResultsFunction == null) { throw new ArgumentNullException(nameof(parameters.ReportResultsFunction)); }
-			if (string.IsNullOrWhiteSpace(parameters.SelectedFolder)) { throw new ArgumentNullException(nameof(parameters.SelectedFolder)); }
-			if (!Directory.Exists(parameters.SelectedFolder)) { throw new DirectoryNotFoundException(parameters.SelectedFolder); }
+        private static void ThrowIfAnyParametersInvalid(FileEnumeratorParameters parameters)
+        {
+            if (parameters == null) { throw new ArgumentNullException(nameof(parameters)); }
+            if (parameters.DataPersistenceLayer == null) { throw new ArgumentException(nameof(DataPersistenceLayer)); }
+            if (parameters.SearchPatterns == null) { throw new ArgumentNullException(nameof(parameters.SearchPatterns)); }
+            if (parameters.ReportExceptionFunction == null) { throw new ArgumentNullException(nameof(parameters.ReportExceptionFunction)); }
+            if (parameters.ReportOutputFunction == null) { throw new ArgumentNullException(nameof(parameters.ReportOutputFunction)); }
+            if (parameters.LogOutputFunction == null) { throw new ArgumentNullException(nameof(parameters.LogOutputFunction)); }
+            if (parameters.ReportResultsFunction == null) { throw new ArgumentNullException(nameof(parameters.ReportResultsFunction)); }
+            if (string.IsNullOrWhiteSpace(parameters.SelectedFolder)) { throw new ArgumentNullException(nameof(parameters.SelectedFolder)); }
+            if (!Directory.Exists(parameters.SelectedFolder)) { throw new DirectoryNotFoundException(parameters.SelectedFolder); }
 
-			char suppliedDriveLetter = char.ToUpper(parameters.SelectedFolder[0]);
+            char suppliedDriveLetter = char.ToUpper(parameters.SelectedFolder[0]);
 
-			List<char> foundDriveLetters = DriveInfo.GetDrives()
-													.Where(d => d.IsReady && d.DriveFormat == "NTFS")
-													.Select(di => di.Name.ToUpper()[0])
-													.ToList();
+            List<char> foundDriveLetters = DriveInfo.GetDrives()
+                                                    .Where(d => d.IsReady && d.DriveFormat == "NTFS")
+                                                    .Select(di => di.Name.ToUpper()[0])
+                                                    .ToList();
 
-			if (!foundDriveLetters.Any() || !foundDriveLetters.Contains(suppliedDriveLetter))
-			{
-				throw new DriveNotFoundException($"The drive {suppliedDriveLetter}:\\ was not found, the drive was not mounted or ready, or the drive had a file system other than NTFS.");
-			}
+            if (!foundDriveLetters.Any() || !foundDriveLetters.Contains(suppliedDriveLetter))
+            {
+                throw new DriveNotFoundException($"The drive {suppliedDriveLetter}:\\ was not found, the drive was not mounted or ready, or the drive had a file system other than NTFS.");
+            }
 
-			if (parameters.CancelToken == null) { throw new ArgumentNullException(nameof(parameters.CancelToken), "If you do not want to pass a CancellationToken, then pass 'CancellationToken.None'"); }
-			parameters.CancelToken.ThrowIfCancellationRequested();
-		}
+            if (parameters.CancelToken == null) { throw new ArgumentNullException(nameof(parameters.CancelToken), "If you do not want to pass a CancellationToken, then pass 'CancellationToken.None'"); }
+            parameters.CancelToken.ThrowIfCancellationRequested();
+        }
 
-		private string[] ParseSearchPatterns(string searchPattern)
-		{
-			string[] patterns = new string[] { ".exe", ".dll", ".sys", ".drv", ".ocx", ".com", ".scr" };
+        private string[] ParseSearchPatterns(string searchPattern)
+        {
+            string[] patterns = new string[] { ".exe", ".dll", ".sys", ".drv", ".ocx", ".com", ".scr" };
 
-			if (!string.IsNullOrWhiteSpace(searchPattern))
-			{
-				patterns = searchPattern.Split(new char[] { '|' }, StringSplitOptions.RemoveEmptyEntries);
-				patterns = patterns.Select(s => s.Contains(".") ? s.Replace("*", "") : s).ToArray();
-			}
+            if (!string.IsNullOrWhiteSpace(searchPattern))
+            {
+                patterns = searchPattern.Split(new char[] { '|' }, StringSplitOptions.RemoveEmptyEntries);
+                patterns = patterns.Select(s => s.Contains(".") ? s.Replace("*", "") : s).ToArray();
+            }
 
-			return patterns;
-		}
+            return patterns;
+        }
 
-		private static void YaraRulesCompileTest(FileEnumeratorParameters parameters)
-		{
-			if (!parameters.YaraParameters.Any())
-			{
-				return;
-			}
+        private static void YaraRulesCompileTest(FileEnumeratorParameters parameters)
+        {
+            if (!parameters.YaraParameters.Any())
+            {
+                return;
+            }
 
-			foreach (YaraFilter filter in parameters.YaraParameters)
-			{
-				YSScanner compiledRule = null;
-				try
-				{
-					compiledRule = YaraHelper.CompileRules(filter.OnMatchRules, parameters.ReportAndLogOutputFunction);
-				}
-				catch (Exception ex)
-				{
-					parameters.ReportExceptionFunction.Invoke(nameof(YaraRulesCompileTest), string.Empty, ex);
-					throw;
-				}
-				finally
-				{
-					if (compiledRule != null)
-					{
-						compiledRule.Dispose();
-					}
-				}
-			}
-		}
-	}
+            foreach (YaraFilter filter in parameters.YaraParameters)
+            {
+                YSScanner compiledRule = null;
+                try
+                {
+                    compiledRule = YaraHelper.CompileRules(filter.OnMatchRules, parameters.ReportAndLogOutputFunction);
+                }
+                catch (Exception ex)
+                {
+                    parameters.ReportExceptionFunction.Invoke(nameof(YaraRulesCompileTest), string.Empty, ex);
+                    throw;
+                }
+                finally
+                {
+                    if (compiledRule != null)
+                    {
+                        compiledRule.Dispose();
+                    }
+                }
+            }
+        }
+    }
 }

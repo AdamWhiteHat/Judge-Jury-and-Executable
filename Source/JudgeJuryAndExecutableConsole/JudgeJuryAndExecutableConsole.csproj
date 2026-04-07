@@ -2,7 +2,7 @@
 
 	<PropertyGroup>
 		<TargetFramework>net472-windows</TargetFramework>
-		<OutputType>WinExe</OutputType>
+		<OutputType>Exe</OutputType>
 		<UseWindowsForms>True</UseWindowsForms>
 		<Platforms>x64</Platforms>
 	</PropertyGroup>
@@ -49,11 +49,6 @@
 			<Pack>True</Pack>
 			<PackagePath>\</PackagePath>
 		</None>
-	</ItemGroup>
-
-	<ItemGroup>
-		<PackageReference Include="Newtonsoft.Json"
-						  Version="13.0.4" />
 	</ItemGroup>
 
 	<ItemGroup>
