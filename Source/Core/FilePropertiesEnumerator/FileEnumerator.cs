@@ -42,7 +42,26 @@ namespace FilePropertiesEnumerator
                 },
                 parameters.CancelToken);
 
-                Task reportResultsTask = enumerationTask.ContinueWith((antecedent) => parameters.ReportResultsFunction(antecedent.Result));
+                // Always report back to the caller, even if the enumeration task faulted or was cancelled.
+                // Accessing antecedent.Result on a faulted/cancelled task throws, which would skip
+                // ReportResultsFunction and leave the UI stuck in its "processing" state.
+                Task reportResultsTask = enumerationTask.ContinueWith((antecedent) =>
+                {
+                    FileEnumeratorReport report;
+                    if (antecedent.Status == TaskStatus.RanToCompletion)
+                    {
+                        report = antecedent.Result;
+                    }
+                    else
+                    {
+                        if (antecedent.IsFaulted)
+                        {
+                            parameters.ReportExceptionFunction.Invoke(nameof(LaunchFileEnumerator), string.Empty, antecedent.Exception.GetBaseException());
+                        }
+                        report = new FileEnumeratorReport(new List<FailSuccessCount>());
+                    }
+                    parameters.ReportResultsFunction(report);
+                }, TaskScheduler.Default);
             }
             else
             {
@@ -56,6 +75,7 @@ namespace FilePropertiesEnumerator
             TimingMetrics.ResetMetrics();
             FailSuccessCount fileEnumCount = new FailSuccessCount("OS files enumerated");
             FailSuccessCount databaseInsertCount = new FailSuccessCount("OS database rows updated");
+            IDataPersistenceLayer dataPersistenceLayer = parameters.DataPersistenceLayer;
 
             try
             {
@@ -106,16 +126,30 @@ namespace FilePropertiesEnumerator
                     }
                 }
 
-                IDataPersistenceLayer dataPersistenceLayer = parameters.DataPersistenceLayer;
                 foreach (INode node in mftNodes)
                 {
                     string message = $"MFT#: {node.MFTRecordNumber.ToString().PadRight(7)} Seq.#: {node.SequenceNumber.ToString().PadRight(4)} Path: {node.FullName}";
                     parameters.ReportAndLogOutputFunction.Invoke(message);
 
-                    fileEnumCount.IncrementSucceededCount();
-
                     FileProperties prop = new FileProperties();
-                    prop.PopulateFileProperties(parameters, parameters.SelectedFolder[0], node);
+                    try
+                    {
+                        prop.PopulateFileProperties(parameters, parameters.SelectedFolder[0], node);
+                    }
+                    catch (OperationCanceledException)
+                    {
+                        throw;
+                    }
+                    catch (Exception ex)
+                    {
+                        // A single unreadable file (e.g. a bad sector reported by the drive) must not abort the whole scan.
+                        parameters.ReportExceptionFunction.Invoke($"{nameof(Worker)}: {node.FullName}", string.Empty, ex);
+                        fileEnumCount.IncrementFailedCount();
+                        parameters.CancelToken.ThrowIfCancellationRequested();
+                        continue; // Don't persist a partially populated record.
+                    }
+
+                    fileEnumCount.IncrementSucceededCount();
 
                     // INSERT file properties into _DATABASE_
                     using (var timer = new TimingMetrics(TimingMetric.PersistingFileProperties))
@@ -133,12 +167,26 @@ namespace FilePropertiesEnumerator
 
                     parameters.CancelToken.ThrowIfCancellationRequested();
                 }
-
-                dataPersistenceLayer.Dispose();
-                FileProperties.CleanUp();
             }
             catch (OperationCanceledException)
             { }
+            catch (Exception ex)
+            {
+                // Unhandled exceptions used to fault the Task silently, leaving the UI hung.
+                parameters.ReportExceptionFunction.Invoke(nameof(Worker), string.Empty, ex);
+            }
+            finally
+            {
+                try
+                {
+                    dataPersistenceLayer?.Dispose();
+                    FileProperties.CleanUp();
+                }
+                catch (Exception cleanupException)
+                {
+                    parameters.ReportExceptionFunction.Invoke($"{nameof(Worker)}: cleanup", string.Empty, cleanupException);
+                }
+            }
 
             return new FileEnumeratorReport(new List<FailSuccessCount> { fileEnumCount, databaseInsertCount });
         }
