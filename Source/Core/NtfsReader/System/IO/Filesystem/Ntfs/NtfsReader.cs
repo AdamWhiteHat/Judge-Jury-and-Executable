@@ -615,8 +615,118 @@ namespace System.IO.Filesystem.Ntfs
 				}
 			}
 
+			// Attributes that don't fit in the base record are moved to extension records, which only the
+			// $ATTRIBUTE_LIST points to. This is followed for the $MFT record itself: on a large or heavily
+			// fragmented volume its $BITMAP (and later $DATA runs) live there, and the MFT can't be read without them.
+			if (isMftNode && depth == 0 && streams != null)
+			{
+				for (uint AttributeOffset = 0; AttributeOffset < BufLength; AttributeOffset = AttributeOffset + attribute->Length)
+				{
+					attribute = (Attribute*)(ptr + AttributeOffset);
+
+					if ((AttributeOffset + 4 <= BufLength) && (*(UInt32*)attribute == 0xFFFFFFFF))
+					{ break; }
+
+					if (attribute->AttributeType != AttributeType.AttributeAttributeList)
+					{ continue; }
+
+					if (attribute->Nonresident == 0)
+					{
+						ResidentAttribute* residentAttribute = (ResidentAttribute*)attribute;
+						ProcessAttributeList(ref node, nodeIndex, ptr + AttributeOffset + residentAttribute->ValueOffset, residentAttribute->ValueLength, depth, streams, isMftNode);
+					}
+					else
+					{
+						NonResidentAttribute* nonResidentAttribute = (NonResidentAttribute*)attribute;
+						byte[] listData = ProcessNonResidentData(
+							ptr + AttributeOffset + nonResidentAttribute->RunArrayOffset,
+							attribute->Length - nonResidentAttribute->RunArrayOffset,
+							0,
+							nonResidentAttribute->DataSize);
+
+						fixed (byte* listPtr = listData)
+						{
+							ProcessAttributeList(ref node, nodeIndex, listPtr, nonResidentAttribute->DataSize, depth, streams, isMftNode);
+						}
+					}
+				}
+			}
+
 			if (streams != null && streams.Count > 0)
 			{ node.Size = streams[0].Size; }
+		}
+
+		/// <summary>
+		/// Follow the entries of an $ATTRIBUTE_LIST: read each extension record it references
+		/// and process the specific attribute instance stored there.
+		/// </summary>
+		private unsafe void ProcessAttributeList(ref Node node, UInt32 nodeIndex, byte* ptr, UInt64 bufLength, int depth, List<Stream> streams, bool isMftNode)
+		{
+			const UInt64 MinEntryLength = 0x1A; // fixed part of an ATTRIBUTE_LIST entry, before its name
+
+			if (ptr == null || bufLength == 0)
+			{ return; }
+
+			// Extension records live inside the MFT, so they are located through the $MFT $DATA runs read so far.
+			Stream mftDataStream = SearchStream(streams, AttributeType.AttributeData);
+			if (mftDataStream == null)
+			{ throw new Exception("Error: $ATTRIBUTE_LIST found but the $MFT $DATA stream is unknown, cannot locate extension records."); }
+
+			UInt64 bytesPerCluster = (UInt64)_diskInfo.BytesPerSector * _diskInfo.SectorsPerCluster;
+			byte[] record = new byte[_diskInfo.BytesPerMftRecord];
+
+			AttributeList* entry = null;
+			for (UInt64 offset = 0; offset + MinEntryLength <= bufLength; offset += entry->Length)
+			{
+				entry = (AttributeList*)(ptr + offset);
+
+				if (entry->Length < MinEntryLength || offset + entry->Length > bufLength)
+				{ throw new Exception("Error: $ATTRIBUTE_LIST entry is malformed, the MFT may be corrupt."); }
+
+				UInt64 refInode = ((UInt64)entry->FileReferenceNumber.InodeNumberHighPart << 32) + entry->FileReferenceNumber.InodeNumberLowPart;
+
+				// Attributes stored in the base record were already processed.
+				if (refInode == nodeIndex)
+				{ continue; }
+
+				// Map the extension record's position in the MFT to a position on disk.
+				UInt64 recordOffset = refInode * _diskInfo.BytesPerMftRecord;
+				UInt64 targetVcn = recordOffset / bytesPerCluster;
+				UInt64 vcn = 0;
+				UInt64 position = 0;
+				bool found = false;
+
+				foreach (Fragment fragment in mftDataStream.Fragments)
+				{
+					if (targetVcn < fragment.NextVcn)
+					{
+						if (fragment.Lcn != VIRTUALFRAGMENT)
+						{
+							position = (fragment.Lcn + (targetVcn - vcn)) * bytesPerCluster + (recordOffset % bytesPerCluster);
+							found = true;
+						}
+						break;
+					}
+					vcn = fragment.NextVcn;
+				}
+
+				if (!found)
+				{ throw new Exception(string.Format("Error: extension record {0} of inode {1} is outside the known $MFT data, the MFT may be corrupt.", refInode, nodeIndex)); }
+
+				fixed (byte* recordPtr = record)
+				{
+					ReadFile(recordPtr, _diskInfo.BytesPerMftRecord, position);
+					FixupRawMftdata(recordPtr, _diskInfo.BytesPerMftRecord);
+
+					FileRecordHeader* header = (FileRecordHeader*)recordPtr;
+					UInt64 baseInode = ((UInt64)header->BaseFileRecord.InodeNumberHighPart << 32) + header->BaseFileRecord.InodeNumberLowPart;
+
+					if (header->RecordHeader.Type != RecordType.File || baseInode != nodeIndex || header->AttributeOffset >= _diskInfo.BytesPerMftRecord)
+					{ throw new Exception(string.Format("Error: extension record {0} does not belong to inode {1}, the MFT may be corrupt.", refInode, nodeIndex)); }
+
+					ProcessAttributes(ref node, nodeIndex, recordPtr + header->AttributeOffset, _diskInfo.BytesPerMftRecord - header->AttributeOffset, entry->Instance, depth + 1, streams, isMftNode);
+				}
+			}
 		}
 
 		/// <summary>
