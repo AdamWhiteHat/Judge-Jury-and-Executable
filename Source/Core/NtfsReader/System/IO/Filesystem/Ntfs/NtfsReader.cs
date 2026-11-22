@@ -560,8 +560,8 @@ namespace System.IO.Filesystem.Ntfs
 								_standardInformations[nodeIndex] =
 									new StandardInformation(
 										attributeStandardInformation->CreationTime,
-										attributeStandardInformation->FileChangeTime,
 										attributeStandardInformation->LastAccessTime,
+										attributeStandardInformation->FileChangeTime,
 										attributeStandardInformation->MftChangeTime
 									);
 							}
@@ -791,7 +791,7 @@ namespace System.IO.Filesystem.Ntfs
 
 			node.MFTRecordNumber = ntfsFileRecordHeader->MFTRecordNumber;
 
-			node.SequenceNumber = ntfsFileRecordHeader->BaseFileRecord.SequenceNumber;
+			node.SequenceNumber = ntfsFileRecordHeader->SequenceNumber;
 
 			if (ntfsFileRecordHeader->RecordHeader.Type != RecordType.File)
 			{ return false; }
