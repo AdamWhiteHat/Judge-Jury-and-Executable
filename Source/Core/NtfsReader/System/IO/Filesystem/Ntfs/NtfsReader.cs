@@ -69,6 +69,7 @@ namespace System.IO.Filesystem.Ntfs
 		List<string> _names = new List<string>();
 		RetrieveMode _retrieveMode;
 		byte[] _bitmapData;
+		Stream _mftDataStream; // the $MFT $DATA runs, used to locate other files' extension records
 		RawDisk rawDisk;
 
 		//preallocate a lot of space for the strings to avoid too much dictionary resizing
@@ -487,9 +488,9 @@ namespace System.IO.Filesystem.Ntfs
 		/// <summary>
 		/// Process each attributes and gather information when necessary
 		/// </summary>
-		private unsafe void ProcessAttributes(ref Node node, UInt32 nodeIndex, byte* ptr, UInt64 BufLength, UInt16 instance, int depth, List<Stream> streams, bool isMftNode)
+		private unsafe void ProcessAttributes(ref Node node, UInt32 nodeIndex, byte* ptr, UInt64 BufLength, UInt16 instance, int depth, List<Stream> streams, bool isMftNode, ref int currentNameType)
 		{
-			int currentNameType = -1;
+			UInt32 attributeListOffset = UInt32.MaxValue;
 
 			Attribute* attribute = null;
 			for (uint AttributeOffset = 0; AttributeOffset < BufLength; AttributeOffset = AttributeOffset + attribute->Length)
@@ -506,7 +507,10 @@ namespace System.IO.Filesystem.Ntfs
 
 				//attributes list needs to be processed at the end
 				if (attribute->AttributeType == AttributeType.AttributeAttributeList)
-				{ continue; }
+				{
+					attributeListOffset = AttributeOffset;
+					continue;
+				}
 
 				/* If the Instance does not equal the AttributeNumber then ignore the attribute.
                    This is used when an AttributeList is being processed and we only want a specific
@@ -540,7 +544,12 @@ namespace System.IO.Filesystem.Ntfs
 							else
 							{
 								int attributeNameType = (int)attributeFileName->NameType;
-								if (attributeNameType == 0 || currentNameType == 2)
+								// A name from an extension record (depth > 0) only replaces a DOS name, so a file
+								// with several hard links keeps the name its base record gives it.
+								bool replaceName = depth == 0
+									? (attributeNameType == 0 || currentNameType == 2)
+									: (currentNameType == 2 && attributeNameType != 2);
+								if (replaceName)
 								{
 									currentNameType = attributeNameType;
 									node.NameIndex = GetNameIndex(new string(&attributeFileName->Name, 0, attributeFileName->NameLength));
@@ -560,8 +569,8 @@ namespace System.IO.Filesystem.Ntfs
 								_standardInformations[nodeIndex] =
 									new StandardInformation(
 										attributeStandardInformation->CreationTime,
-										attributeStandardInformation->FileChangeTime,
 										attributeStandardInformation->LastAccessTime,
+										attributeStandardInformation->FileChangeTime,
 										attributeStandardInformation->MftChangeTime
 									);
 							}
@@ -615,8 +624,185 @@ namespace System.IO.Filesystem.Ntfs
 				}
 			}
 
+			// Attributes that don't fit in the base record are moved to extension records, which only the
+			// $ATTRIBUTE_LIST points to. For the $MFT record, that is where $BITMAP and later $DATA runs live on a
+			// large or fragmented volume. For other files it can hold their $DATA runs, alternate data streams
+			// or file names. Without following it those attributes are missing.
+			if (depth == 0 && attributeListOffset != UInt32.MaxValue)
+			{
+				attribute = (Attribute*)(ptr + attributeListOffset);
+
+				if (attribute->Nonresident == 0)
+				{
+					ResidentAttribute* residentAttribute = (ResidentAttribute*)attribute;
+					ProcessAttributeList(ref node, nodeIndex, ptr + attributeListOffset + residentAttribute->ValueOffset, residentAttribute->ValueLength, depth, streams, isMftNode, ref currentNameType);
+				}
+				else
+				{
+					NonResidentAttribute* nonResidentAttribute = (NonResidentAttribute*)attribute;
+					byte[] listData = ProcessNonResidentData(
+						ptr + attributeListOffset + nonResidentAttribute->RunArrayOffset,
+						attribute->Length - nonResidentAttribute->RunArrayOffset,
+						0,
+						nonResidentAttribute->DataSize);
+
+					fixed (byte* listPtr = listData)
+					{
+						ProcessAttributeList(ref node, nodeIndex, listPtr, nonResidentAttribute->DataSize, depth, streams, isMftNode, ref currentNameType);
+					}
+				}
+
+				if (streams != null && streams.Count > 0)
+				{
+					// The base record's attributes are processed before the extension records', so put each
+					// stream's fragments back in VCN order and put the unnamed $DATA stream first:
+					// Size and ReadFileSafe use the first stream.
+					foreach (Stream stream in streams)
+					{
+						if (stream._fragments != null)
+						{ stream._fragments.Sort((x, y) => x.NextVcn.CompareTo(y.NextVcn)); }
+					}
+
+					Stream dataStream = SearchStream(streams, AttributeType.AttributeData, 0);
+					if (dataStream != null && streams[0] != dataStream)
+					{
+						streams.Remove(dataStream);
+						streams.Insert(0, dataStream);
+					}
+				}
+			}
+
 			if (streams != null && streams.Count > 0)
 			{ node.Size = streams[0].Size; }
+		}
+
+		/// <summary>
+		/// Follow the entries of an $ATTRIBUTE_LIST: read each extension record it references
+		/// and process the specific attribute instance stored there.
+		/// </summary>
+		/// <remarks>
+		/// A bad entry in the $MFT record's own list is fatal, because the MFT can't be read without it.
+		/// For other files the entry is skipped: the volume is live, so an extension record can change
+		/// between reading the base record and reading the extension record.
+		/// </remarks>
+		private unsafe void ProcessAttributeList(ref Node node, UInt32 nodeIndex, byte* ptr, UInt64 bufLength, int depth, List<Stream> streams, bool isMftNode, ref int currentNameType)
+		{
+			const UInt64 MinEntryLength = 0x1A; // fixed part of an ATTRIBUTE_LIST entry, before its name
+
+			if (ptr == null || bufLength == 0)
+			{ return; }
+
+			// Extension records live inside the MFT, so they are located through the $MFT $DATA runs
+			// (while reading the $MFT record itself, the runs read so far).
+			Stream mftDataStream = isMftNode ? SearchStream(streams, AttributeType.AttributeData) : _mftDataStream;
+			if (mftDataStream == null)
+			{
+				if (isMftNode)
+				{ throw new Exception("Error: $ATTRIBUTE_LIST found but the $MFT $DATA stream is unknown, cannot locate extension records."); }
+				return;
+			}
+
+			byte[] record = new byte[_diskInfo.BytesPerMftRecord];
+			UInt64 loadedInode = UInt64.MaxValue;
+			bool loadedIsValid = false;
+
+			fixed (byte* recordPtr = record)
+			{
+				AttributeList* entry = null;
+				for (UInt64 offset = 0; offset + MinEntryLength <= bufLength; offset += entry->Length)
+				{
+					entry = (AttributeList*)(ptr + offset);
+
+					if (entry->Length < MinEntryLength || offset + entry->Length > bufLength)
+					{
+						if (isMftNode)
+						{ throw new Exception("Error: $ATTRIBUTE_LIST entry is malformed, the MFT may be corrupt."); }
+						return;
+					}
+
+					UInt64 refInode = ((UInt64)entry->FileReferenceNumber.InodeNumberHighPart << 32) + entry->FileReferenceNumber.InodeNumberLowPart;
+
+					// Attributes stored in the base record were already processed.
+					if (refInode == nodeIndex)
+					{ continue; }
+
+					// Consecutive entries usually point to the same extension record, so read each one once.
+					if (refInode != loadedInode)
+					{
+						loadedInode = refInode;
+						loadedIsValid = ReadExtensionRecord(recordPtr, refInode, entry->FileReferenceNumber.SequenceNumber, nodeIndex, mftDataStream, isMftNode);
+					}
+
+					if (!loadedIsValid)
+					{ continue; }
+
+					FileRecordHeader* header = (FileRecordHeader*)recordPtr;
+					ProcessAttributes(ref node, nodeIndex, recordPtr + header->AttributeOffset, _diskInfo.BytesPerMftRecord - header->AttributeOffset, entry->Instance, depth + 1, streams, isMftNode, ref currentNameType);
+				}
+			}
+		}
+
+		/// <summary>
+		/// Read MFT record <paramref name="inode"/> into <paramref name="buffer"/> and check that it is an
+		/// extension record of <paramref name="baseInode"/>. Returns false if it isn't; for the $MFT it throws instead.
+		/// </summary>
+		private unsafe bool ReadExtensionRecord(byte* buffer, UInt64 inode, UInt16 sequenceNumber, UInt32 baseInode, Stream mftDataStream, bool isMftNode)
+		{
+			// Map the record's position in the MFT to a position on disk.
+			UInt64 bytesPerCluster = (UInt64)_diskInfo.BytesPerSector * _diskInfo.SectorsPerCluster;
+			UInt64 recordOffset = inode * _diskInfo.BytesPerMftRecord;
+			UInt64 targetVcn = recordOffset / bytesPerCluster;
+			UInt64 vcn = 0;
+			UInt64 position = 0;
+			bool found = false;
+
+			foreach (Fragment fragment in mftDataStream.Fragments)
+			{
+				if (targetVcn < fragment.NextVcn)
+				{
+					if (fragment.Lcn != VIRTUALFRAGMENT)
+					{
+						position = (fragment.Lcn + (targetVcn - vcn)) * bytesPerCluster + (recordOffset % bytesPerCluster);
+						found = true;
+					}
+					break;
+				}
+				vcn = fragment.NextVcn;
+			}
+
+			if (!found)
+			{
+				if (isMftNode)
+				{ throw new Exception(string.Format("Error: extension record {0} of inode {1} is outside the known $MFT data, the MFT may be corrupt.", inode, baseInode)); }
+				return false;
+			}
+
+			// ReadFile leaves the buffer unchanged when a read fails, so clear it first: zeros fail the checks below.
+			for (UInt64 i = 0; i < _diskInfo.BytesPerMftRecord; i++)
+			{ buffer[i] = 0; }
+
+			ReadFile(buffer, _diskInfo.BytesPerMftRecord, position);
+
+			try
+			{ FixupRawMftdata(buffer, _diskInfo.BytesPerMftRecord); }
+			catch (Exception) when (!isMftNode)
+			{ return false; } // the record was being written while it was read
+
+			FileRecordHeader* header = (FileRecordHeader*)buffer;
+			UInt64 recordBaseInode = ((UInt64)header->BaseFileRecord.InodeNumberHighPart << 32) + header->BaseFileRecord.InodeNumberLowPart;
+
+			// The sequence number check rejects a record that was freed and reused after the list was read.
+			bool isValid =
+				header->RecordHeader.Type == RecordType.File
+				&& (header->Flags & 1) == 1
+				&& recordBaseInode == baseInode
+				&& header->AttributeOffset < _diskInfo.BytesPerMftRecord
+				&& (sequenceNumber == 0 || header->SequenceNumber == sequenceNumber);
+
+			if (!isValid && isMftNode)
+			{ throw new Exception(string.Format("Error: extension record {0} does not belong to inode {1}, the MFT may be corrupt.", inode, baseInode)); }
+
+			return isValid;
 		}
 
 		/// <summary>
@@ -681,7 +867,7 @@ namespace System.IO.Filesystem.Ntfs
 
 			node.MFTRecordNumber = ntfsFileRecordHeader->MFTRecordNumber;
 
-			node.SequenceNumber = ntfsFileRecordHeader->BaseFileRecord.SequenceNumber;
+			node.SequenceNumber = ntfsFileRecordHeader->SequenceNumber;
 
 			if (ntfsFileRecordHeader->RecordHeader.Type != RecordType.File)
 			{ return false; }
@@ -708,7 +894,8 @@ namespace System.IO.Filesystem.Ntfs
 			if ((ntfsFileRecordHeader->Flags & 2) == 2)
 			{ node.Attributes |= Attributes.Directory; }
 
-			ProcessAttributes(ref node, nodeIndex, buffer + ntfsFileRecordHeader->AttributeOffset, length - ntfsFileRecordHeader->AttributeOffset, 65535, 0, streams, isMftNode);
+			int currentNameType = -1;
+			ProcessAttributes(ref node, nodeIndex, buffer + ntfsFileRecordHeader->AttributeOffset, length - ntfsFileRecordHeader->AttributeOffset, 65535, 0, streams, isMftNode, ref currentNameType);
 
 			return true;
 		}
@@ -797,6 +984,7 @@ namespace System.IO.Filesystem.Ntfs
 				OnBitmapDataAvailable();
 
 				Stream dataStream = SearchStream(mftStreams, AttributeType.AttributeData);
+				_mftDataStream = dataStream;
 
 				UInt32 maxInode = (UInt32)_bitmapData.Length * 8;
 				if (maxInode > (UInt32)(dataStream.Size / _diskInfo.BytesPerMftRecord))

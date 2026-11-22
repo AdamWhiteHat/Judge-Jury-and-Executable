@@ -188,6 +188,17 @@ namespace System.IO.Filesystem.Ntfs
 
 		public IEnumerable<byte[]> ReadFileSafe(INode node)
 		{
+			// The clusters of a compressed or encrypted file hold compressed data or ciphertext, not the
+			// file's contents, so read those files through the file system instead.
+			if ((node.Attributes & (Attributes.Compressed | Attributes.Encrypted)) != 0)
+			{
+				foreach (byte[] chunk in ReadThroughFileSystem(node.FullName))
+				{
+					yield return chunk;
+				}
+				yield break;
+			}
+
 			if (node.Size == 0 || !node.Streams.Any())
 			{
 				yield break;
@@ -260,6 +271,40 @@ namespace System.IO.Filesystem.Ntfs
 			}
 
 			yield break;
+		}
+
+		private static IEnumerable<byte[]> ReadThroughFileSystem(string path)
+		{
+			const int ChunkSize = 16 * 1024 * 1024;
+
+			// NtfsReader declares its own FileMode/FileAccess/FileShare for CreateFile, so name the System.IO ones.
+			using (FileStream stream = new FileStream(path, System.IO.FileMode.Open, System.IO.FileAccess.Read, System.IO.FileShare.ReadWrite | System.IO.FileShare.Delete))
+			{
+				long remaining = stream.Length;
+				while (remaining > 0)
+				{
+					byte[] chunk = new byte[(int)Math.Min(ChunkSize, remaining)];
+					int filled = 0;
+					int read;
+					while (filled < chunk.Length && (read = stream.Read(chunk, filled, chunk.Length - filled)) > 0)
+					{
+						filled += read;
+					}
+
+					if (filled == 0)
+					{
+						yield break;
+					}
+
+					if (filled < chunk.Length)
+					{
+						Array.Resize(ref chunk, filled);
+					}
+
+					remaining -= filled;
+					yield return chunk;
+				}
+			}
 		}
 
 		public byte[] GetVolumeBitmap()

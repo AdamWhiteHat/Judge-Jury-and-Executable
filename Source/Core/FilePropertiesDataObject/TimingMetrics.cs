@@ -111,8 +111,8 @@ namespace FilePropertiesDataObject
             StopAllTimers();
             var nonzeroKeyValuePairs = _timingDictionary.Where(kvp => kvp.Value.ElapsedTicks > 0);
 
-            int rightPadding = nonzeroKeyValuePairs.Select(kvp => $"Metric '{Enum.GetName(typeof(TimingMetric), kvp.Key)}' took ".Length).Max();
-            int leftPadding = nonzeroKeyValuePairs.Select(kvp => $"{FormatTimeSpan(kvp.Value.Elapsed)}.".Length).Max();
+            int rightPadding = nonzeroKeyValuePairs.Select(kvp => $"Metric '{Enum.GetName(typeof(TimingMetric), kvp.Key)}' took ".Length).DefaultIfEmpty(0).Max();
+            int leftPadding = nonzeroKeyValuePairs.Select(kvp => $"{FormatTimeSpan(kvp.Value.Elapsed)}.".Length).DefaultIfEmpty(0).Max();
 
             // e.g. YaraFiltering took 2h:30m:5s:1023ms.
             List<string> results = nonzeroKeyValuePairs.Select(kvp => $"Metric '{Enum.GetName(typeof(TimingMetric), kvp.Key)}' took".PadRight(rightPadding) + $"{FormatTimeSpan(kvp.Value.Elapsed)}.".PadLeft(leftPadding)).ToList();

@@ -283,6 +283,7 @@ namespace JudgeJuryAndExecutableGUI
                     {
                         if (MessageBox.Show(string.Format(fileExistsMessage, "CSV", tbPersistenceParameter.Text), MsgBox_TitleBarText, MessageBoxButtons.YesNo, MessageBoxIcon.Warning) == DialogResult.No)
                         {
+                            ProcessingToggle.SetState(ToggleState.Ready);
                             return;
                         }
                     }
@@ -294,6 +295,7 @@ namespace JudgeJuryAndExecutableGUI
                     {
                         if (MessageBox.Show(string.Format(fileExistsMessage, "SQLite", tbPersistenceParameter.Text), MsgBox_TitleBarText, MessageBoxButtons.YesNo, MessageBoxIcon.Warning) == DialogResult.No)
                         {
+                            ProcessingToggle.SetState(ToggleState.Ready);
                             return;
                         }
                     }
@@ -432,7 +434,7 @@ namespace JudgeJuryAndExecutableGUI
                 panelParameters.Enabled = enabled;
                 panelPersistenceOptions.Enabled = enabled;
                 btnSearch.Text = enabled ? "Scan" : "Cancel";
-                btnSearch.Enabled = !enabled;
+                btnSearch.Enabled = true;
             }
         }
 
